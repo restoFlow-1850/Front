@@ -1,0 +1,10 @@
+{
+    "configurations": [
+        {
+            "type": "chrome",
+            "name": "http://npm install -g @anthropic-ai/claude-code",
+            "request": "launch",
+            "url": "http://npm install -g @anthropic-ai/claude-code"
+        }
+    ]
+}

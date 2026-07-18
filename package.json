@@ -1,0 +1,12 @@
+{
+  "private": true,
+  "scripts": {
+    "dev": "cd Front && npm run dev",
+    "build": "cd Front && npm run build",
+    "preview": "cd Front && npm run preview",
+    "lint": "cd Front && npm run lint"
+  },
+  "dependencies": {
+    "lucide-react": "^1.24.0"
+  }
+}
