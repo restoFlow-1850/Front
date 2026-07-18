@@ -2,8 +2,10 @@
 // Mas'ul: Fayoz (auth interceptor). Foydalanadi: hamma feature.
 import axios from 'axios'
 
+const DEMO_TOKEN = 'demo-token'
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'https://backend-production-11b7.up.railway.app/api',
   headers: { 'Content-Type': 'application/json' },
 })
 
@@ -18,6 +20,12 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   async (error) => {
+    if (error.response?.status === 401) {
+      const token = localStorage.getItem('accessToken')
+      if (token && token !== DEMO_TOKEN) {
+        console.warn('401 Unauthorized: token yaroqsiz, qayta login talab qilinadi.')
+      }
+    }
     // TODO: refresh token oqimi
     return Promise.reject(error)
   },
