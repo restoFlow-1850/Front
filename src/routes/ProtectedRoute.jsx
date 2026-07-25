@@ -2,7 +2,7 @@
 // Mas'ul: Ziyoddila (Fayoz bilan auth holati bo'yicha).
 import { Navigate, Outlet } from 'react-router-dom'
 
-export default function ProtectedRoute({ roles }) {
+export default function ProtectedRoute({ roles: _roles }) {
   const token = localStorage.getItem('accessToken')
   // const { user } = useAuth() // Fayoz: auth slice'dan
 

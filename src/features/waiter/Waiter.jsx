@@ -9,6 +9,7 @@ import OrderConfirmModal from './OrderConfirmModal';
 import List from './List';
 import { createOrder } from '../../services/order.service';
 import { TABLE_STATUS } from '../../constants/tableStatus';
+import ThemeToggle from '../../components/ui/ThemeToggle';
 
 const categories = [
   { key: 'all', label: 'Barchasi' },
@@ -85,41 +86,51 @@ const Waiter = () => {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#03060d] text-slate-100 px-4 py-6 lg:px-8 lg:py-8">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(20,184,166,0.16),transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(59,130,246,0.12),transparent_30%)]" />
-      <div className="relative mx-auto grid gap-6 xl:grid-cols-[1.8fr_1fr]">
+    <div className="relative min-h-screen overflow-hidden bg-[#faf7f2] text-slate-900 px-4 py-6 dark:bg-[#03060d] dark:text-slate-100 sm:px-6 lg:px-8 lg:py-8">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(249,115,22,0.08),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.06),transparent_30%)] dark:bg-[radial-gradient(circle_at_top,rgba(20,184,166,0.16),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.12),transparent_30%)]" />
+      <div className="relative mx-auto grid gap-6 lg:grid-cols-[1.6fr_1fr]">
         <div className="space-y-6">
-          <section className="rounded-[2rem] border border-cyan-500/10 bg-[#07101d]/90 p-6 shadow-[0_40px_90px_rgba(15,23,42,0.55)] backdrop-blur-xl">
+          <section className="rounded-4xl border border-slate-200 bg-white p-5 shadow-sm dark:border-cyan-500/10 dark:bg-[#07101d]/90 dark:shadow-[0_40px_90px_rgba(15,23,42,0.55)] sm:p-6 dark:backdrop-blur-xl">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-2xl">
-                <span className="inline-flex rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs uppercase tracking-[0.35em] text-cyan-300">Operatsiya markazi</span>
-                <h1 className="mt-4 text-4xl font-semibold text-white">Zal reja va buyurtma oqimi</h1>
-                <p className="mt-3 max-w-xl text-sm leading-7 text-slate-400">Har bir stolni noyob ravishda boshqaring, buyurtmalarni to'liq nazorat ostida saqlang va mijozlar oqimini aniq kuzating.</p>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="inline-flex rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs uppercase tracking-[0.35em] text-orange-600 dark:border-cyan-500/20 dark:bg-cyan-500/10 dark:text-cyan-300">Operatsiya markazi</span>
+                  <div className="lg:hidden">
+                    <ThemeToggle />
+                  </div>
+                </div>
+                <h1 className="mt-4 text-2xl font-semibold text-slate-900 dark:text-white sm:text-3xl lg:text-4xl">Zal reja va buyurtma oqimi</h1>
+                <p className="mt-3 max-w-xl text-sm leading-7 text-slate-500 dark:text-slate-400">Har bir stolni noyob ravishda boshqaring, buyurtmalarni to'liq nazorat ostida saqlang va mijozlar oqimini aniq kuzating.</p>
               </div>
-              <div className="grid w-full grid-cols-3 gap-3 sm:w-auto sm:grid-cols-3">
-                <div className="rounded-[1.5rem] border border-cyan-500/15 bg-[#05111d] p-4 text-center">
-                  <p className="text-2xl font-semibold text-white">{tables.length}</p>
-                  <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Stol</p>
+              <div className="flex items-start gap-3">
+                <div className="grid w-full grid-cols-3 gap-2 sm:w-auto sm:gap-3">
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-center dark:border-cyan-500/15 dark:bg-[#05111d] sm:rounded-3xl sm:p-4">
+                    <p className="text-lg font-semibold text-slate-900 dark:text-white sm:text-2xl">{tables.length}</p>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 dark:text-slate-500 sm:text-xs sm:tracking-[0.28em]">Stol</p>
+                  </div>
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-center dark:border-cyan-500/15 dark:bg-[#05111d] sm:rounded-3xl sm:p-4">
+                    <p className="text-lg font-semibold text-slate-900 dark:text-white sm:text-2xl">{items.length}</p>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 dark:text-slate-500 sm:text-xs sm:tracking-[0.28em]">Sav. element</p>
+                  </div>
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-center dark:border-cyan-500/15 dark:bg-[#05111d] sm:rounded-3xl sm:p-4">
+                    <p className="text-lg font-semibold text-slate-900 dark:text-white sm:text-2xl">{total.toLocaleString()}</p>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 dark:text-slate-500 sm:text-xs sm:tracking-[0.28em]">Jami UZS</p>
+                  </div>
                 </div>
-                <div className="rounded-[1.5rem] border border-cyan-500/15 bg-[#05111d] p-4 text-center">
-                  <p className="text-2xl font-semibold text-white">{items.length}</p>
-                  <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Sav. element</p>
-                </div>
-                <div className="rounded-[1.5rem] border border-cyan-500/15 bg-[#05111d] p-4 text-center">
-                  <p className="text-2xl font-semibold text-white">{total.toLocaleString()}</p>
-                  <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Jami UZS</p>
+                <div className="hidden lg:block">
+                  <ThemeToggle />
                 </div>
               </div>
             </div>
           </section>
 
-          <section className="rounded-[2rem] border border-cyan-500/10 bg-[#06121f]/90 p-5 shadow-[0_40px_90px_rgba(15,23,42,0.5)] backdrop-blur-xl">
+          <section className="rounded-4xl border border-slate-200 bg-white p-4 shadow-sm dark:border-cyan-500/10 dark:bg-[#06121f]/90 dark:shadow-[0_40px_90px_rgba(15,23,42,0.5)] sm:p-5 dark:backdrop-blur-xl">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.28em] text-cyan-300">Xaritadan tanlash</p>
-                <h2 className="mt-2 text-2xl font-semibold text-white">Stol xaritasi</h2>
+                <p className="text-xs uppercase tracking-[0.28em] text-orange-600 dark:text-cyan-300">Xaritadan tanlash</p>
+                <h2 className="mt-2 text-xl font-semibold text-slate-900 dark:text-white sm:text-2xl">Stol xaritasi</h2>
               </div>
-              <div className="rounded-full border border-cyan-500/20 bg-[#04111a] px-4 py-2 text-sm text-slate-400">{selectedTable ? `Tanlangan: #${selectedTable.number}` : 'Hech kim tanlanmadi'}</div>
+              <div className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-500 dark:border-cyan-500/20 dark:bg-[#04111a] dark:text-slate-400">{selectedTable ? `Tanlangan: #${selectedTable.number}` : 'Hech kim tanlanmadi'}</div>
             </div>
             {/*
               NOTE: previously there was a second, non-functional row of category-style
@@ -129,42 +140,41 @@ const Waiter = () => {
               dead/confusing control. The description text is kept below.
             */}
             <div className="mt-5">
-              <p className="text-sm text-slate-500">Har bir stol uchun real vaqt holati va tezkor boshqaruv.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-500">Har bir stol uchun real vaqt holati va tezkor boshqaruv.</p>
             </div>
             <div className="mt-6">
               <TableMap2D onTableClick={selectTable} selectedTable={selectedTable} />
             </div>
           </section>
 
-          <section className="rounded-[2rem] border border-cyan-500/10 bg-[#06121f]/90 p-5 shadow-[0_40px_90px_rgba(15,23,42,0.5)] backdrop-blur-xl">
+          <section className="rounded-4xl border border-slate-200 bg-white p-4 shadow-sm dark:border-cyan-500/10 dark:bg-[#06121f]/90 dark:shadow-[0_40px_90px_rgba(15,23,42,0.5)] sm:p-5 dark:backdrop-blur-xl">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.28em] text-cyan-300">Inventar nazorati</p>
-                <h2 className="mt-2 text-2xl font-semibold text-white">Menyu</h2>
+                <p className="text-xs uppercase tracking-[0.28em] text-orange-600 dark:text-cyan-300">Inventar nazorati</p>
+                <h2 className="mt-2 text-xl font-semibold text-slate-900 dark:text-white sm:text-2xl">Menyu</h2>
               </div>
-              <div className="inline-flex rounded-full border border-cyan-500/15 bg-[#04111a] px-4 py-2 text-sm text-slate-300">Qidiruv</div>
             </div>
             <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_4fr]">
-              <div className="space-y-3 rounded-[1.75rem] border border-cyan-500/10 bg-[#04111a]/70 p-4">
+              <div className="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:gap-3 lg:overflow-visible lg:rounded-[1.75rem] lg:border lg:border-slate-200 lg:bg-slate-50 lg:p-4 lg:pb-4 dark:lg:border-cyan-500/10 dark:lg:bg-[#04111a]/70">
                 {categories.map((cat) => (
                   <button
                     key={cat.key}
                     type="button"
                     onClick={() => setCategory(cat.key)}
-                    className={`w-full rounded-[1.5rem] px-4 py-3 text-left text-sm font-semibold transition ${category === cat.key ? 'bg-cyan-600 text-slate-950 shadow-[0_15px_35px_rgba(20,184,166,0.18)]' : 'bg-[#021018] text-slate-300 hover:bg-[#071724]'}`}
+                    className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2.5 text-left text-sm font-semibold transition lg:w-full lg:rounded-3xl lg:py-3 ${category === cat.key ? 'bg-orange-600 text-white dark:bg-cyan-600 dark:text-slate-950 dark:shadow-[0_15px_35px_rgba(20,184,166,0.18)]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-[#021018] dark:text-slate-300 dark:hover:bg-[#071724]'}`}
                   >
                     {cat.label}
                   </button>
                 ))}
               </div>
               <div>
-                <div className="rounded-[1.75rem] border border-cyan-500/10 bg-[#04111a]/70 p-4">
+                <div className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-3 dark:border-cyan-500/10 dark:bg-[#04111a]/70 sm:p-4">
                   <input
                     type="search"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Qidiruv..."
-                    className="w-full rounded-[1.5rem] border border-cyan-500/10 bg-[#020c14] px-4 py-3 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
+                    className="w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 dark:border-cyan-500/10 dark:bg-[#020c14] dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-cyan-400 dark:focus:ring-cyan-400/20"
                   />
                 </div>
                 <div className="mt-4">

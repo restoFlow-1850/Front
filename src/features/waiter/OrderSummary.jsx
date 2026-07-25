@@ -1,5 +1,3 @@
-import React from 'react';
-
 const OrderSummary = ({ total, itemsCount }) => {
   return (
     <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">

@@ -1,4 +1,3 @@
-import React from 'react';
 import TableGrid from './TableGrid';
 
 const TableZone = ({ zone, tables, onTableClick, selectedTable }) => {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Modal from '../../components/ui/Modal';
 
 const NoteModal = ({ isOpen, note, onSave, onClose }) => {
@@ -19,7 +19,7 @@ const NoteModal = ({ isOpen, note, onSave, onClose }) => {
           Buyurtmaga qo'shimcha izoh qoldiring:
         </p>
         <textarea
-          className="w-full px-4 py-3 border rounded-lg dark:bg-gray-800 dark:border-gray-700 min-h-[120px] focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+          className="w-full px-4 py-3 border rounded-lg dark:bg-gray-800 dark:border-gray-700 min-h-30 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
           placeholder="Masalan: Achchiq bo'lmasin, tezroq tayyorlang..."
           value={text}
           onChange={(e) => setText(e.target.value)}

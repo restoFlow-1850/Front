@@ -1,4 +1,3 @@
-import React from 'react';
 import Badge from '../../../components/ui/Badge';
 import { TABLE_STATUS_LABELS } from '../../../constants/tableStatus';
 

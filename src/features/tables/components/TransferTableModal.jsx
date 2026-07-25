@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Modal from '../../../components/ui/Modal';
 import { TRANSFERABLE_TARGET_STATUSES } from '../../../constants/tableStatus';
 
@@ -26,6 +26,7 @@ const TransferTableModal = ({ sourceTable, tables, onTransfer, onClose }) => {
       alert(`✅ Stol #${sourceTable.number} → Stol #${selectedTarget.number} ko'chirildi`);
       onClose();
     } catch (error) {
+      console.error('Stol ko\'chirishda xatolik:', error);
       alert('❌ Stol ko\'chirishda xatolik yuz berdi');
     } finally {
       setLoading(false);

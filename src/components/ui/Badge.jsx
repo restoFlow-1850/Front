@@ -1,5 +1,3 @@
-import React from 'react';
-
 const Badge = ({ status, label, color }) => {
   const colors = {
     available: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',

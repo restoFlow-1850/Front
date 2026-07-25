@@ -29,6 +29,7 @@ export const fetchTables = createAsyncThunk(
       const response = await tableService.getAll();
       return response.data;
     } catch (error) {
+      console.error('Stollarni yuklashda xatolik:', error);
       return sampleTables;
     }
   },

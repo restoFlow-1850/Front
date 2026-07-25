@@ -16,7 +16,8 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// 401 bo'lsa refresh token orqali yangilash (TODO: Fayoz)
+// 401 bo'lsa: yaroqsiz tokenni tozalab, login sahifasiga qaytarish
+// (to'liq refresh-token oqimi hali yo'q — TODO: Fayoz)
 api.interceptors.response.use(
   (res) => res,
   async (error) => {
@@ -24,9 +25,12 @@ api.interceptors.response.use(
       const token = localStorage.getItem('accessToken')
       if (token && token !== DEMO_TOKEN) {
         console.warn('401 Unauthorized: token yaroqsiz, qayta login talab qilinadi.')
+        localStorage.removeItem('accessToken')
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login'
+        }
       }
     }
-    // TODO: refresh token oqimi
     return Promise.reject(error)
   },
 )

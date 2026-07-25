@@ -1,4 +1,3 @@
-import React from 'react';
 import TableCard from './TableCard';
 
 const TableGrid = ({ tables, onTableClick, selectedTable }) => {

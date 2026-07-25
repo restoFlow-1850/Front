@@ -8,6 +8,13 @@ import OccupyTableModal from './OccupyTableModal';
 
 const ZONE_FILTER_ALL = 'Barchasi';
 
+const LEGEND = [
+  TABLE_STATUS.AVAILABLE,
+  TABLE_STATUS.OCCUPIED,
+  TABLE_STATUS.RESERVED,
+  TABLE_STATUS.CLEANING,
+].map((status) => ({ status, label: TABLE_STATUS_LABELS[status], color: TABLE_STATUS_COLORS[status] }));
+
 const TableMap2D = ({ onTableClick, onOrderTransferred, selectedTable: externalSelected }) => {
   const { tables, loading, error, updateTableData, selectTable } = useTables();
   const [hoveredTable, setHoveredTable] = useState(null);
@@ -91,35 +98,35 @@ const TableMap2D = ({ onTableClick, onOrderTransferred, selectedTable: externalS
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-[1.75rem] border border-cyan-500/10 bg-[#04111a]">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-cyan-500/30 border-t-cyan-400" />
+      <div className="flex h-64 items-center justify-center rounded-[1.75rem] border border-slate-200 bg-slate-50 dark:border-cyan-500/10 dark:bg-[#04111a]">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-cyan-500/30 border-t-cyan-500 dark:border-t-cyan-400" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-[1.75rem] border border-rose-500/10 bg-[#04111a] text-rose-300">
+      <div className="flex h-64 items-center justify-center rounded-[1.75rem] border border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-500/10 dark:bg-[#04111a] dark:text-rose-300">
         <p>Xatolik: {error}</p>
       </div>
     );
   }
 
   return (
-    <div className="relative overflow-hidden rounded-[2rem] border border-cyan-500/10 bg-[#05111d]/90 p-5 shadow-[0_40px_90px_rgba(15,23,42,0.4)]">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top,_rgba(20,184,166,0.12),transparent_55%)]" />
+    <div className="relative overflow-hidden rounded-4xl border border-slate-200 bg-white p-5 shadow-sm dark:border-cyan-500/10 dark:bg-[#05111d]/90 dark:shadow-[0_40px_90px_rgba(15,23,42,0.4)]">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top,rgba(249,115,22,0.08),transparent_55%)] dark:bg-[radial-gradient(circle_at_top,rgba(20,184,166,0.12),transparent_55%)]" />
       <div className="relative space-y-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.35em] text-cyan-300">Zonalar</p>
-            <h2 className="mt-2 text-xl font-semibold text-white">Hududiy reja</h2>
+            <p className="text-xs uppercase tracking-[0.35em] text-orange-600 dark:text-cyan-300">Zonalar</p>
+            <h2 className="mt-2 text-xl font-semibold text-slate-900 dark:text-white">Hududiy reja</h2>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 overflow-x-auto pb-1 sm:pb-0">
             {zoneNames.map((z) => (
               <button
                 key={z}
                 onClick={() => setZoneFilter(z)}
-                className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${zoneFilter === z ? 'bg-cyan-500 text-slate-950' : 'bg-[#04111a] text-slate-300 hover:bg-[#071f30]'}`}
+                className={`shrink-0 rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${zoneFilter === z ? 'bg-orange-600 text-white dark:bg-cyan-500 dark:text-slate-950' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-[#04111a] dark:text-slate-300 dark:hover:bg-[#071f30]'}`}
               >
                 {z}
               </button>
@@ -129,24 +136,24 @@ const TableMap2D = ({ onTableClick, onOrderTransferred, selectedTable: externalS
 
         <div className="grid gap-4 xl:grid-cols-2">
           {zones.map((zone) => (
-            <section key={zone.name} className="rounded-[1.75rem] border border-cyan-500/10 bg-[#061721]/80 p-4">
-              <div className="flex items-center justify-between gap-3 border-b border-cyan-500/10 pb-4">
+            <section key={zone.name} className="rounded-[1.75rem] border border-slate-200 bg-slate-50/60 p-3 dark:border-cyan-500/10 dark:bg-[#061721]/80 sm:p-4">
+              <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-4 dark:border-cyan-500/10">
                 <div>
-                  <p className="text-sm uppercase tracking-[0.18em] text-slate-500">{zone.name}</p>
-                  <p className="mt-1 text-xs text-slate-400">{zone.tables.length} stol</p>
+                  <p className="text-sm uppercase tracking-[0.18em] text-slate-500 dark:text-slate-500">{zone.name}</p>
+                  <p className="mt-1 text-xs text-slate-400 dark:text-slate-400">{zone.tables.length} stol</p>
                 </div>
-                <div className="rounded-full bg-[#08141f] px-3 py-1 text-xs text-cyan-300">Reja</div>
+                <div className="rounded-full bg-orange-50 px-3 py-1 text-xs text-orange-600 dark:bg-[#08141f] dark:text-cyan-300">Reja</div>
               </div>
 
               {/* Real 2D floor: tiled floor texture + tables laid out like an actual room */}
               <div
-                className="relative mt-4 grid grid-cols-2 gap-6 rounded-[1.25rem] p-6 sm:grid-cols-3"
+                className="relative mt-4 grid grid-cols-2 gap-3 rounded-[1.25rem] p-3 sm:grid-cols-3 sm:gap-6 sm:p-6 [--floor-bg:#f6f1ea] [--floor-grid:rgba(234,88,12,0.06)] dark:[--floor-bg:#071923] dark:[--floor-grid:rgba(20,184,166,0.06)]"
                 style={{
-                  backgroundColor: '#071923',
+                  backgroundColor: 'var(--floor-bg)',
                   backgroundImage:
-                    'linear-gradient(rgba(20,184,166,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(20,184,166,0.06) 1px, transparent 1px)',
+                    'linear-gradient(var(--floor-grid) 1px, transparent 1px), linear-gradient(90deg, var(--floor-grid) 1px, transparent 1px)',
                   backgroundSize: '28px 28px',
-                  boxShadow: 'inset 0 0 40px rgba(0,0,0,0.45)',
+                  boxShadow: 'inset 0 0 40px rgba(0,0,0,0.08)',
                 }}
               >
                 {zone.tables.map((table) => (
@@ -163,6 +170,15 @@ const TableMap2D = ({ onTableClick, onOrderTransferred, selectedTable: externalS
                 ))}
               </div>
             </section>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap gap-4 border-t border-slate-200 pt-4 text-xs text-slate-500 dark:border-cyan-500/10 dark:text-slate-400">
+          {LEGEND.map((item) => (
+            <span key={item.status} className="flex items-center gap-1.5">
+              <i className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+              {item.label}
+            </span>
           ))}
         </div>
       </div>
@@ -198,45 +214,12 @@ const TableMap2D = ({ onTableClick, onOrderTransferred, selectedTable: externalS
   );
 };
 
-// Builds evenly spaced chair positions around a table shape.
-// 'round' -> chairs on a circle. 'rect' -> chairs split across the two long sides.
-function getChairLayout(shape, capacity) {
-  const count = Math.max(1, Math.min(capacity || 4, 10));
-  const chairs = [];
-
-  if (shape === 'round') {
-    const radius = 46;
-    for (let i = 0; i < count; i += 1) {
-      const angle = (i / count) * Math.PI * 2 - Math.PI / 2;
-      chairs.push({
-        x: 60 + radius * Math.cos(angle),
-        y: 60 + radius * Math.sin(angle),
-        rotation: (angle * 180) / Math.PI + 90,
-      });
-    }
-  } else {
-    const perSide = Math.ceil(count / 2);
-    const spacing = 84 / (perSide + 1);
-    for (let i = 0; i < count; i += 1) {
-      const side = i < perSide ? 'top' : 'bottom';
-      const idxOnSide = side === 'top' ? i : i - perSide;
-      const x = 18 + spacing * (idxOnSide + 1);
-      chairs.push({
-        x,
-        y: side === 'top' ? 12 : 108,
-        rotation: side === 'top' ? 0 : 180,
-      });
-    }
-  }
-  return chairs;
-}
-
 const TableSeat = ({ table, onClick, onEdit, onTransfer, isSelected, isHovered, onHover }) => {
   const color = TABLE_STATUS_COLORS[table.status];
   const canTransfer = table.status === TABLE_STATUS.OCCUPIED;
   const capacity = table.capacity || 4;
-  const shape = capacity > 4 ? 'rect' : 'round';
-  const chairs = useMemo(() => getChairLayout(shape, capacity), [shape, capacity]);
+  const isRound = capacity <= 4;
+  const active = isSelected || isHovered;
 
   return (
     <div
@@ -248,82 +231,29 @@ const TableSeat = ({ table, onClick, onEdit, onTransfer, isSelected, isHovered, 
         type="button"
         onClick={onClick}
         aria-label={`Stol #${table.number}, ${TABLE_STATUS_LABELS[table.status]}`}
-        className="relative h-[120px] w-[120px] outline-none"
+        style={{
+          backgroundColor: `${color}1A`,
+          borderColor: color,
+          color,
+          borderWidth: isSelected ? 3 : 2,
+        }}
+        className={`flex h-18 w-18 items-center justify-center text-xl font-bold shadow-sm outline-none transition-transform sm:h-22 sm:w-22 sm:text-2xl ${isRound ? 'rounded-full' : 'rounded-2xl'} ${active ? 'scale-105 shadow-md' : ''}`}
       >
-        <svg viewBox="0 0 120 120" className="h-full w-full overflow-visible">
-          {/* chairs */}
-          {chairs.map((c, i) => (
-            <rect
-              key={i}
-              x={c.x - 7}
-              y={c.y - 7}
-              width={14}
-              height={14}
-              rx={4}
-              transform={`rotate(${c.rotation} ${c.x} ${c.y})`}
-              fill="#0d2433"
-              stroke="rgba(20,184,166,0.25)"
-              strokeWidth={1}
-            />
-          ))}
-
-          {/* table top */}
-          {shape === 'round' ? (
-            <circle
-              cx={60}
-              cy={60}
-              r={28}
-              fill={isSelected ? '#0c2334' : '#0a1c29'}
-              stroke={color}
-              strokeWidth={isSelected ? 3 : 2}
-            />
-          ) : (
-            <rect
-              x={18}
-              y={38}
-              width={84}
-              height={44}
-              rx={8}
-              fill={isSelected ? '#0c2334' : '#0a1c29'}
-              stroke={color}
-              strokeWidth={isSelected ? 3 : 2}
-            />
-          )}
-
-          <text
-            x={60}
-            y={64}
-            textAnchor="middle"
-            fontSize={18}
-            fontWeight={700}
-            fill="#e2e8f0"
-          >
-            {table.number}
-          </text>
-
-          {isHovered && (
-            <circle cx={60} cy={60} r={shape === 'round' ? 34 : 0} fill="none" />
-          )}
-        </svg>
-
-        <span
-          className="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full border-2 border-[#061721]"
-          style={{ backgroundColor: color }}
-        />
+        {table.number}
       </button>
 
       <div className="mt-2 flex flex-col items-center gap-1 text-center">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
+        <span className="text-[11px] uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
           {TABLE_STATUS_LABELS[table.status]}
         </span>
-        <span className="text-[10px] text-slate-500">{capacity} joy</span>
+        <span className="text-[10px] text-slate-400 dark:text-slate-500">{capacity} joy</span>
         {table.customerName && (
-          <span className="max-w-[110px] truncate text-[10px] text-cyan-300" title={table.customerName}>
+          <span className="max-w-27.5 truncate text-[10px] text-orange-600 dark:text-cyan-300" title={table.customerName}>
             {table.customerName}
           </span>
         )}
         {(table.time || table.date) && (
-          <span className="text-[9px] text-slate-500">
+          <span className="text-[9px] text-slate-400 dark:text-slate-500">
             {table.date ? `${table.date} · ` : ''}
             {table.time}
             {table.guestCount ? ` · ${table.guestCount} kishi` : ''}
@@ -338,7 +268,7 @@ const TableSeat = ({ table, onClick, onEdit, onTransfer, isSelected, isHovered, 
             e.stopPropagation();
             onEdit();
           }}
-          className="inline-flex items-center gap-1 rounded-full border border-cyan-500/10 bg-[#08111f] px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-cyan-200 transition hover:border-cyan-400 hover:text-white"
+          className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-slate-500 transition hover:border-orange-300 hover:text-orange-600 dark:border-cyan-500/10 dark:bg-[#08111f] dark:text-cyan-200 dark:hover:border-cyan-400 dark:hover:text-white"
         >
           <Pencil className="h-3 w-3" />
         </button>
@@ -349,7 +279,7 @@ const TableSeat = ({ table, onClick, onEdit, onTransfer, isSelected, isHovered, 
               e.stopPropagation();
               onTransfer();
             }}
-            className="inline-flex items-center gap-1 rounded-full border border-cyan-500/10 bg-[#08111f] px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-cyan-200 transition hover:border-cyan-400 hover:text-white"
+            className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-slate-500 transition hover:border-orange-300 hover:text-orange-600 dark:border-cyan-500/10 dark:bg-[#08111f] dark:text-cyan-200 dark:hover:border-cyan-400 dark:hover:text-white"
           >
             <ArrowRightLeft className="h-3 w-3" />
           </button>

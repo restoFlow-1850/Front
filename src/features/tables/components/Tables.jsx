@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import TableMap2D from './TableMap2D';
 import Waiter from '../../waiter/Waiter';
 import { useTables } from '../../../hooks/useTables';
@@ -23,26 +23,28 @@ const Tables = () => {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      {/* 2D Stol xaritasi — yuklanish va xatolik holatini o'zi boshqaradi,
-          shuningdek har bir stol uchun ko'chirish oynasini ham ichida ochadi */}
-      <TableMap2D onTableClick={handleTableClick} selectedTable={selectedTable} />
+    <div className="min-h-screen bg-[#faf7f2] p-4 dark:bg-[#03060d] sm:p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl">
+        {/* 2D Stol xaritasi — yuklanish va xatolik holatini o'zi boshqaradi,
+            shuningdek har bir stol uchun ko'chirish oynasini ham ichida ochadi */}
+        <TableMap2D onTableClick={handleTableClick} selectedTable={selectedTable} />
 
-      {/* Tezkor tugmalar */}
-      <div className="flex gap-3 mt-4">
-        <button
-          onClick={() => {
-            const available = tables.find((t) => t.status === TABLE_STATUS.AVAILABLE);
-            if (available) {
-              handleTableClick(available);
-            } else {
-              alert("Bo'sh stollar mavjud emas");
-            }
-          }}
-          className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors flex items-center gap-2"
-        >
-          ➕ Yangi buyurtma
-        </button>
+        {/* Tezkor tugmalar */}
+        <div className="flex gap-3 mt-4">
+          <button
+            onClick={() => {
+              const available = tables.find((t) => t.status === TABLE_STATUS.AVAILABLE);
+              if (available) {
+                handleTableClick(available);
+              } else {
+                alert("Bo'sh stollar mavjud emas");
+              }
+            }}
+            className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-white transition-colors hover:bg-emerald-500"
+          >
+            ➕ Yangi buyurtma
+          </button>
+        </div>
       </div>
 
       {/* Modal */}
