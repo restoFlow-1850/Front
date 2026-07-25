@@ -1,0 +1,93 @@
+{
+  "app": {
+    "name": "RestoFlow"
+  },
+  "nav": {
+    "dashboard": "Панель управления",
+    "kitchen": "Кухня",
+    "orders": "Заказы",
+    "tables": "Столы",
+    "menu": "Меню",
+    "qrMenu": "QR-меню",
+    "cashier": "Касса",
+    "reservations": "Бронирования",
+    "employees": "Сотрудники",
+    "notifications": "Уведомления",
+    "settings": "Настройки"
+  },
+  "common": {
+    "logout": "Выйти",
+    "language": "Язык",
+    "theme": "Тема",
+    "light": "Светлая",
+    "dark": "Тёмная",
+    "menuOpen": "Открыть меню",
+    "menuClose": "Закрыть меню",
+    "loading": "Загрузка...",
+    "error": "Произошла ошибка",
+    "retry": "Повторить",
+    "empty": "Пока пусто",
+    "minutesShort": "мин",
+    "table": "Стол",
+    "search": "Поиск..."
+  },
+  "kitchen": {
+    "title": "Панель кухни",
+    "subtitle": "Заказы по этапам приготовления",
+    "columns": {
+      "pending": "В ожидании",
+      "preparing": "Готовится",
+      "ready": "Готово"
+    },
+    "empty": {
+      "pending": "Новых заказов нет",
+      "preparing": "Нет заказов в готовке",
+      "ready": "Нет готовых заказов"
+    },
+    "startPreparing": "Начать",
+    "markReady": "Отметить готовым",
+    "served": "Отметить поданным",
+    "ticketNumber": "Заказ №{{number}}",
+    "waiter": "Официант",
+    "itemsCount": "{{count}} блюдо",
+    "itemsCount_other": "{{count}} блюд(а)",
+    "elapsed": "{{minutes}} мин назад",
+    "justNow": "только что",
+    "connectionLive": "Прямое подключение",
+    "connectionOffline": "Нет связи · переподключение",
+    "connectionDemo": "Демо-режим (сервер не подключён)",
+    "note": "Примечание"
+  },
+  "auth": {
+    "accessDenied": "У вас нет доступа к этой странице"
+  },
+  "layout": {
+    "subtitle": "Вот что происходит в ресторане сегодня"
+  },
+  "sidebar": {
+    "promoTagline": "Лучший сервис для ваших гостей",
+    "promoCta": "Подробнее"
+  },
+  "roles": {
+    "admin": "Администратор",
+    "manager": "Менеджер",
+    "ofitsiant": "Официант",
+    "oshpaz": "Повар",
+    "kassir": "Кассир"
+  },
+  "orders": {
+    "title": "Новый заказ",
+    "subtitle": "Выберите стол, добавьте блюда и отправьте",
+    "tablePlaceholder": "Например: 4",
+    "items": "Блюда",
+    "addItem": "Добавить",
+    "productPlaceholder": "Название блюда",
+    "decreaseQty": "Уменьшить",
+    "increaseQty": "Увеличить",
+    "removeItem": "Удалить",
+    "notesPlaceholder": "Примечание (необязательно)",
+    "submit": "Отправить",
+    "submitSuccess": "Заказ отправлен",
+    "submitError": "Ошибка отправки. Попробуйте снова"
+  }
+}

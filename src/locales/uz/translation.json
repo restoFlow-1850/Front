@@ -1,0 +1,93 @@
+{
+  "app": {
+    "name": "RestoFlow"
+  },
+  "nav": {
+    "dashboard": "Boshqaruv paneli",
+    "kitchen": "Oshxona",
+    "orders": "Buyurtmalar",
+    "tables": "Stollar",
+    "menu": "Menyu",
+    "qrMenu": "QR-menyu",
+    "cashier": "Kassa",
+    "reservations": "Bron",
+    "employees": "Xodimlar",
+    "notifications": "Bildirishnomalar",
+    "settings": "Sozlamalar"
+  },
+  "common": {
+    "logout": "Chiqish",
+    "language": "Til",
+    "theme": "Mavzu",
+    "light": "Yorug'",
+    "dark": "Qorong'i",
+    "menuOpen": "Menyuni ochish",
+    "menuClose": "Menyuni yopish",
+    "loading": "Yuklanmoqda...",
+    "error": "Xatolik yuz berdi",
+    "retry": "Qayta urinish",
+    "empty": "Hozircha bo'sh",
+    "minutesShort": "daq",
+    "table": "Stol",
+    "search": "Qidiruv..."
+  },
+  "kitchen": {
+    "title": "Oshxona paneli",
+    "subtitle": "Buyurtmalar tayyorlanish bosqichlari bo'yicha",
+    "columns": {
+      "pending": "Kutilmoqda",
+      "preparing": "Tayyorlanmoqda",
+      "ready": "Tayyor"
+    },
+    "empty": {
+      "pending": "Yangi buyurtma yo'q",
+      "preparing": "Tayyorlanayotgan buyurtma yo'q",
+      "ready": "Tayyor buyurtma yo'q"
+    },
+    "startPreparing": "Boshlash",
+    "markReady": "Tayyor deb belgilash",
+    "served": "Berildi deb belgilash",
+    "ticketNumber": "Buyurtma #{{number}}",
+    "waiter": "Ofitsiant",
+    "itemsCount": "{{count}} taom",
+    "itemsCount_other": "{{count}} taom",
+    "elapsed": "{{minutes}} daqiqa oldin",
+    "justNow": "hozirgina",
+    "connectionLive": "Jonli ulanish",
+    "connectionOffline": "Aloqa yo'q · qayta urinilmoqda",
+    "connectionDemo": "Demo rejim (server ulanmagan)",
+    "note": "Izoh"
+  },
+  "auth": {
+    "accessDenied": "Sizda bu sahifaga kirish huquqi yo'q"
+  },
+  "layout": {
+    "subtitle": "Bugun restoranda nimalar bo'layotganini kuzating"
+  },
+  "sidebar": {
+    "promoTagline": "Mehmonlaringiz uchun eng yaxshi xizmat",
+    "promoCta": "Batafsil"
+  },
+  "roles": {
+    "admin": "Administrator",
+    "manager": "Menejer",
+    "ofitsiant": "Ofitsiant",
+    "oshpaz": "Oshpaz",
+    "kassir": "Kassir"
+  },
+  "orders": {
+    "title": "Yangi buyurtma",
+    "subtitle": "Stol tanlang, taomlarni qo'shing va yuboring",
+    "tablePlaceholder": "Masalan: 4",
+    "items": "Taomlar",
+    "addItem": "Qo'shish",
+    "productPlaceholder": "Taom nomi",
+    "decreaseQty": "Kamaytirish",
+    "increaseQty": "Ko'paytirish",
+    "removeItem": "O'chirish",
+    "notesPlaceholder": "Izoh (ixtiyoriy)",
+    "submit": "Yuborish",
+    "submitSuccess": "Buyurtma yuborildi",
+    "submitError": "Yuborishda xatolik. Qayta urinib ko'ring"
+  }
+}

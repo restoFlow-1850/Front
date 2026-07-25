@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+/* Class-based dark mode: toggling .dark on <html> switches the palette. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------------------------------------------------------------------
+   RestoFlow design tokens — dark-first back-of-house admin shell,
+   aligned to the reference dashboard: near-black surfaces, a warm
+   brass/gold brand accent, and semantic status colors (leaf/amber/mint/
+   cherry) reused consistently for order & table states across the app.
+   ------------------------------------------------------------------- */
+@theme {
+  --font-display: 'Oswald', 'Arial Narrow', sans-serif;
+  --font-sans: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+
+  /* Light mode surfaces (secondary — product is dark-first) */
+  --color-paper: #f4f5f3;
+  --color-paper-2: #e8e9e5;
+  --color-charcoal: #23262b;
+
+  /* Dark mode surfaces */
+  --color-ink: #0c0e12;
+  --color-ink-2: #14171d;
+  --color-ink-3: #1c2027;
+  --color-ink-border: #262b34;
+  --color-fog: #e8e6e1;
+
+  /* Brand accent — brass/gold, echoes the logo + active-state highlight */
+  --color-gold: #d9a441;
+  --color-gold-dim: #e8c073;
+
+  /* Warm secondary accent (kept for buttons/highlights that need more punch) */
+  --color-ember: #ff6b2c;
+  --color-ember-dim: #ff8c52;
+
+  /* Status palette — reused for order status, table map, connection badges */
+  --color-leaf: #22c55e;
+  --color-leaf-dim: #4ade80;
+  --color-amber: #f2b134;
+  --color-amber-dim: #f8cb6b;
+  --color-mint: #2dd4bf;
+  --color-mint-dim: #5eead4;
+  --color-cherry: #ef4444;
+  --color-cherry-dim: #f87171;
+
+  --color-slate: #8b90a0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--color-paper);
+  color: var(--color-charcoal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+html.dark body {
+  background: var(--color-ink);
+  color: var(--color-fog);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: var(--color-gold);
+  color: #1a1200;
+}
+
+/* Scrollbars — subtle, matches either theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 8px;
+}

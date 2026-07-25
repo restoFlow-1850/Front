@@ -1,0 +1,93 @@
+{
+  "app": {
+    "name": "RestoFlow"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "kitchen": "Kitchen",
+    "orders": "Orders",
+    "tables": "Tables",
+    "menu": "Menu",
+    "qrMenu": "QR menu",
+    "cashier": "Cashier",
+    "reservations": "Reservations",
+    "employees": "Employees",
+    "notifications": "Notifications",
+    "settings": "Settings"
+  },
+  "common": {
+    "logout": "Log out",
+    "language": "Language",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "menuOpen": "Open menu",
+    "menuClose": "Close menu",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Retry",
+    "empty": "Nothing here yet",
+    "minutesShort": "min",
+    "table": "Table",
+    "search": "Search..."
+  },
+  "kitchen": {
+    "title": "Kitchen panel",
+    "subtitle": "Orders by preparation stage",
+    "columns": {
+      "pending": "Pending",
+      "preparing": "Preparing",
+      "ready": "Ready"
+    },
+    "empty": {
+      "pending": "No new orders",
+      "preparing": "Nothing in preparation",
+      "ready": "No orders ready"
+    },
+    "startPreparing": "Start preparing",
+    "markReady": "Mark ready",
+    "served": "Mark served",
+    "ticketNumber": "Order #{{number}}",
+    "waiter": "Waiter",
+    "itemsCount": "{{count}} item",
+    "itemsCount_other": "{{count}} items",
+    "elapsed": "{{minutes}} min ago",
+    "justNow": "just now",
+    "connectionLive": "Live connection",
+    "connectionOffline": "Offline · reconnecting",
+    "connectionDemo": "Demo mode (server not connected)",
+    "note": "Note"
+  },
+  "auth": {
+    "accessDenied": "You don't have access to this page"
+  },
+  "layout": {
+    "subtitle": "Here's what's happening at the restaurant today"
+  },
+  "sidebar": {
+    "promoTagline": "The best service for your guests",
+    "promoCta": "Learn more"
+  },
+  "roles": {
+    "admin": "Administrator",
+    "manager": "Manager",
+    "ofitsiant": "Waiter",
+    "oshpaz": "Chef",
+    "kassir": "Cashier"
+  },
+  "orders": {
+    "title": "New order",
+    "subtitle": "Pick a table, add dishes, and send it to the kitchen",
+    "tablePlaceholder": "e.g. 4",
+    "items": "Items",
+    "addItem": "Add item",
+    "productPlaceholder": "Dish name",
+    "decreaseQty": "Decrease",
+    "increaseQty": "Increase",
+    "removeItem": "Remove",
+    "notesPlaceholder": "Note (optional)",
+    "submit": "Send order",
+    "submitSuccess": "Order sent",
+    "submitError": "Failed to send. Try again"
+  }
+}
