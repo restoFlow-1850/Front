@@ -1,0 +1,48 @@
+{
+    "login": "Kirish",
+    "email": "Email",
+    "password": "Parol",
+    "logout": "Chiqish",
+    "profile": "Profil",
+    "save": "Saqlash",
+    "cancel": "Bekor qilish",
+    "search": "Qidirish",
+    "employees": "Xodimlar",
+    "active": "Faol",
+    "inactive": "Faol emas",
+    "language": "Til",
+    "refresh": "Yangilash",
+    "soundOn": "Ovoz yoqilgan",
+    "soundOff": "Ovoz o'chirilgan",
+    "testSound": "Ovozni tekshirish",
+    "kitchen": {
+        "title": "Oshxona",
+        "subtitle": "Buyurtmalarni tayyorlash jarayoni",
+        "columns": {
+            "waiting": "Kutilmoqda",
+            "making": "Tayyorlanmoqda",
+            "complete": "Tayyor"
+        },
+        "empty": {
+            "waiting": "Yangi buyurtma yo'q",
+            "making": "Tayyorlanayotgan buyurtma yo'q",
+            "complete": "Tayyor buyurtma yo'q"
+        },
+        "actions": {
+            "startPreparing": "Tayyorlashni boshlash",
+            "markComplete": "Tayyor deb belgilash"
+        },
+        "table": "Stol {{num}}",
+        "ticketNumber": "Buyurtma #{{number}}",
+        "elapsed": "{{minutes}} daqiqa oldin",
+        "justNow": "Hozirgina",
+        "note": "Izoh",
+        "statusChanged": "\"{{status}}\" holatiga o'tkazildi",
+        "statusChangeFailed": "Holat o'zgarmadi",
+        "loadFailed": "Buyurtmalarni yuklab bo'lmadi",
+        "audio": {
+            "newOrderAlert": "{{table}}-stol uchun yangi buyurtma keldi!",
+            "testAlertMessage": "Oshxona ovozli signali tekshirilmoqda. Tizim tayyor!"
+        }
+    }
+}
