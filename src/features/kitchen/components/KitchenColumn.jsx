@@ -32,7 +32,7 @@ export default function KitchenColumn({ id, orders, onStartPreparing, onMarkRead
         <ul className="flex flex-col gap-3">
           {orders.map((order) => (
             <OrderTicket
-              key={order.id}
+              key={order._id ?? order.id}
               order={order}
               onStartPreparing={onStartPreparing}
               onMarkReady={onMarkReady}

@@ -14,10 +14,10 @@ const TableGrid = ({ tables, onTableClick, selectedTable }) => {
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
       {tables.map((table) => (
         <TableCard
-          key={table.id}
+          key={table._id ?? table.id}
           table={table}
           onClick={() => onTableClick(table)}
-          isSelected={selectedTable?.id === table.id}
+          isSelected={(selectedTable?._id ?? selectedTable?.id) === (table._id ?? table.id)}
         />
       ))}
     </div>

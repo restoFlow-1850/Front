@@ -6,10 +6,10 @@ export const TABLE_STATUS = {
 };
 
 export const TABLE_STATUS_LABELS = {
-  [TABLE_STATUS.AVAILABLE]: 'Свободен',
-  [TABLE_STATUS.OCCUPIED]: 'Занят',
-  [TABLE_STATUS.RESERVED]: 'Бронь',
-  [TABLE_STATUS.CLEANING]: 'Неактивен',
+  [TABLE_STATUS.AVAILABLE]: "Bo'sh",
+  [TABLE_STATUS.OCCUPIED]: 'Band',
+  [TABLE_STATUS.RESERVED]: 'Bron qilingan',
+  [TABLE_STATUS.CLEANING]: 'Tozalanmoqda',
 };
 
 export const TABLE_STATUS_COLORS = {

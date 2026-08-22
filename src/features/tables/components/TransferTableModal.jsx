@@ -11,7 +11,7 @@ const TransferTableModal = ({ sourceTable, tables, onTransfer, onClose }) => {
   }
 
   const availableTables = (tables || []).filter(
-    (t) => t.id !== sourceTable.id && TRANSFERABLE_TARGET_STATUSES.includes(t.status)
+    (t) => (t._id ?? t.id) !== (sourceTable._id ?? sourceTable.id) && TRANSFERABLE_TARGET_STATUSES.includes(t.status)
   );
 
   const handleTransfer = async () => {
@@ -22,7 +22,7 @@ const TransferTableModal = ({ sourceTable, tables, onTransfer, onClose }) => {
 
     setLoading(true);
     try {
-      await onTransfer(sourceTable.id, selectedTarget.id);
+      await onTransfer(sourceTable._id ?? sourceTable.id, selectedTarget._id ?? selectedTarget.id);
       alert(`✅ Stol #${sourceTable.number} → Stol #${selectedTarget.number} ko'chirildi`);
       onClose();
     } catch (error) {
@@ -61,13 +61,13 @@ const TransferTableModal = ({ sourceTable, tables, onTransfer, onClose }) => {
           <div className="grid grid-cols-2 gap-3 max-h-60 overflow-y-auto">
             {availableTables.map(table => (
               <button
-                key={table.id}
+                key={table._id ?? table.id}
                 type="button"
                 onClick={() => setSelectedTarget(table)}
                 disabled={loading}
                 className={`
                   p-3 rounded-lg border-2 text-left transition-all
-                  ${selectedTarget?.id === table.id
+                  ${(selectedTarget?._id ?? selectedTarget?.id) === (table._id ?? table.id)
                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
                     : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'
                   }

@@ -52,7 +52,7 @@ export default function OrderTicket({ order, onStartPreparing, onMarkReady }) {
           <div>
             <p className="font-mono text-xs text-slate">
               {t('kitchen.ticketNumber', {
-                number: order.number ?? String(order.id).slice(-4).toUpperCase(),
+                number: order.number ?? String(order._id ?? order.id).slice(-4).toUpperCase(),
               })}
             </p>
             <p className="font-display text-lg text-charcoal dark:text-fog">
@@ -95,7 +95,7 @@ export default function OrderTicket({ order, onStartPreparing, onMarkReady }) {
         {order.status === ORDER_STATUS.NEW && (
           <button
             type="button"
-            onClick={() => onStartPreparing(order.id)}
+            onClick={() => onStartPreparing(order._id ?? order.id)}
             className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-charcoal py-2.5 text-sm font-semibold text-white transition-colors hover:bg-charcoal/90 dark:bg-white/10 dark:hover:bg-white/15"
           >
             {t('kitchen.startPreparing')}
@@ -106,7 +106,7 @@ export default function OrderTicket({ order, onStartPreparing, onMarkReady }) {
         {order.status === ORDER_STATUS.IN_KITCHEN && (
           <button
             type="button"
-            onClick={() => onMarkReady(order.id)}
+            onClick={() => onMarkReady(order._id ?? order.id)}
             className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-mint py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-mint-dim"
           >
             <CheckCircle2 size={16} />

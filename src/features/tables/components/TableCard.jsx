@@ -34,7 +34,9 @@ const TableCard = ({ table, onClick, isSelected }) => {
 
       {/* Holat */}
       <div className="absolute top-2 right-2">
-        <Badge status={table.status} label={TABLE_STATUS_LABELS[table.status]} />
+        <Badge variant={table.status === 'available' ? 'success' : table.status === 'occupied' ? 'danger' : table.status === 'reserved' ? 'warning' : 'neutral'}>
+          {TABLE_STATUS_LABELS[table.status]}
+        </Badge>
       </div>
 
       {/* Buyurtma ID */}

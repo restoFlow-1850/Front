@@ -89,7 +89,7 @@ const TableMap2D = ({
 
     try {
       await updateMutation.mutateAsync({
-        id: occupyingTable.id,
+        id: occupyingTable._id ?? occupyingTable.id,
         data: { status: TABLE_STATUS.OCCUPIED, ...details },
       });
       const updated = { ...occupyingTable, status: TABLE_STATUS.OCCUPIED, ...details };
@@ -102,19 +102,19 @@ const TableMap2D = ({
   };
 
   const handleTransferConfirm = async (sourceTableId, targetTableId) => {
-    const fromTable = tables.find((t) => t.id === sourceTableId);
-    const toTable = tables.find((t) => t.id === targetTableId);
+    const fromTable = tables.find((t) => (t._id ?? t.id) === sourceTableId);
+    const toTable = tables.find((t) => (t._id ?? t.id) === targetTableId);
     if (!fromTable || !toTable) {
       throw new Error('Stol topilmadi');
     }
 
     try {
       await updateMutation.mutateAsync({
-        id: fromTable.id,
+        id: fromTable._id ?? fromTable.id,
         data: { status: TABLE_STATUS.AVAILABLE, currentOrderId: null },
       });
       await updateMutation.mutateAsync({
-        id: toTable.id,
+        id: toTable._id ?? toTable.id,
         data: { status: TABLE_STATUS.OCCUPIED, currentOrderId: fromTable.currentOrderId },
       });
       onOrderTransferred?.(fromTable, toTable);
@@ -186,7 +186,7 @@ const TableMap2D = ({
               >
                 {zone.tables.map((table) => (
                   <TableSeat
-                    key={table.id}
+                    key={table._id ?? table.id}
                     table={table}
                     onClick={() => handleTableClick(table)}
                     onEdit={() => setEditingTable(table)}
@@ -217,7 +217,7 @@ const TableMap2D = ({
           table={editingTable}
           onClose={() => setEditingTable(null)}
           onSave={(updated) => {
-            updateMutation.mutate({ id: updated.id, data: updated });
+            updateMutation.mutate({ id: updated._id ?? updated.id, data: updated });
             setEditingTable(null);
           }}
         />

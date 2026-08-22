@@ -16,9 +16,10 @@ export function useKitchenOrders() {
 
   const upsertOrder = useCallback((incoming) => {
     setOrders((prev) => {
-      const exists = prev.some((o) => o.id === incoming.id)
+      const orderId = incoming._id ?? incoming.id
+      const exists = prev.some((o) => (o._id ?? o.id) === orderId)
       if (!exists) return [incoming, ...prev]
-      return prev.map((o) => (o.id === incoming.id ? { ...o, ...incoming } : o))
+      return prev.map((o) => ((o._id ?? o.id) === orderId ? { ...o, ...incoming } : o))
     })
   }, [])
 
@@ -77,8 +78,8 @@ export function useKitchenOrders() {
       // Optimistik yangilanish — UI darhol javob beradi.
       setOrders((prev) =>
         status === ORDER_STATUS.SERVED
-          ? prev.filter((o) => o.id !== orderId)
-          : prev.map((o) => (o.id === orderId ? { ...o, status } : o)),
+          ? prev.filter((o) => (o._id ?? o.id) !== orderId)
+          : prev.map((o) => ((o._id ?? o.id) === orderId ? { ...o, status } : o)),
       )
 
       if (isDemo.current) return

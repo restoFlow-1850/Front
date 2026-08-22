@@ -13,7 +13,7 @@ const Tables = () => {
     setSelectedTable(table);
 
     if (table.status === TABLE_STATUS.AVAILABLE) {
-      changeStatus(table.id, TABLE_STATUS.OCCUPIED);
+      changeStatus(table._id ?? table.id, TABLE_STATUS.OCCUPIED);
       setShowWaiter(true);
     } else if (table.status === TABLE_STATUS.OCCUPIED || table.status === TABLE_STATUS.RESERVED) {
       setShowWaiter(true);

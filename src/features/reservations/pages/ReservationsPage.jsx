@@ -118,26 +118,36 @@ export default function ReservationsPage() {
       closeModal()
       invalidate()
     },
-    onError: (error) => toast.error(apiErrorMessage(error, 'Bronni saqlab bo\'lmadi')),
+    onError: (error) => toast.error(apiErrorMessage(error, "Bronni saqlab bo'lmadi")),
   })
 
   const confirmMutation = useMutation({
     mutationFn: async ({ reservation, table }) => {
-      // The backend updates the reservation; the table is updated explicitly so
-      // the shared table map immediately reflects the confirmed booking.
+      // Backend PUT /reservations/:id only accepts status/date/guests/notes
+      // (Zod strips unknown fields silently), so we don't send `table` here.
+      // Instead we update the reservation status and manage table statuses
+      // explicitly so the shared table map immediately reflects the booking.
       await updateReservation(reservation._id, {
         status: RESERVATION_STATUS.CONFIRMED,
-        table: table._id ?? table.id,
       })
-      await updateTable(table._id ?? table.id, { status: TABLE_STATUS.RESERVED })
+
+      const newTableId = table._id ?? table.id
+      const oldTableId = reservation.table?._id ?? reservation.table
+
+      // If the user picked a different table, free the old one first.
+      if (oldTableId && oldTableId !== newTableId) {
+        await updateTable(oldTableId, { status: TABLE_STATUS.FREE })
+      }
+
+      await updateTable(newTableId, { status: TABLE_STATUS.RESERVED })
     },
     onSuccess: () => {
-      toast.success('Bron tasdiqlandi va stol bron qilingan holatiga o‘tdi')
+      toast.success("Bron tasdiqlandi va stol bron qilingan holatiga o'tdi")
       setConfirming(null)
       setSelectedTable(null)
       invalidate()
     },
-    onError: (error) => toast.error(apiErrorMessage(error, 'Bronni tasdiqlab bo‘lmadi')),
+    onError: (error) => toast.error(apiErrorMessage(error, "Bronni tasdiqlab bo'lmadi")),
   })
 
   const cancelMutation = useMutation({
@@ -152,7 +162,7 @@ export default function ReservationsPage() {
       toast.success('Bron bekor qilindi')
       invalidate()
     },
-    onError: (error) => toast.error(apiErrorMessage(error, 'Bronni bekor qilib bo‘lmadi')),
+    onError: (error) => toast.error(apiErrorMessage(error, "Bronni bekor qilib bo'lmadi")),
   })
 
   const deleteMutation = useMutation({
@@ -197,7 +207,7 @@ export default function ReservationsPage() {
 
   const reservations = reservationsQuery.data ?? []
 
-  // Build a map: tableId → confirmed reservation, so RESERVED tables can
+  // Build a map: tableId -> confirmed reservation, so RESERVED tables can
   // show the customer name and time on the 2D map.
   const confirmedReservationByTable = useMemo(() => {
     const map = new Map()
@@ -286,7 +296,7 @@ export default function ReservationsPage() {
       ) : reservationsQuery.isError ? (
         <Card>
           <p className="text-sm text-rose-600">
-            {apiErrorMessage(reservationsQuery.error, 'Bronlarni yuklab bo\'lmadi')}
+            {apiErrorMessage(reservationsQuery.error, "Bronlarni yuklab bo'lmadi")}
           </p>
         </Card>
       ) : reservations.length === 0 ? (
@@ -400,7 +410,7 @@ export default function ReservationsPage() {
         }
       >
         <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
-          Bo‘sh stolni xaritadan tanlang. Sariq stollar avvaldan bron qilingan, qizil stollar band.
+          Bo'sh stolni xaritadan tanlang. Sariq stollar avvaldan bron qilingan, qizil stollar band.
         </p>
         {tablesQuery.isLoading ? (
           <Skeleton className="h-64 w-full" />
@@ -411,7 +421,7 @@ export default function ReservationsPage() {
             selectedTable={selectedTable}
             onTableClick={(table) => {
               if (table.disabled) {
-                toast.info('Faqat bo‘sh stolni tanlash mumkin')
+                toast.info("Faqat bo'sh stolni tanlash mumkin")
                 return
               }
               setSelectedTable(table)
