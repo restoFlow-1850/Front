@@ -21,6 +21,7 @@ import { updateOrderStatus } from '../../orders/api'
 import ReceiptPrintModal from '../components/ReceiptPrintModal'
 import PaymentsHistory from '../components/PaymentsHistory'
 import ShiftPanel from '../components/ShiftPanel'
+import { settingsApi } from '../../settings/api'
 import { unwrap, unwrapList, apiErrorMessage, formatSom, formatTime } from '../../../lib/api'
 import {
   ORDER_STATUS,
@@ -62,6 +63,12 @@ export default function Cashier() {
       }
     },
     refetchInterval: 30_000,
+  })
+
+  const settingsQuery = useQuery({
+    queryKey: ['settings'],
+    queryFn: settingsApi.get,
+    staleTime: 5 * 60_000,
   })
   const shift = shiftQuery.data
   const hasOpenShift = shift && shift.status === 'open'
