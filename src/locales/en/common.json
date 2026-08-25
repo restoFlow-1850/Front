@@ -1,0 +1,61 @@
+{
+    "login": "Login",
+    "email": "Email",
+    "password": "Password",
+    "logout": "Logout",
+    "profile": "Profile",
+    "save": "Save",
+    "cancel": "Cancel",
+    "search": "Search",
+    "employees": "Employees",
+    "active": "Active",
+    "inactive": "Inactive",
+    "language": "Language",
+    "refresh": "Refresh",
+    "soundOn": "Sound on",
+    "soundOff": "Sound off",
+    "newOrdersBadge": "{{count}} new order(s)",
+    "testSound": "Test sound",
+    "kitchen": {
+        "title": "Kitchen",
+        "subtitle": "Order preparation workflow",
+        "columns": {
+            "waiting": "Waiting",
+            "making": "Making",
+            "complete": "Complete"
+        },
+        "empty": {
+            "waiting": "No new orders",
+            "making": "Nothing in preparation",
+            "complete": "No completed orders"
+        },
+        "actions": {
+            "startPreparing": "Start preparing",
+            "markComplete": "Mark complete"
+        },
+        "table": "Table {{num}}",
+        "ticketNumber": "Order #{{number}}",
+        "elapsed": "{{minutes}} min ago",
+        "justNow": "Just now",
+        "note": "Note",
+        "statusChanged": "Moved to \"{{status}}\"",
+        "statusChangeFailed": "Status didn't change",
+        "loadFailed": "Couldn't load orders",
+        "deleteOrder": "Delete order",
+        "confirmDelete": "Delete this order permanently? This can't be undone.",
+        "orderDeleted": "Order deleted",
+        "deleteFailed": "Couldn't delete order",
+        "waiterCall": {
+            "title": "WAITER CALLED",
+            "bannerTitle": "🔔 Waiter Calls ({{count}})",
+            "elapsed": "{{seconds}}s ago",
+            "dismiss": "Dismiss",
+            "dismissAll": "Dismiss all"
+        },
+        "audio": {
+            "newOrderAlert": "New order for table {{table}}!",
+            "waiterCalledAlert": "Waiter called at table {{table}}!",
+            "testAlertMessage": "Testing kitchen sound alert. System ready!"
+        }
+    }
+}
