@@ -11,6 +11,8 @@ export const authApi = {
   /** payload: { oldPassword, newPassword } */
   changePassword: (payload) => axios.post('/auth/change-password', payload),
   getMe: () => axios.get('/auth/me'),
+  sendOtp: (payload) => axios.post('/auth/send-otp', payload),
+  verifyOtp: (payload) => axios.post('/auth/verify-otp', payload),
 }
 
 // Authentication failures are expected user-input outcomes, so present an

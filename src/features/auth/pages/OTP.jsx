@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   ShieldCheck,
   UtensilsCrossed,
@@ -11,15 +11,27 @@ import {
 import { toast } from 'react-toastify'
 import { useTheme } from '../../../hooks/useTheme'
 import LanguageSwitcher from '../../../components/common/LanguageSwitcher'
+import { authApi, getAuthErrorMessage } from '../api'
 
 export default function OTPPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { theme, toggleTheme } = useTheme()
+
+  const targetEmail = location.state?.email || ''
+  const targetPhone = location.state?.phone || ''
 
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
   const [timer, setTimer] = useState(60)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const inputRefs = useRef([])
+
+  useEffect(() => {
+    // If state contains email/phone, auto-request sendOtp once on mount
+    if (targetEmail || targetPhone) {
+      authApi.sendOtp({ email: targetEmail, phone: targetPhone }).catch(() => {})
+    }
+  }, [targetEmail, targetPhone])
 
   useEffect(() => {
     if (timer <= 0) return
@@ -29,7 +41,6 @@ export default function OTPPage() {
 
   const handleChange = (index, value) => {
     if (value.length > 1) {
-      // Pasted full OTP code
       const pasted = value.replace(/\D/g, '').slice(0, 6).split('')
       const next = [...otp]
       pasted.forEach((char, i) => {
@@ -56,12 +67,17 @@ export default function OTPPage() {
     }
   }
 
-  const handleResend = () => {
-    setTimer(60)
-    toast.success('Yangi tasdiqlash kodi yuborildi!')
+  const handleResend = async () => {
+    try {
+      await authApi.sendOtp({ email: targetEmail, phone: targetPhone })
+      setTimer(60)
+      toast.success('Yangi tasdiqlash kodi yuborildi!')
+    } catch (err) {
+      toast.error(getAuthErrorMessage(err, "Kodni yuborishda xatolik"))
+    }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const code = otp.join('')
     if (code.length < 6) {
@@ -69,11 +85,15 @@ export default function OTPPage() {
       return
     }
     setIsSubmitting(true)
-    setTimeout(() => {
+    try {
+      await authApi.verifyOtp({ email: targetEmail, phone: targetPhone, code })
+      toast.success('Kod muvaffaqiyatli tasdiqlandi! 🎉')
+      navigate('/login', { replace: true })
+    } catch (err) {
+      toast.error(getAuthErrorMessage(err, "Tasdiqlash kodi noto'g'ri yoki muddati o'tgan"))
+    } finally {
       setIsSubmitting(false)
-      toast.success('Tasdiqlandi!')
-      navigate('/login')
-    }, 800)
+    }
   }
 
   return (
@@ -111,7 +131,13 @@ export default function OTPPage() {
               Kodni kiriting
             </h1>
             <p className="mt-1.5 text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-              Emailingizga yuborilgan 6 xonali tasdiqlash kodini kiriting.
+              {targetEmail || targetPhone ? (
+                <>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200">{targetEmail || targetPhone}</span> manziliga yuborilgan 6 xonali tasdiqlash kodini kiriting.
+                </>
+              ) : (
+                'Emailingizga yuborilgan 6 xonali tasdiqlash kodini kiriting.'
+              )}
             </p>
           </div>
 
@@ -178,3 +204,4 @@ export default function OTPPage() {
     </div>
   )
 }
+

@@ -37,7 +37,15 @@ const processQueue = (error, accessToken = null) => {
   pendingQueue = []
 }
 
-const AUTH_ENDPOINTS = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/forgot-password']
+const AUTH_ENDPOINTS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/refresh',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+  '/auth/send-otp',
+  '/auth/verify-otp',
+]
 
 const redirectToLogin = () => {
   localStorage.removeItem('accessToken')

@@ -54,7 +54,7 @@ export default function RegisterPage() {
     setError(null)
     try {
       await authApi.register({ name: values.name, email: values.email, password: values.password })
-      navigate('/login', { replace: true })
+      navigate('/otp', { state: { email: values.email }, replace: true })
     } catch (err) {
       setError(err.response?.data?.message || "Ro'yxatdan o'tishda xatolik yuz berdi")
     }
