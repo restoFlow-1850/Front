@@ -2,6 +2,7 @@
 import { useState, useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 import { AlertTriangle, CalendarDays, Check, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { toast } from 'react-toastify'
 
@@ -62,6 +63,7 @@ function splitDateTime(value) {
 }
 
 export default function ReservationsPage() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const role = useSelector((state) => state.auth.user?.role)
   const canDelete = [ROLES.ADMIN, ROLES.MANAGER].includes(role)
@@ -78,7 +80,6 @@ export default function ReservationsPage() {
   const reservationsQuery = useQuery({
     queryKey: ['reservations', startDate, endDate],
     queryFn: async () => {
-      // Sana filterini to'g'ri yuborish: startDate → 00:00, endDate → 23:59
       const params = { limit: 100 }
       if (startDate) params.startDate = `${startDate}T00:00:00.000Z`
       if (endDate) params.endDate = `${endDate}T23:59:59.999Z`
@@ -97,7 +98,6 @@ export default function ReservationsPage() {
 
   const saveMutation = useMutation({
     mutationFn: () => {
-      // Sana + vaqt → bitta ISO string (backend Date type qabul qiladi)
       const isoDateTime = new Date(`${form.date}T${form.time}:00`).toISOString()
 
       if (editing) {
@@ -118,17 +118,15 @@ export default function ReservationsPage() {
       })
     },
     onSuccess: () => {
-      toast.success(editing ? 'Bron yangilandi' : 'Bron yaratildi')
+      toast.success(editing ? t('reservations.updated', { defaultValue: "Bron yangilandi" }) : t('reservations.created', { defaultValue: "Bron yaratildi" }))
       closeModal()
       invalidate()
     },
-    onError: (error) => toast.error(apiErrorMessage(error, 'Bronni saqlab bo\'lmadi')),
+    onError: (error) => toast.error(apiErrorMessage(error, t('kitchen.loadFailed'))),
   })
 
   const confirmMutation = useMutation({
     mutationFn: async ({ reservation, table }) => {
-      // The backend updates the reservation; the table is updated explicitly so
-      // the shared table map immediately reflects the confirmed booking.
       await updateReservation(reservation._id, {
         status: RESERVATION_STATUS.CONFIRMED,
         table: table._id ?? table.id,
@@ -136,15 +134,15 @@ export default function ReservationsPage() {
       await updateTable(table._id ?? table.id, { status: TABLE_STATUS.BUSY })
     },
     onSuccess: () => {
-      toast.success('Bron tasdiqlandi va stol band holatiga o‘tdi')
+      toast.success(t('reservations.confirmed', { defaultValue: "Bron tasdiqlandi" }))
       setConfirming(null)
       setSelectedTable(null)
       invalidate()
     },
-    onError: (error) => toast.error(apiErrorMessage(error, 'Bronni tasdiqlab bo‘lmadi')),
+    onError: (error) => toast.error(apiErrorMessage(error, t('kitchen.statusChangeFailed'))),
   })
 
-  const [confirmAction, setConfirmAction] = useState(null) // { type: 'cancel'|'delete', reservation }
+  const [confirmAction, setConfirmAction] = useState(null)
 
   const cancelMutation = useMutation({
     mutationFn: async (reservation) => {
@@ -162,10 +160,10 @@ export default function ReservationsPage() {
       })
     },
     onSuccess: () => {
-      toast.success('Bron bekor qilindi')
+      toast.success(t('cashier.orderCancelled'))
       invalidate()
     },
-    onError: (error) => toast.error(apiErrorMessage(error, 'Bronni bekor qilib bo‘lmadi')),
+    onError: (error) => toast.error(apiErrorMessage(error, t('cashier.cancelFailed'))),
   })
 
   const deleteMutation = useMutation({
@@ -178,10 +176,10 @@ export default function ReservationsPage() {
       })
     },
     onSuccess: () => {
-      toast.success("Bron o'chirildi")
+      toast.success(t('orders.deleted', { defaultValue: "Bron o'chirildi" }))
       invalidate()
     },
-    onError: (error) => toast.error(apiErrorMessage(error, "O'chirib bo'lmadi")),
+    onError: (error) => toast.error(apiErrorMessage(error, t('orders.deleteFailed'))),
   })
 
   const clearAllMutation = useMutation({
@@ -191,12 +189,12 @@ export default function ReservationsPage() {
       queryClient.setQueryData(['reservations', startDate, endDate], [])
     },
     onSuccess: () => {
-      toast.success("Barcha bronlar o'chirildi")
+      toast.success(t('orders.allCleared', { defaultValue: "Barcha bronlar o'chirildi" }))
       setStartDate(today())
       setEndDate(today())
       invalidate()
     },
-    onError: (error) => toast.error(apiErrorMessage(error, "Bronlarni o'chirib bo'lmadi")),
+    onError: (error) => toast.error(apiErrorMessage(error, t('orders.clearFailed'))),
   })
 
   const openCreate = () => {
@@ -234,8 +232,6 @@ export default function ReservationsPage() {
 
   const reservations = reservationsQuery.data ?? []
 
-  // Build a map: tableId → confirmed reservation, so RESERVED tables can
-  // show the customer name and time on the 2D map.
   const confirmedReservationByTable = useMemo(() => {
     const map = new Map()
     for (const r of reservations) {
@@ -246,31 +242,28 @@ export default function ReservationsPage() {
     return map
   }, [reservations])
 
-  const tableOptions = (tablesQuery.data ?? []).map((t) => ({
-    value: t._id,
-    label: `Stol ${t.number} — ${t.capacity} kishilik`,
-    number: t.number,
-    capacity: t.capacity,
-    isVip: Boolean(t.location && /vip/i.test(t.location)),
+  const tableOptions = (tablesQuery.data ?? []).map((tVal) => ({
+    value: tVal._id,
+    label: `${t('dashboard.table')} ${tVal.number} — ${tVal.capacity} ${t('tables.capacity')}`,
+    number: tVal.number,
+    capacity: tVal.capacity,
+    isVip: Boolean(tVal.location && /vip/i.test(tVal.location)),
   }))
+
   const selectableTables = (tablesQuery.data ?? []).map((table) => {
     const tableId = table._id ?? table.id
     const reservation = confirmedReservationByTable.get(tableId)
     return {
       ...table,
       id: tableId,
-      // Enrich RESERVED tables with reservation data so TableMap2D
-      // can display customerName, date, time, guestCount.
       ...(reservation
         ? {
             customerName: reservation.customerName,
-            date: reservation.date ? new Date(reservation.date).toLocaleDateString('uz-UZ') : undefined,
-            time: reservation.date ? new Date(reservation.date).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }) : undefined,
+            date: reservation.date ? new Date(reservation.date).toLocaleDateString() : undefined,
+            time: reservation.date ? new Date(reservation.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined,
             guestCount: reservation.guests,
           }
         : {}),
-      // Reservation picker supports only a free table, plus the one already
-      // attached to this reservation (if it is being reconfirmed).
       disabled:
         table.status !== TABLE_STATUS.FREE &&
         tableId !== (confirming?.table?._id ?? confirming?.table),
@@ -280,8 +273,8 @@ export default function ReservationsPage() {
   return (
     <div>
       <PageHeader
-        title="Bronlar"
-        subtitle="Mijozlar uchun stol bandliklarini boshqarish"
+        title={t('reservations.title')}
+        subtitle={t('reservations.subtitle')}
         actions={
           <div className="flex items-center gap-2">
             {canDelete && reservations.length > 0 && (
@@ -289,11 +282,11 @@ export default function ReservationsPage() {
                 variant="danger"
                 onClick={() => setConfirmAction({ type: 'clear_all' })}
               >
-                <Trash2 className="mr-1.5 h-4 w-4" /> Barchasini tozalash
+                <Trash2 className="mr-1.5 h-4 w-4" /> {t('waiter.clearCart')}
               </Button>
             )}
             <Button onClick={openCreate}>
-              <Plus className="mr-2 h-4 w-4" /> Yangi bron
+              <Plus className="mr-2 h-4 w-4" /> {t('reservations.newReservation')}
             </Button>
           </div>
         }
@@ -303,13 +296,13 @@ export default function ReservationsPage() {
         <div className="flex flex-wrap items-end gap-3">
           <div>
             <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
-              Boshlanish sanasi
+              {t('reservations.startDate')}
             </label>
             <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
-              Yakuniy sana
+              {t('reservations.endDate')}
             </label>
             <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
           </div>
@@ -318,7 +311,7 @@ export default function ReservationsPage() {
             onClick={() => setConfirmAction({ type: 'clear_all' })}
             disabled={clearAllMutation.isPending}
           >
-            Tozalash
+            {t('cancel')}
           </Button>
         </div>
       </Card>
@@ -332,15 +325,15 @@ export default function ReservationsPage() {
       ) : reservationsQuery.isError ? (
         <Card>
           <p className="text-sm text-rose-600">
-            {apiErrorMessage(reservationsQuery.error, 'Bronlarni yuklab bo\'lmadi')}
+            {apiErrorMessage(reservationsQuery.error, t('kitchen.loadFailed'))}
           </p>
         </Card>
       ) : reservations.length === 0 ? (
         <Card>
           <EmptyState
             icon={CalendarDays}
-            title="Bron yo'q"
-            description="Hozircha birorta stol bron qilinmagan."
+            title={t('reservations.noReservations')}
+            description={t('waiter.tryAnotherCat')}
           />
         </Card>
       ) : (
@@ -353,12 +346,12 @@ export default function ReservationsPage() {
                     {reservation.customerName}
                   </span>
                   <Badge variant={RESERVATION_STATUS_TONE[reservation.status]}>
-                    {RESERVATION_STATUS_LABELS[reservation.status] ?? reservation.status}
+                    {t(`reservationStatus.${reservation.status}`, RESERVATION_STATUS_LABELS[reservation.status] ?? reservation.status)}
                   </Badge>
                 </div>
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  {reservation.customerPhone} · Stol {reservation.table?.number ?? '—'} ·{' '}
-                  {reservation.guests} mehmon
+                  {reservation.customerPhone} · {t('dashboard.table')} {reservation.table?.number ?? '—'} ·{' '}
+                  {reservation.guests} {t('tables.capacity')}
                 </p>
                 <p className="mt-1 text-xs text-slate-400">
                   {formatDateTime(reservation.date)}
@@ -373,9 +366,9 @@ export default function ReservationsPage() {
                       setConfirming(reservation)
                       setSelectedTable(reservation.table ?? null)
                     }}
-                    title="Tasdiqlash va stol tanlash"
+                    title={t('confirm')}
                   >
-                    <Check className="mr-1 h-4 w-4" /> Tasdiqlash
+                    <Check className="mr-1 h-4 w-4" /> {t('confirm')}
                   </Button>
                 )}
                 {[RESERVATION_STATUS.PENDING, RESERVATION_STATUS.CONFIRMED].includes(reservation.status) && (
@@ -383,18 +376,18 @@ export default function ReservationsPage() {
                     variant="secondary"
                     onClick={() => setConfirmAction({ type: 'cancel', reservation })}
                     disabled={cancelMutation.isPending}
-                    title="Bronni bekor qilish"
+                    title={t('cancel')}
                   >
-                    <X className="mr-1 h-4 w-4" /> Bekor qilish
+                    <X className="mr-1 h-4 w-4" /> {t('cancel')}
                   </Button>
                 )}
-                <Button variant="ghost" onClick={() => openEdit(reservation)} title="Tahrirlash">
+                <Button variant="ghost" onClick={() => openEdit(reservation)} title={t('edit')}>
                   <Pencil className="h-4 w-4" />
                 </Button>
                 {canDelete && (
                   <Button
                     variant="ghost"
-                    title="O'chirish"
+                    title={t('delete')}
                     onClick={() => setConfirmAction({ type: 'delete', reservation })}
                   >
                     <Trash2 className="h-4 w-4 text-rose-500" />
@@ -414,7 +407,7 @@ export default function ReservationsPage() {
             setSelectedTable(null)
           }
         }}
-        title={confirming ? `${confirming.customerName} bronini tasdiqlash` : 'Bronni tasdiqlash'}
+        title={confirming ? `${t('confirm')} ${confirming.customerName}` : t('confirm')}
         footer={
           <>
             <Button
@@ -425,20 +418,20 @@ export default function ReservationsPage() {
                 setSelectedTable(null)
               }}
             >
-              Bekor qilish
+              {t('cancel')}
             </Button>
             <Button
               disabled={!selectedTable || confirmMutation.isPending}
               isLoading={confirmMutation.isPending}
               onClick={() => confirmMutation.mutate({ reservation: confirming, table: selectedTable })}
             >
-              Saqlash
+              {t('save')}
             </Button>
           </>
         }
       >
         <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
-          Bo‘sh stolni xaritadan tanlang. Sariq stollar avvaldan bron qilingan, qizil stollar band.
+          {t('tables.selectFreeTable')}
         </p>
         {tablesQuery.isLoading ? (
           <Skeleton className="h-64 w-full" />
@@ -449,7 +442,7 @@ export default function ReservationsPage() {
             selectedTable={selectedTable}
             onTableClick={(table) => {
               if (table.disabled) {
-                toast.info('Faqat bo‘sh stolni tanlash mumkin')
+                toast.info(t('tables.onlyFreeSelected'))
                 return
               }
               setSelectedTable(table)
@@ -461,72 +454,64 @@ export default function ReservationsPage() {
       <Modal
         isOpen={modalOpen}
         onClose={closeModal}
-        title={editing ? 'Bronni tahrirlash' : 'Yangi bron'}
+        title={editing ? t('reservations.editReservation') : t('reservations.newReservation')}
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>
-              Bekor qilish
+              {t('cancel')}
             </Button>
             <Button
               onClick={() => saveMutation.mutate()}
               disabled={!isValid}
               isLoading={saveMutation.isPending}
             >
-              Saqlash
+              {t('save')}
             </Button>
           </>
         }
       >
         <div className="space-y-3">
-          {editing && (
-            <p className="rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-              Mavjud bronda mijoz ismi, telefoni va stolini o'zgartirib bo'lmaydi — backend bu
-              maydonlarni tahrirlashni qo'llab-quvvatlamaydi. Kerak bo'lsa bronni o'chirib, yangisini
-              yarating.
-            </p>
-          )}
-
           <Input
-            label="Mijoz ismi"
+            label={t('reservations.customerName')}
             value={form.customerName}
             onChange={setField('customerName')}
             placeholder="Alisher Karimov"
             disabled={Boolean(editing)}
           />
           <Input
-            label="Telefon"
+            label={t('reservations.phone')}
             value={form.customerPhone}
             onChange={setField('customerPhone')}
             placeholder="+998 90 123 45 67"
             disabled={Boolean(editing)}
           />
           <TableSelect
-            label="Stol"
-            placeholder="Stolni tanlang"
+            label={t('dashboard.table')}
+            placeholder={t('waiter.selectTableFirst')}
             value={form.table}
             onChange={setField('table')}
             options={tableOptions}
             disabled={Boolean(editing)}
           />
           <DateSelect
-            label="Sana va vaqt"
+            label={t('reservations.dateAndTime')}
             dateValue={form.date}
             timeValue={form.time}
             onDateChange={(v) => setForm((p) => ({ ...p, date: v }))}
             onTimeChange={(v) => setForm((p) => ({ ...p, time: v }))}
           />
           <Input
-            label="Mehmonlar soni"
+            label={t('reservations.guests')}
             type="number"
             min={1}
             value={form.guests}
             onChange={setField('guests')}
           />
           <Input
-            label="Izoh (ixtiyoriy)"
+            label={t('note')}
             value={form.notes}
             onChange={setField('notes')}
-            placeholder="Deraza yonidagi stol"
+            placeholder={t('waiter.orderNotePlaceholder')}
           />
         </div>
       </Modal>
@@ -534,11 +519,11 @@ export default function ReservationsPage() {
       <Modal
         isOpen={Boolean(confirmAction)}
         onClose={() => setConfirmAction(null)}
-        title="Tasdiqlang"
+        title={t('confirm')}
         footer={
           <>
             <Button variant="secondary" onClick={() => setConfirmAction(null)}>
-              Bekor qilish
+              {t('cancel')}
             </Button>
             <Button
               variant="danger"
@@ -553,7 +538,7 @@ export default function ReservationsPage() {
                 }
               }}
             >
-              Tasdiqlash
+              {t('confirm')}
             </Button>
           </>
         }
@@ -564,10 +549,10 @@ export default function ReservationsPage() {
           </div>
           <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
             {confirmAction?.type === 'cancel'
-              ? `"${confirmAction?.reservation?.customerName}" bronini bekor qilmoqchimisiz?`
+              ? `"${confirmAction?.reservation?.customerName}" ${t('cashier.confirmCancel')}`
               : confirmAction?.type === 'delete'
-              ? `"${confirmAction?.reservation?.customerName}" bronini rostdan ham o'chirib tashlamoqchimisiz?`
-              : "Barcha bronlarni rostdan ham o'chirib tashlamoqchimisiz? Bu amalni ortga qaytarib bo'lmaydi."}
+              ? `"${confirmAction?.reservation?.customerName}" ${t('cashier.confirmCancel')}`
+              : t('cashier.confirmCancel')}
           </p>
         </div>
       </Modal>

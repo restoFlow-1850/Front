@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 import { RefreshCw, CheckCheck, Trash2 } from 'lucide-react'
 import {
   fetchNotifications,
@@ -11,6 +12,7 @@ import { Badge, Button, EmptyState } from '../../../components/ui'
 import { FiBell } from 'react-icons/fi'
 
 export default function NotificationsPage() {
+  const { t } = useTranslation()
   const dispatch = useDispatch()
   const items = useSelector((state) => state.notifications.items)
   const loading = useSelector((state) => state.notifications.loading)
@@ -42,26 +44,26 @@ export default function NotificationsPage() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4 dark:border-slate-800">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-            Bildirishnomalar
+            {t('notifications.title')}
           </h1>
           {unreadCount > 0 && (
             <p className="mt-1 text-xs font-semibold text-[#F97316]">
-              {unreadCount} ta o'qilmagan bildirishnoma
+              {unreadCount} {t('notifications.unread')}
             </p>
           )}
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="secondary" onClick={handleRefresh} disabled={loading}>
             <RefreshCw className={`mr-1.5 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            Yangilash
+            {t('refresh')}
           </Button>
           <Button variant="ghost" onClick={handleMarkAllRead}>
             <CheckCheck className="mr-1.5 h-4 w-4 text-[#F97316]" />
-            Hammasini o'qilgan qilish
+            {t('notifications.markAllRead')}
           </Button>
           <Button variant="ghost" onClick={handleClear} className="text-red-500 hover:text-red-600">
             <Trash2 className="mr-1.5 h-4 w-4" />
-            Tozalash
+            {t('notifications.clear')}
           </Button>
         </div>
       </div>
@@ -70,8 +72,8 @@ export default function NotificationsPage() {
         <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-800">
           <EmptyState
             icon={FiBell}
-            title="Hozircha bildirishnoma yo'q"
-            description="Yangi buyurtma kelganda yoki holati o'zgarganda shu yerda ko'rinadi."
+            title={t('notifications.emptyTitle')}
+            description={t('notifications.emptyDesc')}
           />
         </div>
       ) : (
@@ -97,7 +99,7 @@ export default function NotificationsPage() {
                   {new Date(item.createdAt).toLocaleString()}
                 </p>
               </div>
-              {!item.read && <Badge variant="info">Yangi</Badge>}
+              {!item.read && <Badge variant="info">{t('notifications.new')}</Badge>}
             </li>
           ))}
         </ul>

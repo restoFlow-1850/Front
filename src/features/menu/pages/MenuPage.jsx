@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import {
   Search,
   Plus,
@@ -47,6 +48,7 @@ const TAG_CONFIG = {
 }
 
 export default function MenuPage() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const role = useSelector((state) => state.auth.user?.role)
   const canManage = [ROLES.ADMIN, ROLES.MANAGER].includes(role)
@@ -85,29 +87,29 @@ export default function MenuPage() {
   const createCategoryMutation = useMutation({
     mutationFn: (data) => createCategory(data),
     onSuccess: () => {
-      toast.success("Kategoriya muvaffaqiyatli qo'shildi")
+      toast.success(t('menu.categoryAdded', { defaultValue: "Kategoriya muvaffaqiyatli qo'shildi" }))
       setIsCategoryModalOpen(false)
       setEditingCategory(null)
       queryClient.invalidateQueries({ queryKey: ['categories'] })
     },
-    onError: (err) => toast.error(apiErrorMessage(err, "Kategoriyani qo'shib bo'lmadi")),
+    onError: (err) => toast.error(apiErrorMessage(err, t('kitchen.loadFailed'))),
   })
 
   const updateCategoryMutation = useMutation({
     mutationFn: ({ id, data }) => updateCategory(id, data),
     onSuccess: () => {
-      toast.success('Kategoriya yangilandi')
+      toast.success(t('menu.categoryUpdated', { defaultValue: "Kategoriya yangilandi" }))
       setIsCategoryModalOpen(false)
       setEditingCategory(null)
       queryClient.invalidateQueries({ queryKey: ['categories'] })
     },
-    onError: (err) => toast.error(apiErrorMessage(err, 'Kategoriyani yangilab bo‘lmadi')),
+    onError: (err) => toast.error(apiErrorMessage(err, t('kitchen.loadFailed'))),
   })
 
   const deleteCategoryMutation = useMutation({
     mutationFn: (id) => deleteCategory(id),
     onSuccess: () => {
-      toast.success('Kategoriya o‘chirildi')
+      toast.success(t('menu.categoryDeleted', { defaultValue: "Kategoriya o'chirildi" }))
       setDeleteCategoryTarget(null)
       if (activeCategory === deleteCategoryTarget?._id) {
         setActiveCategory('all')
@@ -115,49 +117,49 @@ export default function MenuPage() {
       queryClient.invalidateQueries({ queryKey: ['categories'] })
       queryClient.invalidateQueries({ queryKey: ['products'] })
     },
-    onError: (err) => toast.error(apiErrorMessage(err, 'Kategoriyani o‘chirib bo‘lmadi')),
+    onError: (err) => toast.error(apiErrorMessage(err, t('kitchen.loadFailed'))),
   })
 
   // Product Mutations
   const createProductMutation = useMutation({
     mutationFn: (formData) => createProduct(formData),
     onSuccess: () => {
-      toast.success("Taom muvaffaqiyatli qo'shildi")
+      toast.success(t('menu.dishAdded', { defaultValue: "Taom muvaffaqiyatli qo'shildi" }))
       setIsProductModalOpen(false)
       setEditingProduct(null)
       queryClient.invalidateQueries({ queryKey: ['products'] })
     },
-    onError: (err) => toast.error(apiErrorMessage(err, "Taomni qo'shib bo'lmadi")),
+    onError: (err) => toast.error(apiErrorMessage(err, t('kitchen.loadFailed'))),
   })
 
   const updateProductMutation = useMutation({
     mutationFn: ({ id, formData }) => updateProduct(id, formData),
     onSuccess: () => {
-      toast.success('Taom yangilandi')
+      toast.success(t('menu.dishUpdated', { defaultValue: "Taom yangilandi" }))
       setIsProductModalOpen(false)
       setEditingProduct(null)
       queryClient.invalidateQueries({ queryKey: ['products'] })
     },
-    onError: (err) => toast.error(apiErrorMessage(err, 'Taomni yangilab bo‘lmadi')),
+    onError: (err) => toast.error(apiErrorMessage(err, t('kitchen.loadFailed'))),
   })
 
   const toggleAvailabilityMutation = useMutation({
     mutationFn: ({ id, isAvailable }) => updateProduct(id, { isAvailable }),
     onSuccess: (_data, { isAvailable }) => {
-      toast.success(isAvailable ? 'Taom menyuda faollashtirildi' : 'Taom tugagan deb belgilandi')
+      toast.success(isAvailable ? t('menu.available') : t('menu.outOfStock'))
       queryClient.invalidateQueries({ queryKey: ['products'] })
     },
-    onError: (err) => toast.error(apiErrorMessage(err, 'Holatni o‘zgartirib bo‘lmadi')),
+    onError: (err) => toast.error(apiErrorMessage(err, t('kitchen.statusChangeFailed'))),
   })
 
   const deleteProductMutation = useMutation({
     mutationFn: (id) => deleteProduct(id),
     onSuccess: () => {
-      toast.success('Taom o‘chirildi')
+      toast.success(t('orders.deleted', { defaultValue: "Taom o'chirildi" }))
       setDeleteProductTarget(null)
       queryClient.invalidateQueries({ queryKey: ['products'] })
     },
-    onError: (err) => toast.error(apiErrorMessage(err, 'Taomni o‘chirib bo‘lmadi')),
+    onError: (err) => toast.error(apiErrorMessage(err, t('orders.deleteFailed'))),
   })
 
   // Filtered Products
@@ -192,10 +194,10 @@ export default function MenuPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-            Restoran menyusi
+            {t('menu.title')}
           </h1>
           <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            Barcha taomlar, toifalar va narxlarni boshqarish
+            {t('menu.subtitle')}
           </p>
         </div>
 
@@ -212,7 +214,7 @@ export default function MenuPage() {
                 categoriesQuery.isFetching || productsQuery.isFetching ? 'animate-spin' : ''
               }`}
             />
-            Yangilash
+            {t('refresh')}
           </Button>
 
           {canManage && (
@@ -225,7 +227,7 @@ export default function MenuPage() {
                 }}
               >
                 <FolderPlus className="mr-1.5 h-4 w-4 text-[#F97316]" />
-                Kategoriya qo'shish
+                {t('menu.addCategory')}
               </Button>
 
               <Button
@@ -235,7 +237,7 @@ export default function MenuPage() {
                 }}
               >
                 <Plus className="mr-1.5 h-4 w-4" />
-                Yangi taom
+                {t('menu.addDish')}
               </Button>
             </>
           )}
@@ -248,7 +250,7 @@ export default function MenuPage() {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Taom nomi yoki tarkibi bo'yicha qidirish..."
+            placeholder={t('waiter.searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2 pl-10 pr-4 text-xs sm:text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#F97316] focus:bg-white focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
@@ -266,7 +268,7 @@ export default function MenuPage() {
                   : 'text-slate-500 hover:text-slate-900 dark:text-slate-400'
               }`}
             >
-              Hammasi
+              {t('all')}
             </button>
             <button
               type="button"
@@ -277,7 +279,7 @@ export default function MenuPage() {
                   : 'text-slate-500 hover:text-slate-900 dark:text-slate-400'
               }`}
             >
-              Mavjud
+              {t('menu.available')}
             </button>
             <button
               type="button"
@@ -288,7 +290,7 @@ export default function MenuPage() {
                   : 'text-slate-500 hover:text-slate-900 dark:text-slate-400'
               }`}
             >
-              Tugagan
+              {t('menu.outOfStock')}
             </button>
           </div>
         </div>
@@ -306,7 +308,7 @@ export default function MenuPage() {
           }`}
         >
           <UtensilsCrossed size={16} />
-          <span>Barcha taomlar ({products.length})</span>
+          <span>{t('waiter.allCategories')} ({products.length})</span>
         </button>
 
         {categories.map((cat) => {
@@ -347,7 +349,7 @@ export default function MenuPage() {
                       setIsCategoryModalOpen(true)
                     }}
                     className="p-1 text-slate-600 hover:text-orange-500 dark:text-slate-300"
-                    title="Kategoriyani tahrirlash"
+                    title={t('edit')}
                   >
                     <Pencil size={12} />
                   </button>
@@ -358,7 +360,7 @@ export default function MenuPage() {
                       setDeleteCategoryTarget(cat)
                     }}
                     className="p-1 text-rose-500 hover:text-rose-600"
-                    title="Kategoriyani o'chirish"
+                    title={t('delete')}
                   >
                     <Trash2 size={12} />
                   </button>
@@ -384,9 +386,9 @@ export default function MenuPage() {
           <div className="flex size-14 items-center justify-center rounded-2xl bg-orange-500/10 text-[#F97316]">
             <UtensilsCrossed size={28} />
           </div>
-          <h3 className="mt-4 text-base font-bold text-slate-900 dark:text-white">Taom topilmadi</h3>
+          <h3 className="mt-4 text-base font-bold text-slate-900 dark:text-white">{t('waiter.noDishesFound')}</h3>
           <p className="mt-1 max-w-sm text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            Tanlangan kategoriya yoki filtrlar bo'yicha hech qanday taom mavjud emas.
+            {t('waiter.tryAnotherCat')}
           </p>
           {canManage && (
             <Button
@@ -396,7 +398,7 @@ export default function MenuPage() {
                 setIsProductModalOpen(true)
               }}
             >
-              <Plus className="mr-1.5 h-4 w-4" /> Yangi taom qo'shish
+              <Plus className="mr-1.5 h-4 w-4" /> {t('menu.addDish')}
             </Button>
           )}
         </div>
@@ -440,7 +442,7 @@ export default function MenuPage() {
                           : 'bg-rose-500/90 text-white'
                       }`}
                     >
-                      {product.isAvailable ? 'Mavjud' : 'Tugagan'}
+                      {product.isAvailable ? t('menu.available') : t('menu.outOfStock')}
                     </span>
                   </div>
 
@@ -507,7 +509,7 @@ export default function MenuPage() {
                         type="button"
                         onClick={() => setPreviewProduct(product)}
                         className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition"
-                        title="Ko'rish"
+                        title={t('view')}
                       >
                         <Eye size={16} />
                       </button>
@@ -527,7 +529,7 @@ export default function MenuPage() {
                                 ? 'text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/40'
                                 : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                             }`}
-                            title={product.isAvailable ? 'Tugagan qilish' : 'Mavjud qilish'}
+                            title={product.isAvailable ? t('menu.outOfStock') : t('menu.available')}
                           >
                             {product.isAvailable ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
                           </button>
@@ -539,7 +541,7 @@ export default function MenuPage() {
                               setIsProductModalOpen(true)
                             }}
                             className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition"
-                            title="Tahrirlash"
+                            title={t('edit')}
                           >
                             <Pencil size={16} />
                           </button>
@@ -548,7 +550,7 @@ export default function MenuPage() {
                             type="button"
                             onClick={() => setDeleteProductTarget(product)}
                             className="rounded-xl p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition"
-                            title="O'chirish"
+                            title={t('delete')}
                           >
                             <Trash2 size={16} />
                           </button>
@@ -626,18 +628,18 @@ export default function MenuPage() {
       <Modal
         isOpen={Boolean(deleteCategoryTarget)}
         onClose={() => setDeleteCategoryTarget(null)}
-        title="Kategoriyani o'chirish"
+        title={t('confirm')}
         footer={
           <>
             <Button variant="secondary" onClick={() => setDeleteCategoryTarget(null)}>
-              Bekor qilish
+              {t('cancel')}
             </Button>
             <Button
               variant="danger"
               isLoading={deleteCategoryMutation.isPending}
               onClick={() => deleteCategoryMutation.mutate(deleteCategoryTarget._id)}
             >
-              Ha, o'chirilsin
+              {t('delete')}
             </Button>
           </>
         }
@@ -647,7 +649,7 @@ export default function MenuPage() {
             <AlertTriangle className="h-5 w-5" />
           </div>
           <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
-            "{deleteCategoryTarget?.name}" kategoriyasini rostdan ham o'chirib tashlamoqchimisiz?
+            "{deleteCategoryTarget?.name}" {t('cashier.confirmCancel')}
           </p>
         </div>
       </Modal>
@@ -656,18 +658,18 @@ export default function MenuPage() {
       <Modal
         isOpen={Boolean(deleteProductTarget)}
         onClose={() => setDeleteProductTarget(null)}
-        title="Taomni o'chirish"
+        title={t('confirm')}
         footer={
           <>
             <Button variant="secondary" onClick={() => setDeleteProductTarget(null)}>
-              Bekor qilish
+              {t('cancel')}
             </Button>
             <Button
               variant="danger"
               isLoading={deleteProductMutation.isPending}
               onClick={() => deleteProductMutation.mutate(deleteProductTarget._id)}
             >
-              Ha, o'chirilsin
+              {t('delete')}
             </Button>
           </>
         }
@@ -677,7 +679,7 @@ export default function MenuPage() {
             <AlertTriangle className="h-5 w-5" />
           </div>
           <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
-            "{deleteProductTarget?.name}" taomini rostdan ham o'chirib tashlamoqchimisiz?
+            "{deleteProductTarget?.name}" {t('cashier.confirmCancel')}
           </p>
         </div>
       </Modal>

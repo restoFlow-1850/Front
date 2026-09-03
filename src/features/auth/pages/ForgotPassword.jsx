@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useTranslation } from 'react-i18next'
 import {
   Mail,
   ArrowLeft,
@@ -17,10 +18,11 @@ import { useTheme } from '../../../hooks/useTheme'
 import LanguageSwitcher from '../../../components/common/LanguageSwitcher'
 
 const schema = z.object({
-  email: z.string().email("Email noto'g'ri formatda"),
+  email: z.string().email("Email format invalid"),
 })
 
 export default function ForgotPasswordPage() {
+  const { t } = useTranslation()
   const { theme, toggleTheme } = useTheme()
   const [successMsg, setSuccessMsg] = useState('')
   const [error, setError] = useState(null)
@@ -39,9 +41,9 @@ export default function ForgotPasswordPage() {
     setSuccessMsg('')
     try {
       await authApi.forgotPassword(values)
-      setSuccessMsg("Agar ushbu email tizimda mavjud bo'lsa, parolni tiklash havolasi yuborildi.")
+      setSuccessMsg(t('dashboard.telegramSent'))
     } catch (err) {
-      setError(err.response?.data?.message || "Xatolik yuz berdi. Qayta urinib ko'ring.")
+      setError(err.response?.data?.message || t('kitchen.loadFailed'))
     }
   }
 
@@ -74,14 +76,11 @@ export default function ForgotPasswordPage() {
           <div className="mb-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-xs font-bold text-[#F97316] mb-3">
               <KeyRound size={14} />
-              <span>Tiklash xizmati</span>
+              <span>{t('auth.forgotPassword')}</span>
             </div>
             <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-              Parolni tiklash
+              {t('auth.forgotPassword')}
             </h1>
-            <p className="mt-1.5 text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-              Tizimda ro'yxatdan o'tgan emailingizni kiriting. Sizga tiklash havolasini yuboramiz.
-            </p>
           </div>
 
           {successMsg ? (
@@ -98,14 +97,14 @@ export default function ForgotPasswordPage() {
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 py-3 text-sm font-bold text-white shadow-md hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors"
               >
                 <ArrowLeft size={16} />
-                <span>Kirish sahifasiga qaytish</span>
+                <span>{t('back')}</span>
               </Link>
             </div>
           ) : (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
                 <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300" htmlFor="email">
-                  Email manzil
+                  {t('auth.email')}
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -113,7 +112,7 @@ export default function ForgotPasswordPage() {
                     id="email"
                     type="email"
                     autoComplete="email"
-                    placeholder="email@misol.uz"
+                    placeholder="email@example.com"
                     className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-[#F97316] focus:bg-white focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800/80 dark:text-white dark:placeholder-slate-500 dark:focus:bg-slate-800"
                     {...register('email')}
                   />
@@ -138,10 +137,10 @@ export default function ForgotPasswordPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
-                    Yuborilmoqda...
+                    {t('loading')}
                   </span>
                 ) : (
-                  <span>Havola yuborish</span>
+                  <span>{t('confirm')}</span>
                 )}
               </button>
 
@@ -151,7 +150,7 @@ export default function ForgotPasswordPage() {
                   className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-[#F97316] dark:text-slate-400 dark:hover:text-orange-400 transition-colors"
                 >
                   <ArrowLeft size={14} />
-                  <span>Kirish sahifasiga qaytish</span>
+                  <span>{t('back')}</span>
                 </Link>
               </div>
             </form>

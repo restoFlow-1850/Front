@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'react-toastify'
 import {
   Lock,
@@ -19,6 +20,7 @@ import { useTheme } from '../../../hooks/useTheme'
 import LanguageSwitcher from '../../../components/common/LanguageSwitcher'
 
 export default function ResetPasswordPage() {
+  const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { theme, toggleTheme } = useTheme()
@@ -31,10 +33,10 @@ export default function ResetPasswordPage() {
   const mutation = useMutation({
     mutationFn: () => authApi.resetPassword({ token, password }),
     onSuccess: () => {
-      toast.success('Parol muvaffaqiyatli yangilandi! Tizimga kiring.')
+      toast.success(t('auth.passwordChanged', { defaultValue: "Parol muvaffaqiyatli yangilandi!" }))
       navigate('/login', { replace: true })
     },
-    onError: (error) => toast.error(apiErrorMessage(error, "Parolni tiklab bo'lmadi")),
+    onError: (error) => toast.error(apiErrorMessage(error, t('kitchen.loadFailed'))),
   })
 
   const valid = password.length >= 6 && password === confirm
@@ -68,14 +70,11 @@ export default function ResetPasswordPage() {
           <div className="mb-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-xs font-bold text-[#F97316] mb-3">
               <KeyRound size={14} />
-              <span>Yangi xavfsizlik kaliti</span>
+              <span>{t('auth.changePassword')}</span>
             </div>
             <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-              Yangi parol o'rnatish
+              {t('auth.changePassword')}
             </h1>
-            <p className="mt-1.5 text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-              Hisobingiz xavfsizligi uchun kamida 6 belgidan iborat yangi parol kiriting.
-            </p>
           </div>
 
           {!token ? (
@@ -84,7 +83,7 @@ export default function ResetPasswordPage() {
                 <div className="flex items-start gap-3">
                   <AlertCircle size={20} className="text-rose-500 shrink-0 mt-0.5" />
                   <p className="text-xs sm:text-sm font-medium leading-relaxed">
-                    Tiklash havolasi eskirgan yoki xato. Iltimos, parolni tiklash jarayonini qaytadan boshlang.
+                    Token error
                   </p>
                 </div>
               </div>
@@ -93,7 +92,7 @@ export default function ResetPasswordPage() {
                 to="/forgot-password"
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#F97316] via-[#EA580C] to-[#C2410C] py-3 text-sm font-bold text-white shadow-lg shadow-orange-500/25 hover:shadow-orange-500/35 transition-all"
               >
-                Qaytadan urinish
+                {t('back')}
               </Link>
             </div>
           ) : (
@@ -106,7 +105,7 @@ export default function ResetPasswordPage() {
             >
               <div>
                 <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300" htmlFor="password">
-                  Yangi parol
+                  {t('auth.newPassword')}
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -132,7 +131,7 @@ export default function ResetPasswordPage() {
 
               <div>
                 <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300" htmlFor="confirm">
-                  Parolni tasdiqlang
+                  {t('auth.confirmPassword')}
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -146,9 +145,6 @@ export default function ResetPasswordPage() {
                     className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-[#F97316] focus:bg-white focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800/80 dark:text-white dark:placeholder-slate-500 dark:focus:bg-slate-800"
                   />
                 </div>
-                {confirm && confirm !== password && (
-                  <p className="mt-1 text-xs font-medium text-rose-500">Parollar mos kelmadi</p>
-                )}
               </div>
 
               <button
@@ -162,10 +158,10 @@ export default function ResetPasswordPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
-                    Saqlanmoqda...
+                    {t('loading')}
                   </span>
                 ) : (
-                  <span>Parolni saqlash</span>
+                  <span>{t('save')}</span>
                 )}
               </button>
 
@@ -175,7 +171,7 @@ export default function ResetPasswordPage() {
                   className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-[#F97316] dark:text-slate-400 dark:hover:text-orange-400 transition-colors"
                 >
                   <ArrowLeft size={14} />
-                  <span>Kirish sahifasiga qaytish</span>
+                  <span>{t('back')}</span>
                 </Link>
               </div>
             </form>

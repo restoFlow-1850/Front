@@ -4,6 +4,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { Bell, LogOut, Menu, User, X, UtensilsCrossed, Sun, Moon, ChevronRight } from 'lucide-react'
 
+import { useTranslation } from 'react-i18next'
 import { clearCredentials } from '../features/auth/authSlice'
 import { clearSession, readUser } from '../features/auth/session'
 import { navItemsForRole } from '../constants/navigation'
@@ -16,6 +17,7 @@ import { disconnectSocket } from '../services/socket'
 import LanguageSwitcher from '../components/common/LanguageSwitcher'
 
 export default function AppLayout() {
+  const { t } = useTranslation()
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const location = useLocation()
@@ -64,14 +66,14 @@ export default function AppLayout() {
                 v2.0
               </span>
             </div>
-            <p className="text-[11px] font-medium text-slate-400">Restoran boshqaruvi</p>
+            <p className="text-[11px] font-medium text-slate-400">{t('restaurantManagement')}</p>
           </div>
         </div>
         <button
           type="button"
           onClick={() => setMobileOpen(false)}
           className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white lg:hidden transition"
-          aria-label="Menyuni yopish"
+          aria-label={t('close')}
         >
           <X className="h-5 w-5" />
         </button>
@@ -80,7 +82,7 @@ export default function AppLayout() {
       {/* Navigation List */}
       <nav className="flex-1 space-y-1.5 overflow-y-auto px-3.5 py-5 scrollbar-thin scrollbar-thumb-slate-800">
         <div className="mb-2 px-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-          Asosiy bo'limlar
+          {t('mainSections')}
         </div>
         {items.map(({ key, path, label, icon: Icon }) => (
           <NavLink
@@ -103,7 +105,7 @@ export default function AppLayout() {
                 >
                   <Icon size={18} />
                 </div>
-                <span className="truncate">{label}</span>
+                <span className="truncate">{t(`nav.${key}`, label)}</span>
                 {key === 'notifications' && unreadCount > 0 && (
                   <span className="ml-auto rounded-full bg-white px-2 py-0.5 text-[10px] font-extrabold text-[#EA580C] shadow-sm">
                     {unreadCount > 99 ? '99+' : unreadCount}
@@ -126,10 +128,10 @@ export default function AppLayout() {
           </span>
           <span className="min-w-0 flex-1">
             <span className="block truncate font-bold text-white text-sm">
-              {user?.name ?? user?.email ?? 'Foydalanuvchi'}
+              {user?.name ?? user?.email ?? t('user')}
             </span>
             <span className="inline-block rounded-md bg-orange-500/10 px-1.5 py-0.5 text-[10px] font-bold text-orange-400">
-              {ROLE_LABELS[user?.role] ?? user?.role}
+              {user?.role ? t(`roles.${user.role}`, ROLE_LABELS[user.role] ?? user.role) : ''}
             </span>
           </span>
         </NavLink>
@@ -140,7 +142,7 @@ export default function AppLayout() {
           className="flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-bold text-slate-400 transition-all hover:bg-rose-500/10 hover:text-rose-400"
         >
           <LogOut size={15} />
-          <span>Tizimdan chiqish</span>
+          <span>{t('logout')}</span>
         </button>
       </div>
     </div>
@@ -156,7 +158,7 @@ export default function AppLayout() {
         <>
           <button
             type="button"
-            aria-label="Menyuni yopish"
+            aria-label={t('close')}
             className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
             onClick={() => setMobileOpen(false)}
           />
@@ -182,7 +184,7 @@ export default function AppLayout() {
               <span className="hidden sm:inline">RestoFlow</span>
               <ChevronRight size={14} className="hidden sm:inline text-slate-300 dark:text-slate-600" />
               <span className="text-sm font-extrabold text-slate-900 dark:text-white">
-                {currentItem?.label ?? 'Boshqaruv paneli'}
+                {currentItem ? t(`nav.${currentItem.key}`, currentItem.label) : t('nav.dashboard')}
               </span>
             </div>
           </div>
@@ -202,7 +204,7 @@ export default function AppLayout() {
                   isSocketConnected ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'
                 }`}
               />
-              <span>{isSocketConnected ? 'Jonli' : 'Uzlangan'}</span>
+              <span>{isSocketConnected ? t('live') : t('disconnected')}</span>
             </div>
 
             {/* Language Switcher */}
@@ -213,18 +215,18 @@ export default function AppLayout() {
               type="button"
               onClick={toggleTheme}
               className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs transition-all hover:bg-orange-50 hover:text-[#F97316] dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-              title={theme === 'dark' ? "Yorqin rejimga o'tish" : "Tungi rejimga o'tish"}
+              title={theme === 'dark' ? t('lightThemeTip') : t('darkThemeTip')}
               aria-label="Mavzuni almashtirish"
             >
               {theme === 'dark' ? (
                 <>
                   <Moon className="h-4 w-4 text-indigo-400" />
-                  <span className="hidden md:inline">Tungi</span>
+                  <span className="hidden md:inline">{t('dark')}</span>
                 </>
               ) : (
                 <>
                   <Sun className="h-4 w-4 text-amber-500" />
-                  <span className="hidden md:inline">Yorqin</span>
+                  <span className="hidden md:inline">{t('light')}</span>
                 </>
               )}
             </button>

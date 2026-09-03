@@ -3,6 +3,7 @@ import { useState, useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   AlertTriangle,
   Crown,
@@ -25,6 +26,7 @@ import {
   ROLES,
   TABLE_STATUS,
   TABLE_STATUS_LABELS,
+  TABLE_STATUS_LIST,
 } from '../../../constants/roles'
 import {
   Button,
@@ -42,6 +44,7 @@ const EMPTY_FORM = { number: '', capacity: 4, location: '', status: TABLE_STATUS
 const isVipTable = (table) => Boolean(table.location && /vip/i.test(table.location))
 
 export default function TablesPage() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const role = useSelector((state) => state.auth.user?.role)
@@ -54,10 +57,10 @@ export default function TablesPage() {
   const [deleteConfirm, setDeleteConfirm] = useState(null)
 
   // Zone Tabs & Filters & Views
-  const [selectedZone, setSelectedZone] = useState('MAIN') // 'MAIN' (Asosiy zal) | 'VIP' (VIP xona)
+  const [selectedZone, setSelectedZone] = useState('MAIN')
   const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState('ALL') // 'ALL' | FREE | BUSY | RESERVED
-  const [viewMode, setViewMode] = useState('grid') // 'grid' | 'list'
+  const [statusFilter, setStatusFilter] = useState('ALL')
+  const [viewMode, setViewMode] = useState('grid')
 
   const tablesQuery = useQuery({
     queryKey: ['tables'],
@@ -77,20 +80,20 @@ export default function TablesPage() {
       return editing ? updateTable(editing._id, payload) : createTable(payload)
     },
     onSuccess: () => {
-      toast.success(editing ? 'Stol yangilandi' : "Stol qo'shildi")
+      toast.success(editing ? t('tables.editTable') : t('tables.addTable'))
       closeModal()
       invalidate()
     },
-    onError: (error) => toast.error(apiErrorMessage(error, "Stolni saqlab bo'lmadi")),
+    onError: (error) => toast.error(apiErrorMessage(error, t('kitchen.loadFailed'))),
   })
 
   const statusMutation = useMutation({
     mutationFn: ({ id, status }) => updateTable(id, { status }),
     onSuccess: () => {
-      toast.success("Stol holati o'zgartirildi")
+      toast.success(t('kitchen.statusChanged', { status: '' }))
       invalidate()
     },
-    onError: (error) => toast.error(apiErrorMessage(error, "Holat o'zgarmadi")),
+    onError: (error) => toast.error(apiErrorMessage(error, t('kitchen.statusChangeFailed'))),
   })
 
   const deleteMutation = useMutation({
@@ -103,23 +106,20 @@ export default function TablesPage() {
       })
     },
     onSuccess: () => {
-      toast.success("Stol o'chirildi")
+      toast.success(t('orders.deleted', { defaultValue: "Stol o'chirildi" }))
       invalidate()
     },
-    onError: (error) => toast.error(apiErrorMessage(error, "O'chirib bo'lmadi")),
+    onError: (error) => toast.error(apiErrorMessage(error, t('orders.deleteFailed', { defaultValue: "O'chirib bo'lmadi" }))),
   })
 
   // Seed default 22 standard tables + 22 VIP tables
   const seedMutation = useMutation({
     mutationFn: async () => {
       const presets = [
-        // ─── Asosiy zal (22 ta) ──────────────────────────────
-        // 2 kishilik - 4 ta
         { number: 1, capacity: 2, location: 'Asosiy zal' },
         { number: 2, capacity: 2, location: 'Asosiy zal' },
         { number: 3, capacity: 2, location: 'Asosiy zal' },
         { number: 4, capacity: 2, location: 'Asosiy zal' },
-        // 4 kishilik - 8 ta
         { number: 5, capacity: 4, location: 'Asosiy zal' },
         { number: 6, capacity: 4, location: 'Asosiy zal' },
         { number: 7, capacity: 4, location: 'Asosiy zal' },
@@ -128,7 +128,6 @@ export default function TablesPage() {
         { number: 10, capacity: 4, location: 'Asosiy zal' },
         { number: 11, capacity: 4, location: 'Asosiy zal' },
         { number: 12, capacity: 4, location: 'Asosiy zal' },
-        // 6 kishilik - 7 ta
         { number: 13, capacity: 6, location: 'Asosiy zal' },
         { number: 14, capacity: 6, location: 'Asosiy zal' },
         { number: 15, capacity: 6, location: 'Asosiy zal' },
@@ -136,18 +135,13 @@ export default function TablesPage() {
         { number: 17, capacity: 6, location: 'Asosiy zal' },
         { number: 18, capacity: 6, location: 'Asosiy zal' },
         { number: 19, capacity: 6, location: 'Asosiy zal' },
-        // 10 kishilik - 3 ta
         { number: 20, capacity: 10, location: 'Asosiy zal' },
         { number: 21, capacity: 10, location: 'Asosiy zal' },
         { number: 22, capacity: 10, location: 'Asosiy zal' },
-
-        // ─── VIP xona (22 ta) ────────────────────────────────
-        // 2 kishilik - 4 ta
         { number: 23, capacity: 2, location: 'VIP xona (VIP 1)' },
         { number: 24, capacity: 2, location: 'VIP xona (VIP 2)' },
         { number: 25, capacity: 2, location: 'VIP xona (VIP 3)' },
         { number: 26, capacity: 2, location: 'VIP xona (VIP 4)' },
-        // 4 kishilik - 8 ta
         { number: 27, capacity: 4, location: 'VIP xona (VIP 5)' },
         { number: 28, capacity: 4, location: 'VIP xona (VIP 6)' },
         { number: 29, capacity: 4, location: 'VIP xona (VIP 7)' },
@@ -156,7 +150,6 @@ export default function TablesPage() {
         { number: 32, capacity: 4, location: 'VIP xona (VIP 10)' },
         { number: 33, capacity: 4, location: 'VIP xona (VIP 11)' },
         { number: 34, capacity: 4, location: 'VIP xona (VIP 12)' },
-        // 6 kishilik - 7 ta
         { number: 35, capacity: 6, location: 'VIP xona (VIP 13)' },
         { number: 36, capacity: 6, location: 'VIP xona (VIP 14)' },
         { number: 37, capacity: 6, location: 'VIP xona (VIP 15)' },
@@ -164,7 +157,6 @@ export default function TablesPage() {
         { number: 39, capacity: 6, location: 'VIP xona (VIP 17)' },
         { number: 40, capacity: 6, location: 'VIP xona (VIP 18)' },
         { number: 41, capacity: 6, location: 'VIP xona (VIP 19)' },
-        // 10 kishilik - 3 ta
         { number: 42, capacity: 10, location: 'VIP xona (VIP 20)' },
         { number: 43, capacity: 10, location: 'VIP xona (VIP 21)' },
         { number: 44, capacity: 10, location: 'VIP xona (VIP 22)' },
@@ -186,7 +178,7 @@ export default function TablesPage() {
       }
     },
     onSuccess: () => {
-      toast.success("22 ta Asosiy zal va 22 ta VIP stol muvaffaqiyatli yaratildi!")
+      toast.success("44 ta stol shakllantirildi")
       invalidate()
     },
     onError: (error) => toast.error(apiErrorMessage(error, "Stollarni shakllantirib bo'lmadi")),
@@ -227,13 +219,11 @@ export default function TablesPage() {
     return list.sort((a, b) => a.number - b.number)
   }, [tablesQuery.data])
 
-  // Counts for main vs VIP zones
   const mainZoneTables = useMemo(() => allTables.filter((t) => !isVipTable(t)), [allTables])
   const vipZoneTables = useMemo(() => allTables.filter((t) => isVipTable(t)), [allTables])
 
   const zoneTables = selectedZone === 'MAIN' ? mainZoneTables : vipZoneTables
 
-  // Overall status counts for currently active zone
   const counts = useMemo(() => {
     return {
       total: zoneTables.length,
@@ -243,14 +233,11 @@ export default function TablesPage() {
     }
   }, [zoneTables])
 
-  // Filtered tables based on search, status filter, and selected zone
   const filteredTables = useMemo(() => {
     return zoneTables.filter((table) => {
-      // Status filter
       if (statusFilter !== 'ALL' && table.status !== statusFilter) {
         return false
       }
-      // Search query (number or location)
       if (searchQuery.trim()) {
         const query = searchQuery.trim().toLowerCase()
         const numMatch = String(table.number).includes(query)
@@ -273,10 +260,10 @@ export default function TablesPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-            Stollar
+            {t('tables.title')}
           </h1>
           <p className="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">
-            {selectedZone === 'MAIN' ? 'Asosiy zal' : 'VIP xona'}: Jami {counts.total} ta · Bo'sh {counts[TABLE_STATUS.FREE]} · Band {counts[TABLE_STATUS.BUSY]} · Bron {counts[TABLE_STATUS.RESERVED]}
+            {selectedZone === 'MAIN' ? t('tables.allZones') : 'VIP'}: {t('total')} {counts.total} · {t('tableStatus.available')} {counts[TABLE_STATUS.FREE]} · {t('tableStatus.occupied')} {counts[TABLE_STATUS.BUSY]} · {t('tableStatus.reserved')} {counts[TABLE_STATUS.RESERVED]}
           </p>
         </div>
 
@@ -288,7 +275,7 @@ export default function TablesPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Stol raqami bo'yicha qidirish..."
+              placeholder={t('waiter.searchPlaceholder')}
               className="w-full rounded-xl border border-slate-200/90 bg-white py-2.5 pl-10 pr-4 text-xs font-medium text-slate-800 placeholder-slate-400 shadow-2xs transition focus:border-[#F97316] focus:outline-none focus:ring-2 focus:ring-[#F97316]/20 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:placeholder-slate-500"
             />
           </div>
@@ -301,7 +288,7 @@ export default function TablesPage() {
               className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#F97316] to-[#EA580C] px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-500/25 transition hover:from-[#EA580C] hover:to-[#C2410C] active:scale-95"
             >
               <Plus className="h-4 w-4" />
-              <span>Yangi stol qo'shish</span>
+              <span>{t('tables.addTable')}</span>
             </button>
           )}
         </div>
@@ -319,7 +306,7 @@ export default function TablesPage() {
           }`}
         >
           <Grid3X3 className="h-4 w-4 text-[#F97316]" />
-          <span>Asosiy zal</span>
+          <span>{t('tables.allZones')}</span>
           <span
             className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
               selectedZone === 'MAIN'
@@ -327,7 +314,7 @@ export default function TablesPage() {
                 : 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
             }`}
           >
-            {mainZoneTables.length} ta stol
+            {mainZoneTables.length}
           </span>
         </button>
 
@@ -341,7 +328,7 @@ export default function TablesPage() {
           }`}
         >
           <Crown className="h-4 w-4 text-amber-400" />
-          <span>VIP xona</span>
+          <span>VIP</span>
           <span
             className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
               selectedZone === 'VIP'
@@ -349,7 +336,7 @@ export default function TablesPage() {
                 : 'bg-amber-200/80 text-amber-900 dark:bg-amber-900 dark:text-amber-200'
             }`}
           >
-            {vipZoneTables.length} ta stol
+            {vipZoneTables.length}
           </span>
         </button>
 
@@ -361,7 +348,7 @@ export default function TablesPage() {
             className="ml-auto flex items-center gap-2 rounded-xl border border-amber-300/80 bg-amber-50/90 px-3.5 py-2 text-xs font-bold text-amber-900 shadow-2xs transition hover:bg-amber-100 active:scale-95 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
           >
             <Sparkles className="h-4 w-4 text-amber-500" />
-            <span>{seedMutation.isPending ? "Shakllantirilmoqda..." : "44 ta Stolni to'ldirish (22 Asosiy + 22 VIP)"}</span>
+            <span>{seedMutation.isPending ? t('loading') : t('tables.addTable')}</span>
           </button>
         )}
       </div>
@@ -370,7 +357,6 @@ export default function TablesPage() {
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 pb-4 dark:border-slate-800">
         {/* Status Pills */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Barchasi */}
           <button
             type="button"
             onClick={() => setStatusFilter('ALL')}
@@ -380,10 +366,9 @@ export default function TablesPage() {
                 : 'border border-slate-200 bg-white text-slate-700 hover:border-orange-300 hover:text-[#F97316] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
             }`}
           >
-            Barchasi
+            {t('all')}
           </button>
 
-          {/* Bo'sh */}
           <button
             type="button"
             onClick={() => setStatusFilter(TABLE_STATUS.FREE)}
@@ -394,10 +379,9 @@ export default function TablesPage() {
             }`}
           >
             <span className={`h-2 w-2 rounded-full ${statusFilter === TABLE_STATUS.FREE ? 'bg-white' : 'bg-emerald-500'}`} />
-            Bo'sh
+            {t('tableStatus.available')}
           </button>
 
-          {/* Band */}
           <button
             type="button"
             onClick={() => setStatusFilter(TABLE_STATUS.BUSY)}
@@ -408,10 +392,9 @@ export default function TablesPage() {
             }`}
           >
             <span className={`h-2 w-2 rounded-full ${statusFilter === TABLE_STATUS.BUSY ? 'bg-white' : 'bg-rose-500'}`} />
-            Band
+            {t('tableStatus.occupied')}
           </button>
 
-          {/* Bron */}
           <button
             type="button"
             onClick={() => setStatusFilter(TABLE_STATUS.RESERVED)}
@@ -422,7 +405,7 @@ export default function TablesPage() {
             }`}
           >
             <span className={`h-2 w-2 rounded-full ${statusFilter === TABLE_STATUS.RESERVED ? 'bg-white' : 'bg-amber-500'}`} />
-            Bron
+            {t('tableStatus.reserved')}
           </button>
         </div>
 
@@ -436,8 +419,7 @@ export default function TablesPage() {
                 ? 'bg-white font-bold text-slate-900 shadow-xs dark:bg-slate-800 dark:text-white'
                 : 'hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
             }`}
-            title="Setka ko'rinishi"
-            aria-label="Setka ko'rinishi"
+            title={t('tables.viewGrid')}
           >
             <LayoutGrid className="h-4 w-4" />
           </button>
@@ -449,8 +431,7 @@ export default function TablesPage() {
                 ? 'bg-white font-bold text-slate-900 shadow-xs dark:bg-slate-800 dark:text-white'
                 : 'hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
             }`}
-            title="Ro'yxat ko'rinishi"
-            aria-label="Ro'yxat ko'rinishi"
+            title={t('tables.view2D')}
           >
             <List className="h-4 w-4" />
           </button>
@@ -467,25 +448,15 @@ export default function TablesPage() {
       ) : tablesQuery.isError ? (
         <Card className="p-6">
           <p className="text-sm font-medium text-rose-600">
-            {apiErrorMessage(tablesQuery.error, "Stollarni yuklab bo'lmadi")}
+            {apiErrorMessage(tablesQuery.error, t('kitchen.loadFailed'))}
           </p>
         </Card>
       ) : filteredTables.length === 0 ? (
         <Card className="p-8">
           <EmptyState
             icon={selectedZone === 'VIP' ? Crown : Grid3X3}
-            title={
-              searchQuery || statusFilter !== 'ALL'
-                ? "Mos stollar topilmadi"
-                : `${selectedZone === 'VIP' ? 'VIP xona' : 'Asosiy zal'}da stollar yo'q`
-            }
-            description={
-              searchQuery || statusFilter !== 'ALL'
-                ? "Qidiruv yoki filtr mezonlariga mos stol topilmadi."
-                : canManage
-                ? "Tugma orqali stol qo'shing yoki 'Stollarni to'ldirish' tugmasini bosing."
-                : "Administrator hali ushbu zonaga stol qo'shmagan."
-            }
+            title={t('dashboard.noData')}
+            description={t('waiter.tryAnotherCat')}
           />
         </Card>
       ) : viewMode === 'grid' ? (
@@ -526,7 +497,7 @@ export default function TablesPage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-bold text-slate-900 dark:text-white">
-                          Stol #{table.number}
+                          {t('dashboard.table')} #{table.number}
                         </span>
                         {table.location && (
                           <span className="flex items-center gap-1 text-xs text-slate-500">
@@ -541,7 +512,7 @@ export default function TablesPage() {
                       </div>
                       <div className="flex items-center gap-1 text-xs text-slate-500">
                         <Users className="h-3 w-3" />
-                        {table.capacity} kishilik
+                        {table.capacity} {t('tables.capacity')}
                       </div>
                     </div>
                   </div>
@@ -566,7 +537,7 @@ export default function TablesPage() {
                             : 'bg-amber-500'
                         }`}
                       />
-                      {TABLE_STATUS_LABELS[table.status] || table.status}
+                      {t(`tableStatus.${table.status}`, TABLE_STATUS_LABELS[table.status] || table.status)}
                     </span>
 
                     {/* Manage actions */}
@@ -592,53 +563,53 @@ export default function TablesPage() {
       <Modal
         isOpen={modalOpen}
         onClose={closeModal}
-        title={editing ? `Stol ${editing.number} tahrirlash` : 'Yangi stol qo\'shish'}
+        title={editing ? `${t('tables.editTable')} #${editing.number}` : t('tables.addTable')}
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>
-              Bekor qilish
+              {t('cancel')}
             </Button>
             <Button
               onClick={() => saveMutation.mutate()}
               disabled={!form.number || !form.capacity}
               isLoading={saveMutation.isPending}
             >
-              Saqlash
+              {t('save')}
             </Button>
           </>
         }
       >
         <div className="space-y-3 py-1">
           <Input
-            label="Stol raqami"
+            label={t('tables.tableNumber')}
             type="number"
             min={1}
             value={form.number}
             onChange={setField('number')}
-            placeholder="masalan, 1"
+            placeholder="1"
           />
           <Input
-            label="Sig'imi (necha kishilik)"
+            label={t('tables.capacity')}
             type="number"
             min={1}
             value={form.capacity}
             onChange={setField('capacity')}
-            placeholder="masalan, 4"
+            placeholder="4"
           />
           <Input
-            label="Joylashuvi / Zona (ixtiyoriy)"
+            label={t('tables.zone')}
             value={form.location}
             onChange={setField('location')}
-            placeholder="Asosiy zal / VIP xona (VIP 1)"
+            placeholder="VIP"
           />
           {editing && (
             <Select
-              label="Holat"
+              label={t('status')}
               value={form.status}
               onChange={setField('status')}
               options={TABLE_STATUS_LIST.map((s) => ({
                 value: s,
-                label: TABLE_STATUS_LABELS[s],
+                label: t(`tableStatus.${s}`, TABLE_STATUS_LABELS[s]),
               }))}
             />
           )}
@@ -649,18 +620,18 @@ export default function TablesPage() {
       <Modal
         isOpen={Boolean(deleteConfirm)}
         onClose={() => setDeleteConfirm(null)}
-        title="Tasdiqlang"
+        title={t('confirm')}
         footer={
           <>
             <Button variant="secondary" onClick={() => setDeleteConfirm(null)}>
-              Bekor qilish
+              {t('cancel')}
             </Button>
             <Button
               variant="danger"
               isLoading={deleteMutation.isPending}
               onClick={() => deleteMutation.mutate(deleteConfirm._id)}
             >
-              O'chirish
+              {t('delete')}
             </Button>
           </>
         }
@@ -670,7 +641,7 @@ export default function TablesPage() {
             <AlertTriangle className="h-5 w-5" />
           </div>
           <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
-            Stol {deleteConfirm?.number} ni rostdan ham o'chirib tashlamoqchimisiz?
+            {t('dashboard.table')} #{deleteConfirm?.number} {t('cashier.confirmCancel')}
           </p>
         </div>
       </Modal>

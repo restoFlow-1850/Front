@@ -2,6 +2,7 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import Chart from 'react-apexcharts'
+import { useTranslation } from 'react-i18next'
 import {
   AlertTriangle,
   ClipboardList,
@@ -36,6 +37,7 @@ import { exportToPDF as exportPDFUtil } from '../../../utils/exportUtils'
 import api from '../../../services/axios'
 
 export default function Dashboard() {
+  const { t } = useTranslation()
   const [isExporting, setIsExporting] = useState(false)
   const [isSendingTelegram, setIsSendingTelegram] = useState(false)
 
@@ -43,9 +45,9 @@ export default function Dashboard() {
     setIsSendingTelegram(true)
     try {
       await api.post('/reports/telegram-daily-report')
-      toast.success('Hisobot Telegram botga muvaffaqiyatli yuborildi! 📲')
+      toast.success(t('dashboard.sendTelegramSuccess', { defaultValue: 'Hisobot Telegram botga muvaffaqiyatli yuborildi! 📲' }))
     } catch (err) {
-      toast.error(apiErrorMessage(err, "Telegram'ga yuborishda xatolik yuz berdi"))
+      toast.error(apiErrorMessage(err, t('dashboard.sendTelegramError', { defaultValue: "Telegram'ga yuborishda xatolik yuz berdi" })))
     } finally {
       setIsSendingTelegram(false)
     }
@@ -135,17 +137,17 @@ export default function Dashboard() {
         yaxis: {
           labels: {
             style: { colors: '#94a3b8' },
-            formatter: (v) => `${(v / 1000).toFixed(0)}k so'm`,
+            formatter: (v) => `${(v / 1000).toFixed(0)}k`,
           },
         },
         grid: { borderColor: '#e2e8f0', strokeDashArray: 4 },
         tooltip: {
-          y: { formatter: (v) => `${v.toLocaleString('ru-RU')} so'm` },
+          y: { formatter: (v) => `${v.toLocaleString('ru-RU')}` },
         },
       },
-      series: [{ name: 'Tushum', data: seriesData }],
+      series: [{ name: t('dashboard.todayRevenue'), data: seriesData }],
     }
-  }, [dailySales, stats.todayRevenue])
+  }, [dailySales, stats.todayRevenue, t])
 
   // ── ApexCharts: Top taomlar bar grafigi ─────────────────────────────────
   const topProductsChart = useMemo(() => {
@@ -161,11 +163,11 @@ export default function Dashboard() {
         },
         yaxis: { labels: { style: { colors: '#94a3b8' } } },
         grid: { borderColor: '#e2e8f0', strokeDashArray: 4 },
-        tooltip: { y: { formatter: (v) => `${v} ta` } },
+        tooltip: { y: { formatter: (v) => `${v}` } },
       },
-      series: [{ name: 'Sotildi', data: topProducts.map((p) => p.totalQuantity || p.quantity || 0) }],
+      series: [{ name: t('dashboard.soldCount'), data: topProducts.map((p) => p.totalQuantity || p.quantity || 0) }],
     }
-  }, [topProducts])
+  }, [topProducts, t])
 
   // ── Export handlers ──────────────────────────────────────────────────────
   const handleExportExcel = async () => {
@@ -177,10 +179,10 @@ export default function Dashboard() {
         dailySales,
         filename: `RestoFlow_Analitika_${new Date().toISOString().slice(0, 10)}.xlsx`,
       })
-      toast.success("Excel hisobot yuklab olindi")
+      toast.success(t('dashboard.excelSuccess', { defaultValue: "Excel hisobot yuklab olindi" }))
     } catch (err) {
       console.error(err)
-      toast.error("Excel hisobotni yuklashda xatolik yuz berdi")
+      toast.error(t('dashboard.excelError', { defaultValue: "Excel hisobotni yuklashda xatolik yuz berdi" }))
     } finally {
       setIsExporting(false)
     }
@@ -194,10 +196,10 @@ export default function Dashboard() {
         topProducts,
         filename: `RestoFlow_Analitika_${new Date().toISOString().slice(0, 10)}.csv`,
       })
-      toast.success("CSV hisobot yuklab olindi")
+      toast.success(t('dashboard.csvSuccess', { defaultValue: "CSV hisobot yuklab olindi" }))
     } catch (err) {
       console.error(err)
-      toast.error("CSV hisobotni yuklashda xatolik yuz berdi")
+      toast.error(t('dashboard.csvError', { defaultValue: "CSV hisobotni yuklashda xatolik yuz berdi" }))
     } finally {
       setIsExporting(false)
     }
@@ -212,10 +214,10 @@ export default function Dashboard() {
         dailySales,
         filename: `RestoFlow_Analitika_${new Date().toISOString().slice(0, 10)}.pdf`,
       })
-      toast.success("PDF hisobot yuklab olindi")
+      toast.success(t('dashboard.pdfSuccess', { defaultValue: "PDF hisobot yuklab olindi" }))
     } catch (err) {
       console.error(err)
-      toast.error("PDF hisobotni yuklashda xatolik yuz berdi")
+      toast.error(t('dashboard.pdfError', { defaultValue: "PDF hisobotni yuklashda xatolik yuz berdi" }))
     } finally {
       setIsExporting(false)
     }
@@ -226,8 +228,8 @@ export default function Dashboard() {
   return (
     <div>
       <PageHeader
-        title="Boshqaruv paneli"
-        subtitle="Restoranning bugungi va umumiy ko'rsatkichlari"
+        title={t('dashboard.title')}
+        subtitle={t('dashboard.subtitle')}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -237,7 +239,7 @@ export default function Dashboard() {
               className="text-xs sm:text-sm"
             >
               <Send className="mr-1.5 h-4 w-4 text-sky-500" />
-              Telegram'ga yuborish
+              {t('dashboard.sendTelegram')}
             </Button>
             <Button
               variant="secondary"
@@ -246,7 +248,7 @@ export default function Dashboard() {
               className="text-xs sm:text-sm"
             >
               <FileSpreadsheet className="mr-1.5 h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-              Excel (.xlsx)
+              {t('dashboard.excelExport')}
             </Button>
             <Button
               variant="secondary"
@@ -255,7 +257,7 @@ export default function Dashboard() {
               className="text-xs sm:text-sm"
             >
               <FileText className="mr-1.5 h-4 w-4 text-blue-600 dark:text-blue-400" />
-              CSV (.csv)
+              {t('dashboard.csvExport')}
             </Button>
             <Button
               variant="secondary"
@@ -264,7 +266,7 @@ export default function Dashboard() {
               className="text-xs sm:text-sm"
             >
               <FileText className="mr-1.5 h-4 w-4 text-rose-600 dark:text-rose-400" />
-              PDF (.pdf)
+              {t('dashboard.pdfExport')}
             </Button>
             <Button
               variant="secondary"
@@ -281,7 +283,7 @@ export default function Dashboard() {
                   statsQuery.isFetching || dailySalesQuery.isFetching ? 'animate-spin' : ''
                 }`}
               />
-              Yangilash
+              {t('dashboard.refresh')}
             </Button>
           </div>
         }
@@ -291,7 +293,7 @@ export default function Dashboard() {
         <Card className="mb-5 border-rose-200 bg-rose-50 dark:border-rose-900 dark:bg-rose-950/40">
           <p className="flex items-center gap-2 text-sm text-rose-700 dark:text-rose-300">
             <AlertTriangle className="h-4 w-4 shrink-0" />
-            {apiErrorMessage(statsQuery.error, "Hisobot ma'lumotlarini yuklab bo'lmadi")}
+            {apiErrorMessage(statsQuery.error, t('kitchen.loadFailed'))}
           </p>
         </Card>
       )}
@@ -305,30 +307,30 @@ export default function Dashboard() {
             <StatCard
               icon={DollarSign}
               tone="emerald"
-              label="Bugungi tushum"
+              label={t('dashboard.todayRevenue')}
               value={formatSom(stats.todayRevenue)}
-              hint={`${stats.todayPaymentsCount ?? 0} ta to'lov`}
+              hint={`${stats.todayPaymentsCount ?? 0} ${t('dashboard.paymentsCount')}`}
             />
             <StatCard
               icon={ClipboardList}
               tone="indigo"
-              label="Faol buyurtmalar"
+              label={t('dashboard.activeOrders')}
               value={stats.activeOrdersCount ?? 0}
-              hint={`Bugun jami ${stats.todayOrdersCount ?? 0} ta`}
+              hint={`${t('dashboard.todayTotal')} ${stats.todayOrdersCount ?? 0}`}
             />
             <StatCard
               icon={Utensils}
               tone="amber"
-              label="Band stollar"
+              label={t('dashboard.occupiedTables')}
               value={`${occupied} / ${tables.length}`}
-              hint={tables.length ? `${Math.round((occupied / tables.length) * 100)}% band` : '—'}
+              hint={tables.length ? `${Math.round((occupied / tables.length) * 100)}% ${t('dashboard.occupiedPct')}` : '—'}
             />
             <StatCard
               icon={Receipt}
               tone="indigo"
-              label="O'rtacha chek"
+              label={t('dashboard.avgCheck')}
               value={formatSom(avgCheck)}
-              hint="Bugungi to'lovlar bo'yicha"
+              hint={t('dashboard.avgCheckHint')}
             />
           </>
         )}
@@ -339,8 +341,7 @@ export default function Dashboard() {
         <Card className="mb-5 border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/40">
           <p className="flex items-center gap-2 text-sm text-amber-800 dark:text-amber-300">
             <Package className="h-4 w-4 shrink-0" />
-            <strong>{stats.lowStockCount}</strong> ta mahsulot omborda tugab qolmoqda (5 tadan kam).
-            Jami {stats.totalProducts ?? 0} ta mahsulot.
+            <strong>{stats.lowStockCount}</strong> {t('dashboard.lowStockAlert')} {stats.totalProducts ?? 0} {t('dashboard.totalProducts')}
           </p>
         </Card>
       )}
@@ -351,9 +352,9 @@ export default function Dashboard() {
           <div className="mb-4 flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
               <TrendingUp className="h-4 w-4 text-emerald-500" />
-              Sotuvlar dinamikasi
+              {t('dashboard.salesDynamics')}
             </h2>
-            <span className="text-xs text-slate-400">Tushum (so'm)</span>
+            <span className="text-xs text-slate-400">{t('dashboard.revenueSom')}</span>
           </div>
           {dailySalesQuery.isLoading ? (
             <Skeleton className="h-64 w-full" />
@@ -365,17 +366,17 @@ export default function Dashboard() {
         <Card>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
-              Eng ko'p sotilgan taomlar
+              {t('dashboard.topProducts')}
             </h2>
-            <span className="text-xs text-slate-400">Sotilgan soni (ta)</span>
+            <span className="text-xs text-slate-400">{t('dashboard.soldCount')}</span>
           </div>
           {topProductsQuery.isLoading ? (
             <Skeleton className="h-64 w-full" />
           ) : topProducts.length === 0 ? (
             <EmptyState
               icon={Package}
-              title="Ma'lumot yo'q"
-              description="Yopilgan buyurtmalar bo'lgach statistika shu yerda ko'rinadi."
+              title={t('dashboard.noData')}
+              description={t('dashboard.chartHint')}
             />
           ) : (
             <Chart options={topProductsChart.options} series={topProductsChart.series} type="bar" height={280} />
@@ -386,7 +387,7 @@ export default function Dashboard() {
       {/* So'nggi buyurtmalar */}
       <Card>
         <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-white">
-          So'nggi buyurtmalar
+          {t('dashboard.recentOrders')}
         </h2>
 
         {ordersQuery.isLoading ? (
@@ -396,17 +397,17 @@ export default function Dashboard() {
             ))}
           </div>
         ) : orders.length === 0 ? (
-          <EmptyState icon={ClipboardList} title="Buyurtma yo'q" />
+          <EmptyState icon={ClipboardList} title={t('dashboard.noOrders')} />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-xs text-slate-500 dark:border-slate-700">
-                  <th className="pb-2 pr-3 font-semibold">Stol</th>
-                  <th className="pb-2 pr-3 font-semibold">Ofitsiant</th>
-                  <th className="pb-2 pr-3 font-semibold">Summa</th>
-                  <th className="pb-2 pr-3 font-semibold">Holat</th>
-                  <th className="pb-2 font-semibold">Vaqt</th>
+                  <th className="pb-2 pr-3 font-semibold">{t('dashboard.table')}</th>
+                  <th className="pb-2 pr-3 font-semibold">{t('dashboard.waiter')}</th>
+                  <th className="pb-2 pr-3 font-semibold">{t('dashboard.sum')}</th>
+                  <th className="pb-2 pr-3 font-semibold">{t('dashboard.status')}</th>
+                  <th className="pb-2 font-semibold">{t('dashboard.time')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -426,7 +427,7 @@ export default function Dashboard() {
                     </td>
                     <td className="py-2.5 pr-3">
                       <Badge variant={ORDER_STATUS_TONE[order.status]}>
-                        {ORDER_STATUS_LABELS[order.status] ?? order.status}
+                        {t(`orderStatus.${order.status}`, ORDER_STATUS_LABELS[order.status] ?? order.status)}
                       </Badge>
                     </td>
                     <td className="py-2.5 text-xs text-slate-400">

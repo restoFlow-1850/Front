@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'react-toastify'
 import { User, UtensilsCrossed, Sparkles } from 'lucide-react'
 
@@ -15,6 +16,7 @@ import { buildTimeSlots, toDateInputValue } from '../lib/time'
 import MenuStep from '../components/MenuStep'
 import ConfirmStep from '../components/ConfirmStep'
 import SuccessStep from '../components/SuccessStep'
+import LanguageSwitcher from '../../../components/common/LanguageSwitcher'
 
 const PHONE_RE = /^[+\d][\d\s-]{6,17}$/
 
@@ -24,6 +26,7 @@ function initialTimeFor(dateStr) {
 }
 
 export default function GuestMenuPage() {
+  const { t } = useTranslation()
   const [step, setStep] = useState('hall')
 
   // Zal — sana/vaqt/mehmonlar va stollar
@@ -69,11 +72,11 @@ export default function GuestMenuPage() {
       const payload = res.data?.data ?? res.data
       setTables(payload.tables ?? [])
     } catch {
-      toast.error("Zal plani yuklanmadi. Sahifani yangilab ko'ring.")
+      toast.error(t('kitchen.loadFailed'))
     } finally {
       setTablesLoading(false)
     }
-  }, [isoDateTime])
+  }, [isoDateTime, t])
 
   useEffect(() => {
     fetchAvailability()
@@ -97,9 +100,9 @@ export default function GuestMenuPage() {
         setCategories((catPayload.categories ?? []).filter((c) => c.isActive !== false))
         setProducts(prodPayload.products ?? [])
       })
-      .catch(() => toast.error('Menyuni yuklab bo\'lmadi'))
+      .catch(() => toast.error(t('kitchen.loadFailed')))
       .finally(() => setMenuLoading(false))
-  }, [])
+  }, [t])
 
   const handleQtyChange = useCallback((product, qty) => {
     setCart((prev) => {
@@ -122,9 +125,9 @@ export default function GuestMenuPage() {
 
   function validateConfirm() {
     const next = {}
-    if (!customerName.trim()) next.customerName = 'Ismingizni kiriting'
+    if (!customerName.trim()) next.customerName = t('reservations.customerName')
     if (!customerPhone.trim() || !PHONE_RE.test(customerPhone.trim())) {
-      next.customerPhone = "Telefon raqamni to'g'ri kiriting"
+      next.customerPhone = t('reservations.phone')
     }
     setErrors(next)
     return Object.keys(next).length === 0
@@ -147,7 +150,7 @@ export default function GuestMenuPage() {
       const payload = res.data?.data ?? res.data
       setReservation(payload.reservation)
       setTables((prev) =>
-        prev.map((t) => (t._id === selectedTable._id ? { ...t, isReserved: true } : t))
+        prev.map((tbl) => (tbl._id === selectedTable._id ? { ...tbl, isReserved: true } : tbl))
       )
       fetchAvailability()
       setStep('success')
@@ -155,11 +158,11 @@ export default function GuestMenuPage() {
       const status = err.response?.status
       const message = err.response?.data?.message
       if (status === 409) {
-        toast.error(message || 'Bu stol tanlangan vaqtda band bo\'lib qoldi. Boshqa vaqt yoki stol tanlang.')
+        toast.error(message || t('kitchen.loadFailed'))
         setStep('hall')
         setSelectedTable(null)
       } else {
-        toast.error(message || 'Bronni yuborib bo\'lmadi. Qayta urinib ko\'ring.')
+        toast.error(message || t('kitchen.loadFailed'))
       }
     } finally {
       setIsSubmitting(false)
@@ -189,17 +192,20 @@ export default function GuestMenuPage() {
               <p className="text-lg font-black tracking-tight text-white">
                 Resto<span className="text-[#F97316]">Flow</span>
               </p>
-              <p className="text-[11px] font-bold text-slate-400">Onlayn stol bron qilish</p>
+              <p className="text-[11px] font-bold text-slate-400">{t('qrMenu.reserveTable')}</p>
             </div>
           </div>
 
-          <Link
-            to="/login"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900/80 px-3.5 py-1.5 text-xs font-bold text-slate-300 hover:border-orange-500/50 hover:text-white transition-colors"
-          >
-            <User size={14} className="text-[#F97316]" />
-            <span>Xodimlar kirishi</span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900/80 px-3.5 py-1.5 text-xs font-bold text-slate-300 hover:border-orange-500/50 hover:text-white transition-colors"
+            >
+              <User size={14} className="text-[#F97316]" />
+              <span>{t('auth.loginTitle')}</span>
+            </Link>
+          </div>
         </div>
       </header>
 

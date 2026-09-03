@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   ShieldCheck,
   UtensilsCrossed,
@@ -14,6 +15,7 @@ import LanguageSwitcher from '../../../components/common/LanguageSwitcher'
 import { authApi, getAuthErrorMessage } from '../api'
 
 export default function OTPPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const { theme, toggleTheme } = useTheme()
@@ -27,7 +29,6 @@ export default function OTPPage() {
   const inputRefs = useRef([])
 
   useEffect(() => {
-    // If state contains email/phone, auto-request sendOtp once on mount
     if (targetEmail || targetPhone) {
       authApi.sendOtp({ email: targetEmail, phone: targetPhone }).catch(() => {})
     }
@@ -35,7 +36,7 @@ export default function OTPPage() {
 
   useEffect(() => {
     if (timer <= 0) return
-    const interval = setInterval(() => setTimer((t) => t - 1), 1000)
+    const interval = setInterval(() => setTimer((tVal) => tVal - 1), 1000)
     return () => clearInterval(interval)
   }, [timer])
 
@@ -71,9 +72,9 @@ export default function OTPPage() {
     try {
       await authApi.sendOtp({ email: targetEmail, phone: targetPhone })
       setTimer(60)
-      toast.success('Yangi tasdiqlash kodi yuborildi!')
+      toast.success(t('dashboard.telegramSent'))
     } catch (err) {
-      toast.error(getAuthErrorMessage(err, "Kodni yuborishda xatolik"))
+      toast.error(getAuthErrorMessage(err, t('kitchen.loadFailed')))
     }
   }
 
@@ -81,16 +82,16 @@ export default function OTPPage() {
     e.preventDefault()
     const code = otp.join('')
     if (code.length < 6) {
-      toast.error('6 xonali kodni to‘liq kiriting')
+      toast.error('6 xonali kodni kiriting')
       return
     }
     setIsSubmitting(true)
     try {
       await authApi.verifyOtp({ email: targetEmail, phone: targetPhone, code })
-      toast.success('Kod muvaffaqiyatli tasdiqlandi! 🎉')
+      toast.success(t('dashboard.telegramSent'))
       navigate('/login', { replace: true })
     } catch (err) {
-      toast.error(getAuthErrorMessage(err, "Tasdiqlash kodi noto'g'ri yoki muddati o'tgan"))
+      toast.error(getAuthErrorMessage(err, t('kitchen.loadFailed')))
     } finally {
       setIsSubmitting(false)
     }
@@ -125,20 +126,11 @@ export default function OTPPage() {
           <div className="mb-6 text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-xs font-bold text-[#F97316] mb-3">
               <ShieldCheck size={14} />
-              <span>SMS / Kod tasdiqlash</span>
+              <span>OTP</span>
             </div>
             <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-              Kodni kiriting
+              OTP Code
             </h1>
-            <p className="mt-1.5 text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-              {targetEmail || targetPhone ? (
-                <>
-                  <span className="font-semibold text-slate-800 dark:text-slate-200">{targetEmail || targetPhone}</span> manziliga yuborilgan 6 xonali tasdiqlash kodini kiriting.
-                </>
-              ) : (
-                'Emailingizga yuborilgan 6 xonali tasdiqlash kodini kiriting.'
-              )}
-            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -169,10 +161,10 @@ export default function OTPPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  Tekshirilmoqda...
+                  {t('loading')}
                 </span>
               ) : (
-                <span>Tasdiqlash</span>
+                <span>{t('confirm')}</span>
               )}
             </button>
 
@@ -182,11 +174,11 @@ export default function OTPPage() {
                 className="inline-flex items-center gap-1.5 text-slate-500 hover:text-[#F97316] dark:text-slate-400 dark:hover:text-orange-400"
               >
                 <ArrowLeft size={14} />
-                <span>Orqaga</span>
+                <span>{t('back')}</span>
               </Link>
 
               {timer > 0 ? (
-                <span className="text-slate-400">Qayta yuborish ({timer}s)</span>
+                <span className="text-slate-400">({timer}s)</span>
               ) : (
                 <button
                   type="button"
@@ -194,7 +186,7 @@ export default function OTPPage() {
                   className="inline-flex items-center gap-1 font-bold text-[#F97316] hover:underline"
                 >
                   <RotateCcw size={13} />
-                  <span>Qayta yuborish</span>
+                  <span>{t('refresh')}</span>
                 </button>
               )}
             </div>

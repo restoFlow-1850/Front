@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useDispatch } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 import { authApi } from '../api'
 import { setCredentials } from '../authSlice'
 import { saveSession } from '../session'
@@ -14,8 +15,8 @@ import LanguageSwitcher from '../../../components/common/LanguageSwitcher'
 import { Sun, Moon } from 'lucide-react'
 
 const schema = z.object({
-  email: z.string().email("Email noto'g'ri formatda"),
-  password: z.string().min(6, "Kamida 6 ta belgi bo'lishi kerak"),
+  email: z.string().email("Email format invalid"),
+  password: z.string().min(6, "Min 6 characters"),
 })
 
 /* SVG Icons */
@@ -75,6 +76,7 @@ const animationStyles = `
 `
 
 export default function LoginPage() {
+  const { t } = useTranslation()
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const location = useLocation()
@@ -109,7 +111,7 @@ export default function LoginPage() {
       const targetHome = ROLE_HOME[data.user?.role] || '/dashboard'
       navigate(targetHome, { replace: true })
     } catch (err) {
-      setError(err.response?.data?.message || 'Tizimga kirishda xatolik yuz berdi')
+      setError(err.response?.data?.message || t('kitchen.loadFailed'))
     }
   }
 
@@ -184,17 +186,16 @@ export default function LoginPage() {
               style={{ animation: 'fadeInUp 1s ease-out 0.4s both' }}
             >
               <h1 className="text-4xl font-bold leading-tight xl:text-5xl !text-white" style={{ filter: 'drop-shadow(0 2px 10px rgba(0,0,0,0.5))' }}>
-                Restoraningizni boshqarishni{' '}
+                {t('auth.heroTitlePart1', { defaultValue: "Restoraningizni boshqarishni " })}
                 <span style={{ background: 'linear-gradient(135deg, #F97316 0%, #FBBF24 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 0 20px rgba(249,115,22,0.6))' }}>
-                  osonlashtiramiz
+                  {t('auth.heroTitlePart2', { defaultValue: "osonlashtiramiz" })}
                 </span>
               </h1>
               <p
                 className="mt-4 text-base leading-relaxed text-white/90"
                 style={{ animation: 'slideReveal 1.2s ease-out 0.8s both' }}
               >
-                Buyurtmalar, stol tizimi, oshxona boshqaruvi va hisobotlarni
-                bir platformada professional va qulay interfeys bilan.
+                {t('auth.heroSubtitle', { defaultValue: "Buyurtmalar, stol tizimi, oshxona boshqaruvi va hisobotlarni bir platformada professional va qulay interfeys bilan." })}
               </p>
             </div>
 
@@ -212,11 +213,10 @@ export default function LoginPage() {
                 >
                   <ChartIcon />
                 </div>
-                <span className="font-semibold text-white text-lg">Samarali boshqaruv</span>
+                <span className="font-semibold text-white text-lg">{t('auth.heroCardTitle', { defaultValue: "Samarali boshqaruv" })}</span>
               </div>
               <p className="text-sm text-white/80 leading-relaxed" style={{ textShadow: '0 1px 8px rgba(0,0,0,0.6)' }}>
-                Real-vaqtda buyurtmalarni kuzating, stollar kiriting va
-                jamoangiz bilan samarali hamkorlik qiling.
+                {t('auth.heroCardDesc', { defaultValue: "Real-vaqtda buyurtmalarni kuzating, stollar kiriting va jamoangiz bilan samarali hamkorlik qiling." })}
               </p>
             </div>
           </div>
@@ -232,17 +232,17 @@ export default function LoginPage() {
             <div className="flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-4 mb-8">
               <div className="flex items-center gap-2 text-[#F97316]">
                 <ShieldIcon />
-                <span className="text-lg font-bold">Kirish</span>
+                <span className="text-lg font-bold">{t('auth.loginTitle', { defaultValue: "Kirish" })}</span>
               </div>
             </div>
 
             {/* Header */}
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-[#111827] dark:text-white">
-                Xush kelibsiz qaytganingizdan xursandmiz!
+                {t('auth.welcomeHeader', { defaultValue: "Xush kelibsiz qaytganingizdan xursandmiz!" })}
               </h2>
               <p className="mt-2 text-sm text-[#6B7280] dark:text-gray-400">
-                Hisobingizga kiring va ishni davom ettiring.
+                {t('auth.welcomeSub', { defaultValue: "Hisobingizga kiring va ishni davom ettiring." })}
               </p>
             </div>
 
@@ -250,7 +250,7 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-[#111827] dark:text-gray-200" htmlFor="email">
-                  Email
+                  {t('auth.email', { defaultValue: "Email" })}
                 </label>
                 <div className="relative">
                   <MailIcon />
@@ -268,7 +268,7 @@ export default function LoginPage() {
 
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-[#111827] dark:text-gray-200" htmlFor="password">
-                  Parol
+                  {t('auth.password', { defaultValue: "Parol" })}
                 </label>
                 <div className="relative">
                   <LockIcon />
@@ -300,13 +300,13 @@ export default function LoginPage() {
                     onChange={(e) => setRemember(e.target.checked)}
                     className="h-4 w-4 rounded border-gray-300 text-[#F97316] focus:ring-[#F97316] cursor-pointer accent-[#F97316]"
                   />
-                  <span className="text-sm text-[#6B7280] dark:text-gray-400">Meni eslab qolish</span>
+                  <span className="text-sm text-[#6B7280] dark:text-gray-400">{t('auth.rememberMe', { defaultValue: "Meni eslab qolish" })}</span>
                 </label>
                 <Link
                   to="/forgot-password"
                   className="text-sm font-medium text-[#F97316] hover:text-orange-600 transition-colors"
                 >
-                  Parolni unutdingizmi?
+                  {t('auth.forgotPassword', { defaultValue: "Parolni unutdingizmi?" })}
                 </Link>
               </div>
 
@@ -328,16 +328,16 @@ export default function LoginPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
-                    Kirilmoqda...
+                    {t('loading', { defaultValue: "Kirilmoqda..." })}
                   </span>
-                ) : 'Kirish'}
+                ) : t('auth.loginBtn', { defaultValue: "Kirish" })}
               </button>
             </form>
 
             <p className="mt-8 text-center text-sm text-[#6B7280] dark:text-gray-400">
-              Hisobingiz yo'qmi?{' '}
+              {t('auth.noAccount')}{' '}
               <Link to="/register" className="font-semibold text-[#F97316] hover:text-orange-600 transition-colors">
-                Ro'yxatdan o'ting
+                {t('auth.registerTitle')}
               </Link>
             </p>
           </div>

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useTranslation } from 'react-i18next'
 import {
   User,
   Mail,
@@ -24,17 +25,18 @@ import LanguageSwitcher from '../../../components/common/LanguageSwitcher'
 
 const schema = z
   .object({
-    name: z.string().min(2, "Ism kamida 2 ta belgi bo'lishi kerak"),
-    email: z.string().email("Email noto'g'ri formatda"),
-    password: z.string().min(6, "Kamida 6 ta belgi bo'lishi kerak"),
-    confirmPassword: z.string().min(6, "Kamida 6 ta belgi bo'lishi kerak"),
+    name: z.string().min(2, "Min 2 chars"),
+    email: z.string().email("Email invalid"),
+    password: z.string().min(6, "Min 6 chars"),
+    confirmPassword: z.string().min(6, "Min 6 chars"),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: 'Parollar mos kelmaydi',
+    message: 'Passwords mismatch',
     path: ['confirmPassword'],
   })
 
 export default function RegisterPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { theme, toggleTheme } = useTheme()
 
@@ -56,7 +58,7 @@ export default function RegisterPage() {
       await authApi.register({ name: values.name, email: values.email, password: values.password })
       navigate('/otp', { state: { email: values.email }, replace: true })
     } catch (err) {
-      setError(err.response?.data?.message || "Ro'yxatdan o'tishda xatolik yuz berdi")
+      setError(err.response?.data?.message || t('kitchen.loadFailed'))
     }
   }
 
@@ -68,17 +70,16 @@ export default function RegisterPage() {
           type="button"
           onClick={toggleTheme}
           className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-xs font-bold text-slate-700 shadow-sm backdrop-blur-md transition-all hover:bg-orange-50 hover:text-[#F97316] dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-200 dark:hover:bg-slate-800"
-          title={theme === 'dark' ? "Yorqin rejim" : "Tungi rejim"}
         >
           {theme === 'dark' ? (
             <>
               <Moon className="h-4 w-4 text-indigo-400" />
-              <span className="hidden sm:inline">Tungi</span>
+              <span className="hidden sm:inline">Dark</span>
             </>
           ) : (
             <>
               <Sun className="h-4 w-4 text-amber-500" />
-              <span className="hidden sm:inline">Yorqin</span>
+              <span className="hidden sm:inline">Light</span>
             </>
           )}
         </button>
@@ -114,18 +115,18 @@ export default function RegisterPage() {
         <div className="relative z-10 max-w-lg my-auto py-8">
           <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-3.5 py-1 text-xs font-bold text-orange-400 mb-4 backdrop-blur-sm">
             <Sparkles size={13} className="text-orange-400" />
-            <span>Restoran tarmog'ingiz uchun bitta tizim</span>
+            <span>{t('auth.systemBadge', { defaultValue: "Restoran tarmog'ingiz uchun bitta tizim" })}</span>
           </div>
 
           <h1 className="text-3xl xl:text-4xl font-extrabold tracking-tight text-white leading-tight">
-            Yangi hisob yarating va{' '}
+            {t('auth.registerHeroHeading', { defaultValue: "Yangi hisob yarating va " })}
             <span className="bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-400 bg-clip-text text-transparent">
-              boshqaruvni boshlang
+              {t('auth.registerHeroHeadingHighlight', { defaultValue: "boshqaruvni boshlang" })}
             </span>
           </h1>
 
           <p className="mt-4 text-sm xl:text-base leading-relaxed text-slate-300">
-            Stollar boshqaruvi, buyurtmalar oqimi va xodimlar nazoratini avtomatlashtiring.
+            {t('auth.registerHeroSub', { defaultValue: "Stollar boshqaruvi, buyurtmalar oqimi va xodimlar nazoratini avtomatlashtiring." })}
           </p>
 
           <div className="mt-8 space-y-3">
@@ -133,14 +134,14 @@ export default function RegisterPage() {
               <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400">
                 <CheckCircle2 size={18} />
               </div>
-              <span className="text-sm font-semibold text-white">14 kun bepul sinov muddati</span>
+              <span className="text-sm font-semibold text-white">{t('auth.trialPeriod', { defaultValue: "14 kun bepul sinov muddati" })}</span>
             </div>
 
             <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3.5 backdrop-blur-md">
               <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-orange-500/20 text-[#F97316]">
                 <Clock size={18} />
               </div>
-              <span className="text-sm font-semibold text-white">2 daqiqada tezkor sozlash</span>
+              <span className="text-sm font-semibold text-white">{t('auth.fastSetup', { defaultValue: "2 daqiqada tezkor sozlash" })}</span>
             </div>
           </div>
         </div>
@@ -169,20 +170,20 @@ export default function RegisterPage() {
             <div className="mb-6">
               <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-xs font-bold text-[#F97316] mb-3">
                 <UserPlus size={14} />
-                <span>Yangi foydalanuvchi</span>
+                <span>{t('auth.newUserBadge', { defaultValue: "Yangi foydalanuvchi" })}</span>
               </div>
               <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                Ro'yxatdan o'tish
+                {t('auth.registerTitle', { defaultValue: "Ro'yxatdan o'tish" })}
               </h2>
               <p className="mt-1.5 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                Ma'lumotlaringizni kiriting va tizimga a'zo bo'ling.
+                {t('auth.registerSub', { defaultValue: "Ma'lumotlaringizni kiriting va tizimga a'zo bo'ling." })}
               </p>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5">
               <div>
                 <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300" htmlFor="name">
-                  To'liq ism
+                  {t('employees.name')}
                 </label>
                 <div className="relative">
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -200,7 +201,7 @@ export default function RegisterPage() {
 
               <div>
                 <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300" htmlFor="register-email">
-                  Email manzil
+                  {t('auth.email')}
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -208,7 +209,7 @@ export default function RegisterPage() {
                     id="register-email"
                     type="email"
                     autoComplete="email"
-                    placeholder="email@misol.uz"
+                    placeholder="email@example.com"
                     className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-[#F97316] focus:bg-white focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800/80 dark:text-white dark:placeholder-slate-500 dark:focus:bg-slate-800"
                     {...register('email')}
                   />
@@ -218,7 +219,7 @@ export default function RegisterPage() {
 
               <div>
                 <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300" htmlFor="register-password">
-                  Parol
+                  {t('auth.password')}
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -244,7 +245,7 @@ export default function RegisterPage() {
 
               <div>
                 <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300" htmlFor="confirm-password">
-                  Parolni tasdiqlang
+                  {t('auth.password')}
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -279,18 +280,18 @@ export default function RegisterPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
-                    Yuborilmoqda...
+                    {t('loading')}
                   </span>
                 ) : (
-                  <span>Ro'yxatdan o'tish</span>
+                  <span>{t('auth.registerBtn')}</span>
                 )}
               </button>
             </form>
 
             <div className="mt-6 border-t border-slate-100 pt-4 text-center text-xs font-medium text-slate-500 dark:border-slate-800 dark:text-slate-400">
-              Hisobingiz bormi?{' '}
+              {t('auth.alreadyHaveAccount')}{' '}
               <Link to="/login" className="font-bold text-[#F97316] hover:text-orange-600 transition-colors">
-                Kirish
+                {t('auth.loginTitle')}
               </Link>
             </div>
           </div>
