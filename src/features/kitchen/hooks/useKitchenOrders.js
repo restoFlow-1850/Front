@@ -141,6 +141,10 @@ export function useKitchenOrders() {
         })
       })
 
+      try {
+        socket.emit('order:updateStatus', { orderId: id, status: nextStatus })
+      } catch {}
+
       return { previousOrders, columnKey }
     },
     onError: (error, _variables, context) => {

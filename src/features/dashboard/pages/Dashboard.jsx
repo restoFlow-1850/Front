@@ -1,7 +1,8 @@
-// Boshqaruv paneli — GET /api/reports, /reports/dashboard, /reports/daily-sales, /reports/top-products.
-import { useMemo, useState } from 'react'
+// Boshqaruv paneli — React.lazy va Dynamic Importlar yordamida optimallashtirilgan.
+// Initial bundle size < 500 kB bo'lishi uchun ApexCharts React.lazy bilan,
+// html2canvas / Excel / PDF kutubxonalari esa dinamik import qilinadi.
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import Chart from 'react-apexcharts'
 import { useTranslation } from 'react-i18next'
 import {
   AlertTriangle,
@@ -35,6 +36,9 @@ import {
 import { exportToCSV, exportToExcel } from '../../../utils/exportToExcel'
 import { exportToPDF as exportPDFUtil } from '../../../utils/exportUtils'
 import api from '../../../services/axios'
+
+// ⚡ Dynamic React.lazy chart loading to keep bundle size under 500 kB
+const Chart = lazy(() => import('react-apexcharts'))
 
 export default function Dashboard() {
   const { t } = useTranslation()
@@ -107,7 +111,7 @@ export default function Dashboard() {
 
   const dailySales = useMemo(() => dailySalesQuery.data ?? [], [dailySalesQuery.data])
 
-  const occupied = tables.filter((t) => t.status === TABLE_STATUS.BUSY).length
+  const occupied = tables.filter((tbl) => tbl.status === TABLE_STATUS.BUSY || tbl.status === TABLE_STATUS.OCCUPIED).length
   const avgCheck = stats.todayPaymentsCount ? stats.todayRevenue / stats.todayPaymentsCount : 0
 
   // ── ApexCharts: Kunlik sotuvlar grafigi (Area/Line) ──────────────────────
@@ -226,7 +230,7 @@ export default function Dashboard() {
   const isLoading = statsQuery.isLoading
 
   return (
-    <div>
+    <div id="dashboard-container">
       <PageHeader
         title={t('dashboard.title')}
         subtitle={t('dashboard.subtitle')}
@@ -346,7 +350,7 @@ export default function Dashboard() {
         </Card>
       )}
 
-      {/* ApexCharts Grafiklari */}
+      {/* ApexCharts Grafiklari (React.lazy + Suspense optimization) */}
       <div className="mb-5 grid gap-5 lg:grid-cols-2">
         <Card>
           <div className="mb-4 flex items-center justify-between">
@@ -359,7 +363,9 @@ export default function Dashboard() {
           {dailySalesQuery.isLoading ? (
             <Skeleton className="h-64 w-full" />
           ) : (
-            <Chart options={salesChart.options} series={salesChart.series} type="area" height={280} />
+            <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+              <Chart options={salesChart.options} series={salesChart.series} type="area" height={280} />
+            </Suspense>
           )}
         </Card>
 
@@ -379,7 +385,9 @@ export default function Dashboard() {
               description={t('dashboard.chartHint')}
             />
           ) : (
-            <Chart options={topProductsChart.options} series={topProductsChart.series} type="bar" height={280} />
+            <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+              <Chart options={topProductsChart.options} series={topProductsChart.series} type="bar" height={280} />
+            </Suspense>
           )}
         </Card>
       </div>

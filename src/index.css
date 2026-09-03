@@ -77,15 +77,30 @@ html.dark,
   box-sizing: border-box;
 }
 
-html {
-  transition: background-color 0.35s ease, color 0.35s ease;
+html,
+body,
+header,
+nav,
+aside,
+main,
+button,
+input,
+select,
+table,
+th,
+td {
+  transition: background-color 0.15s ease-out, border-color 0.15s ease-out, color 0.15s ease-out;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
   background: var(--bg);
-  transition: background-color 0.35s ease, color 0.35s ease;
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
 #root {

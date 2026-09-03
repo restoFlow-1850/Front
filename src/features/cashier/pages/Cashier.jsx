@@ -48,6 +48,14 @@ const METHOD_ICONS = {
   [PAYMENT_METHODS.PAYME]: Smartphone,
 }
 
+const FLOW_STEPS = [
+  { step: 1, name: "1. Buyurtmani tanlash" },
+  { step: 2, name: "2. Chek tarkibi" },
+  { step: 3, name: "3. Usul & Split" },
+  { step: 4, name: "4. To'lovni tasdiqlash" },
+  { step: 5, name: "5. Chek chop etish" },
+]
+
 export default function Cashier() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
@@ -72,8 +80,6 @@ export default function Cashier() {
     queryFn: settingsApi.get,
     staleTime: 5 * 60_000,
   })
-
-
 
   const shift = shiftQuery.data
   const hasOpenShift = shift && shift.status === 'open'
@@ -111,6 +117,7 @@ export default function Cashier() {
     onMutate: async (amount) => {
       setCustomAmount('')
       setSplitCount(1)
+      setIsReceiptModalOpen(true) // Automatically pop up receipt print modal for step 5
       if (!amount || amount >= remaining) {
         queryClient.setQueryData(['orders', 'unpaid'], (old) => {
           if (!Array.isArray(old)) return old
@@ -147,12 +154,19 @@ export default function Cashier() {
   useEffect(() => {
     if (selectedId && unpaidQuery.isSuccess && !unpaid.some((o) => o._id === selectedId)) {
       if (!receipt || receipt.isPaid) {
-        setSelectedId(null)
+        // keep selected until cashier closes or moves on
       }
     }
   }, [unpaid, selectedId, unpaidQuery.isSuccess, receipt])
 
   const remaining = receipt?.remainingBalance ?? 0
+
+  const currentStep = useMemo(() => {
+    if (!selectedId) return 1
+    if (remaining <= 0 || receipt?.isPaid) return 5
+    if (customAmount || splitCount > 1) return 4
+    return 3
+  }, [selectedId, remaining, receipt?.isPaid, customAmount, splitCount])
 
   const splitAmount = useMemo(() => {
     if (splitCount > 1 && remaining > 0) {
@@ -221,6 +235,32 @@ export default function Cashier() {
         </button>
       </div>
 
+      {/* 5-Qadamli Kassa Oqimi Bar */}
+      {activeTab === 'cashier' && (
+        <Card className="py-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+            {FLOW_STEPS.map((s) => {
+              const isActive = currentStep === s.step
+              const isPassed = currentStep > s.step
+              return (
+                <div
+                  key={s.step}
+                  className={`flex items-center gap-1.5 font-medium px-3 py-1.5 rounded-lg transition ${
+                    isActive
+                      ? 'bg-indigo-600 text-white shadow-sm font-bold'
+                      : isPassed
+                      ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+                      : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                  }`}
+                >
+                  <span>{s.name}</span>
+                </div>
+              )
+            })}
+          </div>
+        </Card>
+      )}
+
       {activeTab === 'history' ? (
         <PaymentsHistory />
       ) : !hasOpenShift ? (
@@ -233,7 +273,7 @@ export default function Cashier() {
         </Card>
       ) : (
         <div className="grid gap-5 lg:grid-cols-[320px_1fr]">
-          {/* To'lanmagan buyurtmalar ro'yxati */}
+          {/* Qadam 1: To'lanmagan buyurtmalar ro'yxati */}
           <Card padded={false} className="overflow-hidden">
             <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-800">
               <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
@@ -315,7 +355,7 @@ export default function Cashier() {
             </Card>
           ) : (
             <div className="grid gap-5 xl:grid-cols-[1fr_340px]">
-              {/* Chek preview */}
+              {/* Qadam 2: Chek tarkibi va balans */}
               <Card>
                 <div className="mb-4 flex items-start justify-between border-b border-slate-200 pb-4 dark:border-slate-800">
                   <div>
@@ -375,7 +415,7 @@ export default function Cashier() {
                 )}
               </Card>
 
-              {/* To'lov paneli */}
+              {/* Qadam 3 & 4: To'lov usuli, Split bill va to'lovni qabul qilish */}
               <Card className="h-fit space-y-4">
                 <h3 className="border-b border-slate-200 pb-3 text-sm font-semibold text-slate-900 dark:border-slate-800 dark:text-white">
                   {t('cashier.paymentMethodAndSplit')}
@@ -442,6 +482,7 @@ export default function Cashier() {
                   onChange={(e) => setCustomAmount(e.target.value)}
                 />
 
+                {/* Qadam 4: To'lovni tasdiqlash */}
                 <Button
                   className="w-full"
                   disabled={remaining <= 0}
@@ -451,6 +492,7 @@ export default function Cashier() {
                   {remaining <= 0 ? t('cashier.fullyPaid') : t('cashier.acceptPayment')}
                 </Button>
 
+                {/* Qadam 5: Chek chop etish */}
                 <Button variant="secondary" className="w-full" onClick={() => setIsReceiptModalOpen(true)}>
                   <Printer className="mr-2 h-4 w-4" /> {t('cashier.viewPrintReceipt')}
                 </Button>
@@ -494,6 +536,7 @@ export default function Cashier() {
             </div>
           )}
 
+          {/* Qadam 5: Chek @media print modali */}
           <ReceiptPrintModal
             isOpen={isReceiptModalOpen}
             onClose={() => setIsReceiptModalOpen(false)}
