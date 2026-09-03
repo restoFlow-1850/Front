@@ -1,0 +1,61 @@
+{
+    "login": "Войти",
+    "email": "Email",
+    "password": "Пароль",
+    "logout": "Выйти",
+    "profile": "Профиль",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "search": "Поиск",
+    "employees": "Сотрудники",
+    "active": "Активен",
+    "inactive": "Неактивен",
+    "language": "Язык",
+    "refresh": "Обновить",
+    "soundOn": "Звук включён",
+    "soundOff": "Звук выключен",
+    "newOrdersBadge": "Новых заказов: {{count}}",
+    "testSound": "Проверить звук",
+    "kitchen": {
+        "title": "Кухня",
+        "subtitle": "Процесс приготовления заказов",
+        "columns": {
+            "waiting": "Ожидание",
+            "making": "Готовится",
+            "complete": "Готово"
+        },
+        "empty": {
+            "waiting": "Новых заказов нет",
+            "making": "Нет заказов в готовке",
+            "complete": "Нет готовых заказов"
+        },
+        "actions": {
+            "startPreparing": "Начать готовить",
+            "markComplete": "Отметить готовым"
+        },
+        "table": "Стол {{num}}",
+        "ticketNumber": "Заказ №{{number}}",
+        "elapsed": "{{minutes}} мин назад",
+        "justNow": "Только что",
+        "note": "Примечание",
+        "statusChanged": "Статус изменён на «{{status}}»",
+        "statusChangeFailed": "Не удалось изменить статус",
+        "loadFailed": "Не удалось загрузить заказы",
+        "deleteOrder": "Удалить заказ",
+        "confirmDelete": "Удалить этот заказ навсегда? Это действие нельзя отменить.",
+        "orderDeleted": "Заказ удалён",
+        "deleteFailed": "Не удалось удалить заказ",
+        "waiterCall": {
+            "title": "ВЫЗЫВАЕТСЯ ОФИЦИАНТ",
+            "bannerTitle": "🔔 Вызовы официанта ({{count}})",
+            "elapsed": "{{seconds}} сек. назад",
+            "dismiss": "Закрыть",
+            "dismissAll": "Закрыть все"
+        },
+        "audio": {
+            "newOrderAlert": "Новый заказ для стола {{table}}!",
+            "waiterCalledAlert": "На столе {{table}} вызывается официант!",
+            "testAlertMessage": "Проверка звукового оповещения кухни. Система готова!"
+        }
+    }
+}
