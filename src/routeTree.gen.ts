@@ -10,33 +10,63 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AloqaRouteImport } from './routes/aloqa'
+import { Route as BronRouteImport } from './routes/bron'
+import { Route as MenyuRouteImport } from './routes/menyu'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AloqaRoute = AloqaRouteImport.update({
+  id: '/aloqa',
+  path: '/aloqa',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BronRoute = BronRouteImport.update({
+  id: '/bron',
+  path: '/bron',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MenyuRoute = MenyuRouteImport.update({
+  id: '/menyu',
+  path: '/menyu',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/aloqa': typeof AloqaRoute
+  '/bron': typeof BronRoute
+  '/menyu': typeof MenyuRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/aloqa': typeof AloqaRoute
+  '/bron': typeof BronRoute
+  '/menyu': typeof MenyuRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/aloqa': typeof AloqaRoute
+  '/bron': typeof BronRoute
+  '/menyu': typeof MenyuRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/aloqa' | '/bron' | '/menyu'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/aloqa' | '/bron' | '/menyu'
+  id: '__root__' | '/' | '/aloqa' | '/bron' | '/menyu'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AloqaRoute: typeof AloqaRoute
+  BronRoute: typeof BronRoute
+  MenyuRoute: typeof MenyuRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +78,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/aloqa': {
+      id: '/aloqa'
+      path: '/aloqa'
+      fullPath: '/aloqa'
+      preLoaderRoute: typeof AloqaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bron': {
+      id: '/bron'
+      path: '/bron'
+      fullPath: '/bron'
+      preLoaderRoute: typeof BronRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/menyu': {
+      id: '/menyu'
+      path: '/menyu'
+      fullPath: '/menyu'
+      preLoaderRoute: typeof MenyuRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AloqaRoute: AloqaRoute,
+  BronRoute: BronRoute,
+  MenyuRoute: MenyuRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
