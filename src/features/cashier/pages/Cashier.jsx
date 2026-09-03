@@ -73,6 +73,8 @@ export default function Cashier() {
     staleTime: 5 * 60_000,
   })
 
+
+
   const shift = shiftQuery.data
   const hasOpenShift = shift && shift.status === 'open'
 
