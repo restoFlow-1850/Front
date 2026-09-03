@@ -41,7 +41,7 @@ function nextDays(n: number) {
 
 function BookingPage() {
   const days = useMemo(() => nextDays(5), []);
-  const [day, setDay] = useState(days[0].value);
+  const [day, setDay] = useState(days[0]?.value ?? "");
   const [time, setTime] = useState("19:00");
   const [tableId, setTableId] = useState<string | null>(null);
   const [name, setName] = useState("");

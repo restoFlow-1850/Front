@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AloqaRouteImport } from './routes/aloqa'
+import { Route as BronRouteImport } from './routes/bron'
 import { Route as MenyuRouteImport } from './routes/menyu'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +24,11 @@ const AloqaRoute = AloqaRouteImport.update({
   path: '/aloqa',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BronRoute = BronRouteImport.update({
+  id: '/bron',
+  path: '/bron',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MenyuRoute = MenyuRouteImport.update({
   id: '/menyu',
   path: '/menyu',
@@ -32,30 +38,34 @@ const MenyuRoute = MenyuRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/aloqa': typeof AloqaRoute
+  '/bron': typeof BronRoute
   '/menyu': typeof MenyuRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/aloqa': typeof AloqaRoute
+  '/bron': typeof BronRoute
   '/menyu': typeof MenyuRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/aloqa': typeof AloqaRoute
+  '/bron': typeof BronRoute
   '/menyu': typeof MenyuRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/aloqa' | '/menyu'
+  fullPaths: '/' | '/aloqa' | '/bron' | '/menyu'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/aloqa' | '/menyu'
-  id: '__root__' | '/' | '/aloqa' | '/menyu'
+  to: '/' | '/aloqa' | '/bron' | '/menyu'
+  id: '__root__' | '/' | '/aloqa' | '/bron' | '/menyu'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AloqaRoute: typeof AloqaRoute
+  BronRoute: typeof BronRoute
   MenyuRoute: typeof MenyuRoute
 }
 
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AloqaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bron': {
+      id: '/bron'
+      path: '/bron'
+      fullPath: '/bron'
+      preLoaderRoute: typeof BronRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/menyu': {
       id: '/menyu'
       path: '/menyu'
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AloqaRoute: AloqaRoute,
+  BronRoute: BronRoute,
   MenyuRoute: MenyuRoute,
 }
 export const routeTree = rootRouteImport
