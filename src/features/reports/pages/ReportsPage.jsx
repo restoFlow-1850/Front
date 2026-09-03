@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import Chart from 'react-apexcharts'
+import { useTranslation } from 'react-i18next'
 import {
   AlertTriangle,
   Calendar,
@@ -20,6 +21,7 @@ import { unwrap, apiErrorMessage, formatSom } from '../../../lib/api'
 import { Button, Card, EmptyState, Input, PageHeader, Skeleton, StatCard } from '../../../components/ui'
 
 export default function ReportsPage() {
+  const { t } = useTranslation()
   const [dateRange, setDateRange] = useState('today') // today | week | month | custom
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo] = useState('')
@@ -56,23 +58,23 @@ export default function ReportsPage() {
       },
       yaxis: { labels: { style: { colors: '#94a3b8' } } },
       grid: { borderColor: '#e2e8f0', strokeDashArray: 4 },
-      tooltip: { y: { formatter: (v) => `${v} ta sotildi` } },
+      tooltip: { y: { formatter: (v) => `${v} ta` } },
     }),
     [topProducts],
   )
 
   const chartSeries = useMemo(
-    () => [{ name: 'Sotildi', data: topProducts.map((p) => p.totalQuantity) }],
-    [topProducts],
+    () => [{ name: t('reports.sold'), data: topProducts.map((p) => p.totalQuantity) }],
+    [topProducts, t],
   )
 
   const handleSendTelegram = async () => {
     setIsSendingTelegram(true)
     try {
       await api.post('/reports/telegram-daily-report')
-      toast.success('Hisobot Telegram botga muvaffaqiyatli yuborildi! 📲')
+      toast.success(t('dashboard.telegramSent'))
     } catch (err) {
-      toast.error(apiErrorMessage(err, "Telegram'ga yuborishda xatolik yuz berdi"))
+      toast.error(apiErrorMessage(err, t('kitchen.loadFailed')))
     } finally {
       setIsSendingTelegram(false)
     }
@@ -93,7 +95,7 @@ export default function ReportsPage() {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-    toast.success('CSV fayl yuklab olindi!')
+    toast.success(t('dashboard.csvExported'))
   }
 
   const isLoading = statsQuery.isLoading
@@ -101,18 +103,18 @@ export default function ReportsPage() {
   return (
     <div>
       <PageHeader
-        title="Hisobotlar & Analitika"
-        subtitle="Restoranning moliyaviy va savdo ko'rsatkichlari"
+        title={t('reports.title', { defaultValue: "Hisobotlar & Analitika" })}
+        subtitle={t('reports.subtitle', { defaultValue: "Restoranning moliyaviy va savdo ko'rsatkichlari" })}
         actions={
           <div className="flex items-center gap-2">
             <Button variant="secondary" isLoading={isSendingTelegram} onClick={handleSendTelegram}>
               <Send className="mr-2 h-4 w-4 text-sky-500" />
-              Telegram'ga yuborish
+              {t('dashboard.telegramExport', { defaultValue: "Telegram'ga yuborish" })}
             </Button>
 
             <Button variant="secondary" onClick={handleExportCSV}>
               <Download className="mr-2 h-4 w-4 text-emerald-500" />
-              CSV Eksport
+              {t('dashboard.csvExport', { defaultValue: "CSV Eksport" })}
             </Button>
 
             <Button
@@ -123,7 +125,7 @@ export default function ReportsPage() {
               }}
             >
               <RefreshCw className={`mr-2 h-4 w-4 ${statsQuery.isFetching ? 'animate-spin' : ''}`} />
-              Yangilash
+              {t('refresh', { defaultValue: "Yangilash" })}
             </Button>
           </div>
         }
@@ -134,7 +136,7 @@ export default function ReportsPage() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-slate-500" />
-            <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Davr:</span>
+            <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t('reports.dateRange', { defaultValue: "Davr" })}:</span>
             {['today', 'week', 'month', 'custom'].map((mode) => (
               <button
                 key={mode}
@@ -146,10 +148,10 @@ export default function ReportsPage() {
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300'
                 }`}
               >
-                {mode === 'today' && 'Bugun'}
-                {mode === 'week' && 'Shu hafta'}
-                {mode === 'month' && 'Shu oy'}
-                {mode === 'custom' && 'Tanlangan sana'}
+                {mode === 'today' && t('reports.today', { defaultValue: "Bugun" })}
+                {mode === 'week' && t('reports.thisWeek', { defaultValue: "Shu hafta" })}
+                {mode === 'month' && t('reports.thisMonth', { defaultValue: "Shu oy" })}
+                {mode === 'custom' && t('reports.custom', { defaultValue: "Tanlangan sana" })}
               </button>
             ))}
           </div>
@@ -179,7 +181,7 @@ export default function ReportsPage() {
         <Card className="mb-5 border-rose-200 bg-rose-50 dark:border-rose-900 dark:bg-rose-950/40">
           <p className="flex items-center gap-2 text-sm text-rose-700 dark:text-rose-300">
             <AlertTriangle className="h-4 w-4 shrink-0" />
-            {apiErrorMessage(statsQuery.error, "Analitika ma'lumotlarini yuklab bo'lmadi")}
+            {apiErrorMessage(statsQuery.error, t('kitchen.loadFailed', { defaultValue: "Analitika ma'lumotlarini yuklab bo'lmadi" }))}
           </p>
         </Card>
       )}
@@ -193,14 +195,14 @@ export default function ReportsPage() {
             <StatCard
               icon={DollarSign}
               tone="emerald"
-              label="Tushum"
+              label={t('reports.revenue', { defaultValue: "Tushum" })}
               value={formatSom(stats.todayRevenue)}
               hint={`${stats.todayPaymentsCount ?? 0} ta to'lov`}
             />
             <StatCard
               icon={Receipt}
               tone="indigo"
-              label="O'rtacha chek"
+              label={t('dashboard.avgCheck', { defaultValue: "O'rtacha chek" })}
               value={formatSom(
                 stats.todayPaymentsCount ? stats.todayRevenue / stats.todayPaymentsCount : 0,
               )}
@@ -209,14 +211,14 @@ export default function ReportsPage() {
             <StatCard
               icon={TrendingUp}
               tone="amber"
-              label="Faol buyurtmalar"
+              label={t('dashboard.activeOrders', { defaultValue: "Faol buyurtmalar" })}
               value={stats.activeOrdersCount ?? 0}
               hint={`Jami bugun: ${stats.todayOrdersCount ?? 0} ta`}
             />
             <StatCard
               icon={Package}
               tone="indigo"
-              label="Ombor zaxirasi"
+              label={t('reports.totalOrders', { defaultValue: "Ombor zaxirasi" })}
               value={`${stats.totalProducts ?? 0} ta`}
               hint={stats.lowStockCount > 0 ? `${stats.lowStockCount} ta kam qolgan` : "Zaxira etarli"}
             />
@@ -227,15 +229,15 @@ export default function ReportsPage() {
       {/* Grafik va Top Taomlar */}
       <Card className="mb-5">
         <h2 className="mb-4 text-base font-semibold text-slate-900 dark:text-white">
-          Eng Ko'p Sotilgan Taomlar Analitikasi
+          {t('dashboard.topProducts', { defaultValue: "Eng Ko'p Sotilgan Taomlar Analitikasi" })}
         </h2>
         {topProductsQuery.isLoading ? (
           <Skeleton className="h-72 w-full" />
         ) : topProducts.length === 0 ? (
           <EmptyState
             icon={Package}
-            title="Ma'lumot yo'q"
-            description="Tanlangan davr bo'yicha sotuv ma'lumotlari mavjud emas."
+            title={t('dashboard.noData', { defaultValue: "Ma'lumot yo'q" })}
+            description={t('waiter.tryAnotherCat', { defaultValue: "Tanlangan davr bo'yicha sotuv ma'lumotlari mavjud emas." })}
           />
         ) : (
           <Chart options={chartOptions} series={chartSeries} type="bar" height={320} />

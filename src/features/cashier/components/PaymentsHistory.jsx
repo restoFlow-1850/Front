@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  AlertTriangle,
   Banknote,
   Calendar,
   CreditCard,
@@ -9,10 +10,13 @@ import {
   RefreshCw,
   Search,
   Smartphone,
+  Trash2,
   Wallet,
 } from 'lucide-react'
 
-import { getPayments, getReceipt } from '../api'
+import { toast } from 'react-toastify'
+
+import { getPayments, getReceipt, clearAllPayments } from '../api'
 import ReceiptPrintModal from './ReceiptPrintModal'
 import { unwrapList, apiErrorMessage, formatDateTime, formatSom } from '../../../lib/api'
 import {
@@ -36,11 +40,23 @@ const METHOD_ICONS = {
 }
 
 export default function PaymentsHistory() {
+  const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedMethod, setSelectedMethod] = useState('')
   const [activeReceipt, setActiveReceipt] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isLoadingReceipt, setIsLoadingReceipt] = useState(false)
+  const [confirmClear, setConfirmClear] = useState(false)
+
+  const clearMutation = useMutation({
+    mutationFn: () => clearAllPayments(),
+    onSuccess: () => {
+      toast.success("Barcha to'lovlar o'chirildi")
+      setConfirmClear(false)
+      queryClient.invalidateQueries({ queryKey: ['payments'] })
+    },
+    onError: (err) => toast.error(apiErrorMessage(err, "To'lovlarni o'chirib bo'lmadi")),
+  })
 
   // Payments API query
   const paymentsQuery = useQuery({
@@ -169,14 +185,47 @@ export default function PaymentsHistory() {
             </select>
           </div>
 
-          <Button variant="secondary" onClick={() => paymentsQuery.refetch()}>
-            <RefreshCw
-              className={`mr-2 h-4 w-4 ${paymentsQuery.isFetching ? 'animate-spin' : ''}`}
-            />
-            Yangilash
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="danger" onClick={() => setConfirmClear(true)} disabled={clearMutation.isPending}>
+              <Trash2 className="mr-2 h-4 w-4" /> Tozalash
+            </Button>
+            <Button variant="secondary" onClick={() => paymentsQuery.refetch()}>
+              <RefreshCw
+                className={`mr-2 h-4 w-4 ${paymentsQuery.isFetching ? 'animate-spin' : ''}`}
+              />
+              Yangilash
+            </Button>
+          </div>
         </div>
       </Card>
+
+      {/* Tozalash tasdiqlash modali */}
+      {confirmClear && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="grid h-10 w-10 place-items-center rounded-full bg-rose-100 dark:bg-rose-950">
+                <AlertTriangle className="h-5 w-5 text-rose-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-slate-900 dark:text-white">To'lovlarni o'chirish</p>
+                <p className="text-sm text-slate-500">Barcha to'lov yozuvlari o'chiriladi</p>
+              </div>
+            </div>
+            <p className="mb-5 text-sm text-slate-600 dark:text-slate-400">
+              Barcha to'lovlarni rostdan ham o'chirib tashlamoqchimisiz? Bu amalni ortga qaytarib bo'lmaydi.
+            </p>
+            <div className="flex gap-3">
+              <Button variant="secondary" className="flex-1" onClick={() => setConfirmClear(false)}>
+                Bekor qilish
+              </Button>
+              <Button variant="danger" className="flex-1" onClick={() => clearMutation.mutate()} isLoading={clearMutation.isPending}>
+                O'chirish
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Payments History Table */}
       <Card padded={false}>

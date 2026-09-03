@@ -1,11 +1,11 @@
-// Rol darvozasi — marshrutni faqat ruxsat etilgan rollarga ochadi.
-// PrivateRoute ichida ishlatiladi (u yerda user allaqachon tiklangan bo'ladi).
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
+import { readUser } from '../features/auth/session'
 
 export default function RoleRoute({ roles }) {
   const location = useLocation()
-  const user = useSelector((state) => state.auth.user)
+  const reduxUser = useSelector((state) => state.auth.user)
+  const user = reduxUser || readUser()
 
   if (!roles || roles.length === 0) return <Outlet />
 
@@ -14,9 +14,6 @@ export default function RoleRoute({ roles }) {
   }
 
   if (!roles.includes(user.role)) {
-    // Ruxsat yo'q — 403 sahifasiga yuboramiz (o'z paneliga qaytish tugmasi bilan).
-    // Bevosita ROLE_HOME'ga tashlab yuborish "nega ochilmadi?" degan chalkashlik
-    // tug'diradi, ayniqsa havola ulashilganda.
     return <Navigate to="/403" state={{ from: location }} replace />
   }
 

@@ -2,6 +2,7 @@
 // Backend: GET /api/shifts/current, POST /api/shifts/open, POST /api/shifts/close
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import {
   AlertTriangle,
   Banknote,
@@ -19,6 +20,7 @@ import { Button, Card, Input, Skeleton } from '../../../components/ui'
 import ZReportModal from './ZReportModal'
 
 export default function ShiftPanel({ onShiftChange }) {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [showOpenForm, setShowOpenForm] = useState(false)
   const [showCloseForm, setShowCloseForm] = useState(false)
@@ -34,63 +36,73 @@ export default function ShiftPanel({ onShiftChange }) {
         const res = await getCurrentShift()
         return unwrap(res, 'shift')
       } catch (err) {
-        // 404 = smena yo'q
         if (err?.response?.status === 404) return null
         throw err
       }
     },
-    refetchInterval: 30_000, // 30 sekundda yangilash
+    refetchInterval: 30_000,
   })
 
   // Smena ochish — POST /api/shifts/open
   const openMutation = useMutation({
     mutationFn: (payload) => openShift(payload),
-    onSuccess: (res) => {
-      toast.success('Smena muvaffaqiyatli ochildi!')
+    onMutate: async () => {
       setShowOpenForm(false)
       setOpeningBalance('')
-      queryClient.invalidateQueries({ queryKey: ['shift', 'current'] })
+    },
+    onSuccess: (res) => {
+      toast.success(t('shift.shiftOpenSuccess'))
+      queryClient.setQueryData(['shift', 'current'], unwrap(res, 'shift'))
+      queryClient.invalidateQueries({ queryKey: ['shift'] })
       queryClient.invalidateQueries({ queryKey: ['reports'] })
       onShiftChange?.(unwrap(res, 'shift'))
     },
-    onError: (err) => toast.error(apiErrorMessage(err, "Smenani ochib bo'lmadi")),
+    onError: (err) => {
+      setShowOpenForm(true)
+      toast.error(apiErrorMessage(err, t('shift.shiftOpenFailed')))
+    },
   })
 
   // Smena yopish — POST /api/shifts/close
   const closeMutation = useMutation({
     mutationFn: (payload) => closeShift(payload),
-    onSuccess: (res) => {
-      toast.success('Smena muvaffaqiyatli yopildi!')
+    onMutate: async () => {
       setShowCloseForm(false)
       setClosingBalance('')
-      queryClient.invalidateQueries({ queryKey: ['shift', 'current'] })
+    },
+    onSuccess: () => {
+      toast.success(t('shift.shiftCloseSuccess'))
+      queryClient.setQueryData(['shift', 'current'], null)
+      queryClient.invalidateQueries({ queryKey: ['shift'] })
       queryClient.invalidateQueries({ queryKey: ['reports'] })
       onShiftChange?.(null)
-      // Z-Reportni ko'rsatish
       setShowZReport(true)
     },
-    onError: (err) => toast.error(apiErrorMessage(err, "Smenani yopib bo'lmadi")),
+    onError: (err) => {
+      setShowCloseForm(true)
+      toast.error(apiErrorMessage(err, t('shift.shiftCloseFailed')))
+    },
   })
 
   const shift = shiftQuery.data
   const isOpen = shift && shift.status === 'open'
 
   const handleOpen = () => {
-    const balance = openingBalance ? Number(openingBalance) : 0
-    if (openingBalance && (!Number.isFinite(balance) || balance < 0)) {
-      toast.error("Boshlang'ich balans manfiy bo'lishi mumkin emas")
+    const balance = openingBalance.trim() !== '' ? Number(openingBalance) : 0
+    if (!Number.isFinite(balance) || balance < 0) {
+      toast.error(t('shift.invalidBalance', { defaultValue: "Boshlang'ich balans manfiy bo'lishi mumkin emas" }))
       return
     }
-    openMutation.mutate({ openingBalance: balance })
+    openMutation.mutate({ startCash: balance, openingBalance: balance })
   }
 
   const handleClose = () => {
-    const balance = Number(closingBalance)
+    const balance = closingBalance.trim() !== '' ? Number(closingBalance) : 0
     if (!Number.isFinite(balance) || balance < 0) {
-      toast.error("Yakuniy balans manfiy bo'lishi mumkin emas")
+      toast.error(t('shift.invalidBalance', { defaultValue: "Yakuniy balans manfiy bo'lishi mumkin emas" }))
       return
     }
-    closeMutation.mutate({ closingBalance: balance })
+    closeMutation.mutate({ actualCash: balance, closingBalance: balance })
   }
 
   // Yuklanmoqda
@@ -112,7 +124,7 @@ export default function ShiftPanel({ onShiftChange }) {
           <AlertTriangle className="h-5 w-5 text-rose-600 dark:text-rose-400" />
           <div>
             <p className="text-sm font-semibold text-rose-700 dark:text-rose-300">
-              Smena ma'lumotini yuklab bo'lmadi
+              {t('kitchen.loadFailed')}
             </p>
             <p className="text-xs text-rose-600 dark:text-rose-400">
               {apiErrorMessage(shiftQuery.error)}
@@ -123,7 +135,7 @@ export default function ShiftPanel({ onShiftChange }) {
             className="ml-auto"
             onClick={() => shiftQuery.refetch()}
           >
-            Qayta yuklash
+            {t('refresh')}
           </Button>
         </div>
       </Card>
@@ -141,16 +153,16 @@ export default function ShiftPanel({ onShiftChange }) {
             </span>
             <div className="flex-1">
               <h3 className="text-base font-bold text-amber-800 dark:text-amber-200">
-                Smena ochilmagan
+                {t('shift.shiftClosed')}
               </h3>
               <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
-                Kassa ishlashi uchun avval smenani oching. Smenasiz to'lov qabul qilib bo'lmaydi.
+                {t('shift.shiftNotOpenDesc')}
               </p>
 
               {showOpenForm ? (
                 <div className="mt-4 space-y-3">
                   <Input
-                    label="Boshlang'ich balans (so'm)"
+                    label={t('shift.startBalanceLabel')}
                     type="number"
                     min={0}
                     placeholder="0"
@@ -165,13 +177,13 @@ export default function ShiftPanel({ onShiftChange }) {
                         setOpeningBalance('')
                       }}
                     >
-                      Bekor qilish
+                      {t('cancel')}
                     </Button>
                     <Button
                       isLoading={openMutation.isPending}
                       onClick={handleOpen}
                     >
-                      <Unlock className="mr-2 h-4 w-4" /> Smenani ochish
+                      <Unlock className="mr-2 h-4 w-4" /> {t('shift.openShift')}
                     </Button>
                   </div>
                 </div>
@@ -180,7 +192,7 @@ export default function ShiftPanel({ onShiftChange }) {
                   className="mt-3"
                   onClick={() => setShowOpenForm(true)}
                 >
-                  <Unlock className="mr-2 h-4 w-4" /> Smena ochish
+                  <Unlock className="mr-2 h-4 w-4" /> {t('shift.openShift')}
                 </Button>
               )}
             </div>
@@ -212,55 +224,55 @@ export default function ShiftPanel({ onShiftChange }) {
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <h3 className="text-base font-bold text-emerald-800 dark:text-emerald-200">
-                Smena ochiq
+                {t('shift.shiftOpen')}
               </h3>
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-200 px-2 py-0.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-800 dark:text-emerald-200">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Faol
+                {t('shift.active')}
               </span>
             </div>
 
             <div className="mt-2 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
               <ShiftStat
                 icon={Clock}
-                label="Ochilgan"
+                label={t('shift.openedAt')}
                 value={formatDateTime(shift.openedAt)}
               />
               <ShiftStat
                 icon={Wallet}
-                label="Boshlang'ich"
-                value={formatSom(shift.openingBalance)}
+                label={t('shift.initialBalance')}
+                value={formatSom(shift.openingBalance ?? shift.startCash ?? 0)}
               />
               <ShiftStat
                 icon={Banknote}
-                label="Umumiy tushum"
-                value={formatSom(shift.totalIncome ?? 0)}
+                label={t('shift.totalRevenue')}
+                value={formatSom(shift.totalIncome ?? shift.totalRevenue ?? 0)}
               />
               <ShiftStat
                 icon={Clock}
-                label="Davomiylik"
+                label={t('shift.duration')}
                 value={shiftDuration}
               />
             </div>
 
-            {shift.user && (
+            {(shift.user || shift.cashier) && (
               <p className="mt-2 text-xs text-emerald-600 dark:text-emerald-400">
-                Kassir: {shift.user.name ?? shift.user.username ?? '—'}
+                {t('shift.cashier')}: {(shift.user || shift.cashier)?.name ?? (shift.user || shift.cashier)?.username ?? '—'}
               </p>
             )}
 
             {showCloseForm ? (
               <div className="mt-4 space-y-3 border-t border-emerald-200 pt-4 dark:border-emerald-800">
                 <Input
-                  label="Yakuniy balans (naqd kassada, so'm)"
+                  label={t('shift.endBalanceLabel')}
                   type="number"
                   min={0}
-                  placeholder="Kassadagi naqd pulni kiriting"
+                  placeholder="0"
                   value={closingBalance}
                   onChange={(e) => setClosingBalance(e.target.value)}
                 />
                 <p className="text-xs text-emerald-600 dark:text-emerald-400">
-                  Kassadagi haqiqiy naqd pul miqdorini kiriting. Tizim avtomatik ravishda hisob-kitob qiladi.
+                  {t('shift.endBalanceHint')}
                 </p>
                 <div className="flex gap-2">
                   <Button
@@ -270,14 +282,14 @@ export default function ShiftPanel({ onShiftChange }) {
                       setClosingBalance('')
                     }}
                   >
-                    Bekor qilish
+                    {t('cancel')}
                   </Button>
                   <Button
                     variant="danger"
                     isLoading={closeMutation.isPending}
                     onClick={handleClose}
                   >
-                    <Lock className="mr-2 h-4 w-4" /> Smenani yopish
+                    <Lock className="mr-2 h-4 w-4" /> {t('shift.closeShift')}
                   </Button>
                 </div>
               </div>
@@ -287,13 +299,13 @@ export default function ShiftPanel({ onShiftChange }) {
                   variant="danger"
                   onClick={() => setShowCloseForm(true)}
                 >
-                  <Lock className="mr-2 h-4 w-4" /> Smenani yopish
+                  <Lock className="mr-2 h-4 w-4" /> {t('shift.closeShift')}
                 </Button>
                 <Button
                   variant="secondary"
                   onClick={() => setShowZReport(true)}
                 >
-                  <CheckCircle className="mr-2 h-4 w-4" /> Z-Report
+                  <CheckCircle className="mr-2 h-4 w-4" /> {t('shift.zReport')}
                 </Button>
               </div>
             )}

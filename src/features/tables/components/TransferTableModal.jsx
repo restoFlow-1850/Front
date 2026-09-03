@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Modal from '../../../components/ui/Modal';
-import { TRANSFERABLE_TARGET_STATUSES } from '../../../constants/tableStatus';
+import { TRANSFERABLE_TARGET_STATUSES } from '../../../constants/roles';
 
 const TransferTableModal = ({ sourceTable, tables, onTransfer, onClose }) => {
   const [selectedTarget, setSelectedTarget] = useState(null);
@@ -10,8 +10,10 @@ const TransferTableModal = ({ sourceTable, tables, onTransfer, onClose }) => {
     return null;
   }
 
+  const sourceId = sourceTable._id || sourceTable.id;
+
   const availableTables = (tables || []).filter(
-    (t) => t.id !== sourceTable.id && TRANSFERABLE_TARGET_STATUSES.includes(t.status)
+    (t) => (t._id || t.id) !== sourceId && TRANSFERABLE_TARGET_STATUSES.includes(t.status)
   );
 
   const handleTransfer = async () => {
@@ -20,9 +22,10 @@ const TransferTableModal = ({ sourceTable, tables, onTransfer, onClose }) => {
       return;
     }
 
+    const targetId = selectedTarget._id || selectedTarget.id;
     setLoading(true);
     try {
-      await onTransfer(sourceTable.id, selectedTarget.id);
+      await onTransfer(sourceId, targetId);
       alert(`✅ Stol #${sourceTable.number} → Stol #${selectedTarget.number} ko'chirildi`);
       onClose();
     } catch (error) {

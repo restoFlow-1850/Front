@@ -17,3 +17,6 @@ export const transferOrderTable = (id, table) =>
 
 export const cancelOrder = (id, reason) =>
   api.patch(`/orders/${id}/cancel`, { reason })
+
+export const deleteOrder = (id) => api.delete(`/orders/${id}`)
+export const clearAllOrders = () => api.delete('/orders/clear-all')

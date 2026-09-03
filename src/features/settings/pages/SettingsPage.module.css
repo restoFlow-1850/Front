@@ -567,3 +567,162 @@
   text-decoration: underline;
   cursor: pointer;
 }
+
+/* ===== DARK MODE ===== */
+
+:global(.dark) .page,
+:global(.dark) .actionButton,
+:global(.dark) .actionButton:hover:not(:disabled),
+:global(.dark) .secondaryButton,
+:global(.dark) .secondaryButton:hover:not(:disabled),
+:global(.dark) .status,
+:global(.dark) .statusSuccess,
+:global(.dark) .statusError,
+:global(.dark) .input,
+:global(.dark) .select,
+:global(.dark) .textarea,
+:global(.dark) .input:hover,
+:global(.dark) .select:hover,
+:global(.dark) .textarea:hover,
+:global(.dark) .input:focus,
+:global(.dark) .select:focus,
+:global(.dark) .textarea:focus,
+:global(.dark) .logoPreview,
+:global(.dark) .logoDrop,
+:global(.dark) .printerRow,
+:global(.dark) .iconButton,
+:global(.dark) .iconButton:hover:not(:disabled),
+:global(.dark) .permissionsScroller,
+:global(.dark) .permissionAllowed,
+:global(.dark) .formFooter,
+:global(.dark) .alert,
+:global(.dark) .alertSuccess,
+:global(.dark) .loading {
+  transition: background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+:global(.dark) .page {
+  background:
+    radial-gradient(circle at 88% 0%, rgba(249, 115, 22, 0.08), transparent 28rem),
+    var(--color-canvas);
+}
+
+:global(.dark) .actionButton {
+  background: var(--color-accent) !important;
+  color: #fff !important;
+}
+
+:global(.dark) .actionButton:hover:not(:disabled) {
+  background: #ea580c !important;
+}
+
+:global(.dark) .secondaryButton {
+  border-color: var(--color-line) !important;
+  color: var(--color-ink) !important;
+}
+
+:global(.dark) .secondaryButton:hover:not(:disabled) {
+  background: rgba(249, 115, 22, 0.1) !important;
+}
+
+:global(.dark) .status {
+  border-color: var(--color-line);
+  color: var(--color-muted);
+}
+
+:global(.dark) .statusSuccess {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+:global(.dark) .statusError {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+:global(.dark) .input,
+:global(.dark) .select,
+:global(.dark) .textarea {
+  border-color: rgba(243, 244, 246, 0.18);
+  background: rgba(31, 41, 55, 0.6);
+  color: var(--color-ink);
+}
+
+:global(.dark) .input:hover,
+:global(.dark) .select:hover,
+:global(.dark) .textarea:hover {
+  border-color: rgba(243, 244, 246, 0.34);
+}
+
+:global(.dark) .input:focus,
+:global(.dark) .select:focus,
+:global(.dark) .textarea:focus {
+  background: rgba(31, 41, 55, 0.8);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+}
+
+:global(.dark) .input::placeholder,
+:global(.dark) .textarea::placeholder {
+  color: rgba(156, 163, 175, 0.6);
+}
+
+:global(.dark) .logoPreview {
+  border-color: var(--color-line);
+  background: rgba(249, 115, 22, 0.08);
+  color: var(--color-muted);
+}
+
+:global(.dark) .logoDrop {
+  border-color: rgba(243, 244, 246, 0.2);
+  background: rgba(31, 41, 55, 0.4);
+}
+
+:global(.dark) .printerRow {
+  border-color: var(--color-line);
+  background: rgba(31, 41, 55, 0.35);
+}
+
+:global(.dark) .iconButton {
+  border-color: var(--color-line);
+  color: var(--color-ink);
+}
+
+:global(.dark) .iconButton:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  background: rgba(249, 115, 22, 0.1);
+}
+
+:global(.dark) .permissionsScroller {
+  border-color: var(--color-line);
+  background: rgba(31, 41, 55, 0.3);
+}
+
+:global(.dark) .permissionAllowed {
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.12);
+}
+
+:global(.dark) .formFooter {
+  border-color: var(--color-line);
+  background: rgba(31, 41, 55, 0.35);
+}
+
+:global(.dark) .alert {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+}
+
+:global(.dark) .alertSuccess {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+}
+
+:global(.dark) .loading {
+  border-color: var(--color-line);
+  background: var(--color-surface);
+  color: var(--color-muted);
+}

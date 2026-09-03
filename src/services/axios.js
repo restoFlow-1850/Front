@@ -1,11 +1,13 @@
 // Axios instance — barcha API so'rovlari shu orqali yuboriladi.
 // Mas'ul: Fayoz (auth interceptor). Foydalanadi: hamma feature.
 import axios from 'axios'
-import { disconnectSocket } from './socket'
+import { disconnectSocket } from './socket.js'
 
-// Dev'da Vite proxy'si orqali same-origin ketadi (CORS muammosi bo'lmaydi),
-// prod'da esa to'g'ridan-to'g'ri backend origin'iga uriladi.
-const baseURL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'https://backend-production-109c0.up.railway.app/api')
+const rawApiUrl = typeof import.meta !== 'undefined' ? import.meta.env?.VITE_API_URL : undefined
+const isDev = typeof import.meta !== 'undefined' && Boolean(import.meta.env?.DEV)
+const baseURL = isDev
+  ? (rawApiUrl && !rawApiUrl.startsWith('http') ? rawApiUrl : '/api')
+  : (rawApiUrl || 'https://backend-production-109c0.up.railway.app/api')
 
 const api = axios.create({
   baseURL,
@@ -35,7 +37,15 @@ const processQueue = (error, accessToken = null) => {
   pendingQueue = []
 }
 
-const AUTH_ENDPOINTS = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/forgot-password']
+const AUTH_ENDPOINTS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/refresh',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+  '/auth/send-otp',
+  '/auth/verify-otp',
+]
 
 const redirectToLogin = () => {
   localStorage.removeItem('accessToken')

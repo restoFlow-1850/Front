@@ -17,7 +17,7 @@ import {
   SlidersHorizontal,
 } from 'lucide-react'
 
-import { ROLES } from './roles'
+import { ROLES, ROLE_HOME } from './roles.js'
 
 const ALL = [ROLES.ADMIN, ROLES.MANAGER, ROLES.WAITER, ROLES.CASHIER, ROLES.COOK]
 const STAFF = [ROLES.ADMIN, ROLES.MANAGER]
@@ -132,5 +132,19 @@ export function navItemsForRole(role) {
 
 /** Marshrutni himoyalash uchun — shu yo'lga ruxsat etilgan rollar. */
 export function rolesForPath(path) {
-  return NAV_ITEMS.find((item) => item.path === path)?.roles ?? []
+  if (!path) return []
+  const cleanPath = path.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/'
+  return NAV_ITEMS.find((item) => item.path === cleanPath)?.roles ?? []
 }
+
+/**
+ * Login yoki PublicRoute'dan keyin xavfsiz yo'naltirish manzilini aniqlaydi.
+ *
+ * @param {string | { pathname?: string, search?: string, hash?: string }} from
+ * @param {string} role
+ * @returns {string}
+ */
+export function resolveRedirect(_from, role) {
+  return (role && ROLE_HOME[role]) ? ROLE_HOME[role] : '/'
+}
+

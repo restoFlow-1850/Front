@@ -82,24 +82,46 @@ export const NEXT_ORDER_STATUS = {
   [ORDER_STATUS.CANCELLED]: null,
 }
 
-// ─── Stol holati ────────────────────────────────────────────────────────────
 export const TABLE_STATUS = {
-  FREE: 'free',
+  AVAILABLE: 'available',
   BUSY: 'occupied',
   RESERVED: 'reserved',
+  CLEANING: 'cleaning',
 }
+// Aliases for legacy component compatibility
+TABLE_STATUS.FREE = TABLE_STATUS.AVAILABLE
+TABLE_STATUS.OCCUPIED = TABLE_STATUS.BUSY
+
+export const TABLE_STATUS_LIST = [
+  TABLE_STATUS.AVAILABLE,
+  TABLE_STATUS.BUSY,
+  TABLE_STATUS.RESERVED,
+  TABLE_STATUS.CLEANING,
+]
 
 export const TABLE_STATUS_LABELS = {
-  [TABLE_STATUS.FREE]: "Bo'sh",
+  [TABLE_STATUS.AVAILABLE]: "Bo'sh",
   [TABLE_STATUS.BUSY]: 'Band',
   [TABLE_STATUS.RESERVED]: 'Bron qilingan',
+  [TABLE_STATUS.CLEANING]: 'Tozalanmoqda',
 }
 
 export const TABLE_STATUS_TONE = {
-  [TABLE_STATUS.FREE]: 'success',
+  [TABLE_STATUS.AVAILABLE]: 'success',
   [TABLE_STATUS.BUSY]: 'danger',
   [TABLE_STATUS.RESERVED]: 'warning',
+  [TABLE_STATUS.CLEANING]: 'neutral',
 }
+
+export const TABLE_STATUS_COLORS = {
+  [TABLE_STATUS.AVAILABLE]: '#22C55E',
+  [TABLE_STATUS.BUSY]: '#EF4444',
+  [TABLE_STATUS.RESERVED]: '#F59E0B',
+  [TABLE_STATUS.CLEANING]: '#94A3B8',
+}
+
+export const TRANSFERABLE_TARGET_STATUSES = [TABLE_STATUS.AVAILABLE]
+
 
 // ─── To'lov usuli ───────────────────────────────────────────────────────────
 // Backend Payment.METHODS = ['naqd','karta','click','payme']

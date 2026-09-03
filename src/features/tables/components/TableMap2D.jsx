@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowRightLeft, Pencil } from '../../../lib/Icons';
 import { getTables, updateTable } from '../api';
 import { unwrapList } from '../../../lib/api';
-import { TABLE_STATUS, TABLE_STATUS_LABELS, TABLE_STATUS_COLORS } from '../../../constants/tableStatus';
+import { TABLE_STATUS, TABLE_STATUS_LABELS, TABLE_STATUS_COLORS } from '../../../constants/roles';
 import EditTableModal from './EditTableModal';
 import TransferTableModal from './TransferTableModal';
 import OccupyTableModal from './OccupyTableModal';

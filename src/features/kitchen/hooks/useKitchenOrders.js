@@ -1,23 +1,10 @@
-// Oshxona buyurtmalari — boshlang'ich yuklash (REST) + real-time yangilanish (Socket.io).
-//
-// DIQQAT: Mock rejim yo'q — backend to'liq tayyor. Quyidagi eventlar tinglanadi:
-//   order:created          — yangi buyurtma (umumiy)
-//   kitchen:new_order      — yangi buyurtma, aynan oshxona uchun (ovozli signal SHU eventda)
-//   order:status_updated   — status o'zgardi
-//   order:status_changed   — status o'zgarishi uchun muqobil nom (ikkalasi ham tinglanadi)
-//   table:status_updated   — stol holati o'zgardi (ehtiyot uchun ro'yxatni yangilaymiz)
-//
-// 'order:created' va 'kitchen:new_order' bitta buyurtma uchun ikkalasi ham kelishi mumkin —
-// shuning uchun ovozli signal faqat bir marta chalinishi uchun buyurtma id'lari saqlanadi.
-//
-// Mas'ul: Ziyodulla.
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { toast } from '../../../components/ui'
 
-import { getOrders, updateOrderStatus } from '../../orders/api'
-import { unwrapList, apiErrorMessage } from '../../../lib/api'
+import { fetchKitchenOrders, updateOrderStatus, updateOrderItemStatus } from '../api'
+import { apiErrorMessage } from '../../../lib/api'
 import { ORDER_STATUS } from '../../../constants/roles'
 import { socket } from '../../../services/socket'
 import { triggerNewOrderAlert } from '../../../utils/audioAlert'
@@ -31,8 +18,6 @@ function readSoundPref() {
   return stored === null ? true : stored === 'true'
 }
 
-// TASDIQLANMAGAN TAXMIN: ba'zi eventlar to'g'ridan-to'g'ri buyurtma obyektini,
-// ba'zilari { order: {...} } ko'rinishida yuborishi mumkin — ikkalasini ham qo'llab-quvvatlaymiz.
 function extractOrder(payload) {
   if (!payload) return null
   return payload.order ?? payload
@@ -56,9 +41,9 @@ export function useKitchenOrders() {
 
   const ordersQuery = useQuery({
     queryKey: ['orders', 'kitchen'],
-    queryFn: async () => unwrapList(await getOrders({ limit: 100 }), 'orders'),
-    // Socket vaqtincha uzilib qolsa ham ekran eskirmasin.
-    refetchInterval: 20_000,
+    queryFn: async () => fetchKitchenOrders(),
+    // Real-time yangilanish Socket orqali keladi, polling faqat favqulodda zaxira (2 daqiqa).
+    refetchInterval: 120_000,
   })
 
   const invalidateOrders = useCallback(
@@ -68,9 +53,9 @@ export function useKitchenOrders() {
 
   const announceNewOrder = useCallback(
     (order) => {
-      const id = order?._id ?? order?.id
+      const id = order?._id ?? order?.id ?? order?.orderId
       if (id) {
-        if (announcedIdsRef.current.has(id)) return // order:created + kitchen:new_order duplikati
+        if (announcedIdsRef.current.has(id)) return
         announcedIdsRef.current.add(id)
         if (announcedIdsRef.current.size > ANNOUNCED_IDS_MAX) {
           const [oldest] = announcedIdsRef.current
@@ -93,34 +78,142 @@ export function useKitchenOrders() {
     }
     const handleStatusUpdate = () => invalidateOrders()
     const handleTableUpdate = () => invalidateOrders()
+    const handleItemUpdate = (payload) => {
+      const { orderId, itemId, item, items, isReady } = payload || {}
+      if (orderId) {
+        queryClient.setQueryData(['orders', 'kitchen'], (oldOrders) => {
+          if (!Array.isArray(oldOrders)) return oldOrders
+          return oldOrders.map((ord) => {
+            const ordId = ord._id ?? ord.id
+            if (ordId !== orderId) return ord
+            const updatedItems = (ord.items || []).map((it, idx) => {
+              const itId = it._id ?? it.id ?? String(idx)
+              const matches = itId === itemId || idx === itemId || idx === Number(itemId)
+              if (matches) {
+                return { ...it, isReady: item?.isReady ?? isReady ?? true }
+              }
+              return it
+            })
+            return { ...ord, items: items || updatedItems }
+          })
+        })
+      }
+      invalidateOrders()
+    }
 
+    socket.on('order:new', handleNewOrder)
     socket.on('order:created', handleNewOrder)
     socket.on('kitchen:new_order', handleNewOrder)
     socket.on('order:status_updated', handleStatusUpdate)
     socket.on('order:status_changed', handleStatusUpdate)
+    socket.on('order:statusChanged', handleStatusUpdate)
     socket.on('table:status_updated', handleTableUpdate)
+    socket.on('order:item_updated', handleItemUpdate)
+    socket.on('order:itemUpdated', handleItemUpdate)
+    socket.on('order:itemStatusChanged', handleItemUpdate)
 
     return () => {
+      socket.off('order:new', handleNewOrder)
       socket.off('order:created', handleNewOrder)
       socket.off('kitchen:new_order', handleNewOrder)
       socket.off('order:status_updated', handleStatusUpdate)
       socket.off('order:status_changed', handleStatusUpdate)
+      socket.off('order:statusChanged', handleStatusUpdate)
       socket.off('table:status_updated', handleTableUpdate)
+      socket.off('order:item_updated', handleItemUpdate)
+      socket.off('order:itemUpdated', handleItemUpdate)
+      socket.off('order:itemStatusChanged', handleItemUpdate)
     }
-  }, [invalidateOrders, announceNewOrder])
+  }, [invalidateOrders, announceNewOrder, queryClient])
 
-  const mutation = useMutation({
+  // Buyurtma statusini yangilash (Optimistik + Rollback)
+  const statusMutation = useMutation({
     mutationFn: ({ id, nextStatus }) => updateOrderStatus(id, nextStatus),
+    onMutate: async ({ id, nextStatus, columnKey }) => {
+      await queryClient.cancelQueries({ queryKey: ['orders', 'kitchen'] })
+      const previousOrders = queryClient.getQueryData(['orders', 'kitchen'])
+
+      queryClient.setQueryData(['orders', 'kitchen'], (old) => {
+        if (!Array.isArray(old)) return old
+        return old.map((ord) => {
+          const ordId = ord._id ?? ord.id
+          return ordId === id ? { ...ord, status: nextStatus } : ord
+        })
+      })
+
+      return { previousOrders, columnKey }
+    },
+    onError: (error, _variables, context) => {
+      if (context?.previousOrders) {
+        queryClient.setQueryData(['orders', 'kitchen'], context.previousOrders)
+      }
+      toast.error(apiErrorMessage(error, t('kitchen.statusChangeFailed')))
+    },
     onSuccess: (_data, { columnKey }) => {
       toast.success(t('kitchen.statusChanged', { status: t(`kitchen.columns.${columnKey}`) }))
+    },
+    onSettled: () => {
       invalidateOrders()
     },
-    onError: (error) => toast.error(apiErrorMessage(error, t('kitchen.statusChangeFailed'))),
+  })
+
+  // Taomni alohida belgilash / check-off (Optimistik + Rollback + Socket sync)
+  const itemReadyMutation = useMutation({
+    mutationFn: ({ orderId, itemIndexOrId, targetIsReady }) =>
+      updateOrderItemStatus(orderId, itemIndexOrId, targetIsReady),
+    onMutate: async ({ orderId, itemIndexOrId, targetIsReady }) => {
+      await queryClient.cancelQueries({ queryKey: ['orders', 'kitchen'] })
+      const previousOrders = queryClient.getQueryData(['orders', 'kitchen'])
+
+      queryClient.setQueryData(['orders', 'kitchen'], (old) => {
+        if (!Array.isArray(old)) return old
+        return old.map((ord) => {
+          const ordId = ord._id ?? ord.id
+          if (ordId !== orderId) return ord
+          const updatedItems = (ord.items || []).map((it, idx) => {
+            const itId = it._id ?? it.id ?? String(idx)
+            const matches = itId === itemIndexOrId || idx === itemIndexOrId || idx === Number(itemIndexOrId)
+            return matches ? { ...it, isReady: targetIsReady } : it
+          })
+          return { ...ord, items: updatedItems }
+        })
+      })
+
+      try {
+        socket.emit('order:updateItemStatus', {
+          orderId,
+          itemId: itemIndexOrId,
+          isReady: targetIsReady,
+        })
+        socket.emit('order:item_updated', {
+          orderId,
+          itemId: itemIndexOrId,
+          isReady: targetIsReady,
+        })
+      } catch {}
+
+      return { previousOrders }
+    },
+    onError: (error, _variables, context) => {
+      if (context?.previousOrders) {
+        queryClient.setQueryData(['orders', 'kitchen'], context.previousOrders)
+      }
+      toast.error(apiErrorMessage(error, "Taom holatini saqlashda xatolik yuz berdi"))
+    },
+    onSettled: () => {
+      invalidateOrders()
+    },
   })
 
   const setStatus = useCallback(
-    (id, nextStatus, columnKey) => mutation.mutate({ id, nextStatus, columnKey }),
-    [mutation],
+    (id, nextStatus, columnKey) => statusMutation.mutate({ id, nextStatus, columnKey }),
+    [statusMutation],
+  )
+
+  const toggleItemReady = useCallback(
+    (orderId, itemIndexOrId, targetIsReady) =>
+      itemReadyMutation.mutate({ orderId, itemIndexOrId, targetIsReady }),
+    [itemReadyMutation],
   )
 
   const testSound = useCallback(() => {
@@ -143,7 +236,8 @@ export function useKitchenOrders() {
     error: ordersQuery.error,
     refetch: ordersQuery.refetch,
     setStatus,
-    isMutating: mutation.isPending,
+    toggleItemReady,
+    isMutating: statusMutation.isPending || itemReadyMutation.isPending,
     soundEnabled,
     toggleSound,
     testSound,

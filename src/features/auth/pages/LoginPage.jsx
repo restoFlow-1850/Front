@@ -1,29 +1,23 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useDispatch } from 'react-redux'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { authApi } from '../api'
 import { setCredentials } from '../authSlice'
 import { saveSession } from '../session'
 import { ROLE_HOME } from '../../../constants/roles'
-import { rolesForPath } from '../../../constants/navigation'
 import { connectSocket } from '../../../services/socket'
+import { useTheme } from '../../../hooks/useTheme'
+import LanguageSwitcher from '../../../components/common/LanguageSwitcher'
+import { Sun, Moon } from 'lucide-react'
 
 const schema = z.object({
-  email: z.string().email("Email noto'g'ri formatda"),
-  password: z.string().min(6, "Kamida 6 ta belgi bo'lishi kerak"),
+  email: z.string().email("Email format invalid"),
+  password: z.string().min(6, "Min 6 characters"),
 })
-
-function resolveRedirect(from, role) {
-  if (from) {
-    const allowed = rolesForPath(from)
-    if (allowed.length === 0 || allowed.includes(role)) return from
-  }
-  return ROLE_HOME[role] ?? '/'
-}
 
 /* SVG Icons */
 const ShieldIcon = () => (
@@ -82,14 +76,20 @@ const animationStyles = `
 `
 
 export default function LoginPage() {
+  const { t } = useTranslation()
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const location = useLocation()
+  const { theme, toggleTheme } = useTheme()
   const [error, setError] = useState(null)
   const [showPassword, setShowPassword] = useState(false)
-  const [remember, setRemember] = useState(false)
+  const [remember, setRemember] = useState(true)
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
     resolver: zodResolver(schema),
     defaultValues: { email: '', password: '' },
   })
@@ -100,18 +100,47 @@ export default function LoginPage() {
       const response = await authApi.login(values)
       const data = response.data?.data ?? response.data
       saveSession(data)
-      dispatch(setCredentials({ user: data.user, accessToken: data.accessToken, refreshToken: data.refreshToken }))
+      dispatch(
+        setCredentials({
+          user: data.user,
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
+        }),
+      )
       connectSocket(data.accessToken)
-      navigate(resolveRedirect(location.state?.from?.pathname, data.user?.role), { replace: true })
+      const targetHome = ROLE_HOME[data.user?.role] || '/dashboard'
+      navigate(targetHome, { replace: true })
     } catch (err) {
-      setError(err.response?.data?.message || 'Tizimga kirishda xatolik yuz berdi')
+      setError(err.response?.data?.message || t('kitchen.loadFailed'))
     }
   }
 
   return (
     <>
       <style>{animationStyles}</style>
-      <div className="flex h-screen w-full overflow-hidden bg-[#FFFDF9] font-sans">
+      <div className="relative flex h-screen w-full overflow-hidden bg-[#FFFDF9] dark:bg-[#0B0F17] font-sans">
+        {/* Top right quick controls */}
+        <div className="absolute right-4 top-4 z-50 flex items-center gap-2 sm:right-6 sm:top-6">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-xs font-bold text-slate-700 shadow-sm backdrop-blur-md transition-all hover:bg-orange-50 hover:text-[#F97316] dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-200 dark:hover:bg-slate-800"
+            title={theme === 'dark' ? "Yorqin rejim" : "Tungi rejim"}
+          >
+            {theme === 'dark' ? (
+              <>
+                <Moon className="h-4 w-4 text-indigo-400" />
+                <span className="hidden sm:inline">Tungi</span>
+              </>
+            ) : (
+              <>
+                <Sun className="h-4 w-4 text-amber-500" />
+                <span className="hidden sm:inline">Yorqin</span>
+              </>
+            )}
+          </button>
+          <LanguageSwitcher className="shadow-sm backdrop-blur-md bg-white/90 border border-slate-200 dark:bg-slate-900/90 dark:border-slate-800" />
+        </div>
 
         {/* LEFT HERO SECTION */}
         <div className="relative hidden w-[45%] lg:flex lg:flex-col lg:justify-between overflow-hidden">
@@ -156,18 +185,17 @@ export default function LoginPage() {
               className="max-w-lg rounded-3xl bg-black/50 p-6 backdrop-blur-sm"
               style={{ animation: 'fadeInUp 1s ease-out 0.4s both' }}
             >
-              <h1 className="text-4xl font-bold leading-tight xl:text-5xl" style={{ background: 'linear-gradient(135deg, #FFFFFF 0%, #F97316 50%, #FBBF24 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 2px 10px rgba(0,0,0,0.5))' }}>
-                Restoraningizni boshqarishni{' '}
+              <h1 className="text-4xl font-bold leading-tight xl:text-5xl !text-white" style={{ filter: 'drop-shadow(0 2px 10px rgba(0,0,0,0.5))' }}>
+                {t('auth.heroTitlePart1', { defaultValue: "Restoraningizni boshqarishni " })}
                 <span style={{ background: 'linear-gradient(135deg, #F97316 0%, #FBBF24 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 0 20px rgba(249,115,22,0.6))' }}>
-                  osonlashtiramiz
+                  {t('auth.heroTitlePart2', { defaultValue: "osonlashtiramiz" })}
                 </span>
               </h1>
               <p
-                className="mt-4 text-base leading-relaxed text-white/80"
+                className="mt-4 text-base leading-relaxed text-white/90"
                 style={{ animation: 'slideReveal 1.2s ease-out 0.8s both' }}
               >
-                Buyurtmalar, stol tizimi, oshxona boshqaruvi va hisobotlarni
-                bir platformada professional va qulay interfeys bilan.
+                {t('auth.heroSubtitle', { defaultValue: "Buyurtmalar, stol tizimi, oshxona boshqaruvi va hisobotlarni bir platformada professional va qulay interfeys bilan." })}
               </p>
             </div>
 
@@ -185,45 +213,44 @@ export default function LoginPage() {
                 >
                   <ChartIcon />
                 </div>
-                <span className="font-semibold text-white text-lg">Samarali boshqaruv</span>
+                <span className="font-semibold text-white text-lg">{t('auth.heroCardTitle', { defaultValue: "Samarali boshqaruv" })}</span>
               </div>
               <p className="text-sm text-white/80 leading-relaxed" style={{ textShadow: '0 1px 8px rgba(0,0,0,0.6)' }}>
-                Real-vaqtda buyurtmalarni kuzating, stollar kiriting va
-                jamoangiz bilan samarali hamkorlik qiling.
+                {t('auth.heroCardDesc', { defaultValue: "Real-vaqtda buyurtmalarni kuzating, stollar kiriting va jamoangiz bilan samarali hamkorlik qiling." })}
               </p>
             </div>
           </div>
         </div>
 
         {/* RIGHT LOGIN CARD */}
-        <div className="flex flex-1 items-center justify-center px-6 py-10 sm:px-10 lg:px-16">
+        <div className="flex flex-1 items-center justify-center px-6 py-8 sm:px-10 lg:px-16 overflow-y-auto">
           <div
-            className="w-full max-w-[440px] rounded-[32px] bg-white p-12 shadow-[0_25px_80px_rgba(0,0,0,0.08)]"
+            className="w-full max-w-[450px] rounded-[32px] bg-white dark:bg-[#1F2937] p-8 sm:p-10 shadow-[0_25px_80px_rgba(0,0,0,0.08)] my-auto"
             style={{ animation: 'fadeInUp 0.8s ease-out 0.3s both' }}
           >
             {/* Tab */}
-            <div className="flex items-center gap-2 border-b border-gray-100 pb-4 mb-8">
+            <div className="flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-4 mb-8">
               <div className="flex items-center gap-2 text-[#F97316]">
                 <ShieldIcon />
-                <span className="text-lg font-bold">Kirish</span>
+                <span className="text-lg font-bold">{t('auth.loginTitle', { defaultValue: "Kirish" })}</span>
               </div>
             </div>
 
             {/* Header */}
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-[#111827]">
-                Xush kelibsiz qaytganingizdan xursandmiz!
+              <h2 className="text-2xl font-bold text-[#111827] dark:text-white">
+                {t('auth.welcomeHeader', { defaultValue: "Xush kelibsiz qaytganingizdan xursandmiz!" })}
               </h2>
-              <p className="mt-2 text-sm text-[#6B7280]">
-                Hisobingizga kiring va ishni davom ettiring.
+              <p className="mt-2 text-sm text-[#6B7280] dark:text-gray-400">
+                {t('auth.welcomeSub', { defaultValue: "Hisobingizga kiring va ishni davom ettiring." })}
               </p>
             </div>
 
             {/* Form */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-[#111827]" htmlFor="email">
-                  Email
+                <label className="mb-1.5 block text-sm font-medium text-[#111827] dark:text-gray-200" htmlFor="email">
+                  {t('auth.email', { defaultValue: "Email" })}
                 </label>
                 <div className="relative">
                   <MailIcon />
@@ -232,7 +259,7 @@ export default function LoginPage() {
                     type="email"
                     autoComplete="email"
                     placeholder="email@misol.uz"
-                    className="w-full rounded-xl border border-[#E5E7EB] bg-[#FFFDF9] py-3 pl-11 pr-4 text-sm text-[#111827] placeholder-gray-400 outline-none transition-all focus:border-[#F97316] focus:ring-4 focus:ring-orange-100"
+                    className="w-full rounded-xl border border-[#E5E7EB] dark:border-gray-600 bg-[#FFFDF9] dark:bg-gray-700 py-3 pl-11 pr-4 text-sm text-[#111827] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 outline-none transition-all focus:border-[#F97316] focus:ring-4 focus:ring-orange-100"
                     {...register('email')}
                   />
                 </div>
@@ -240,8 +267,8 @@ export default function LoginPage() {
               </div>
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-[#111827]" htmlFor="password">
-                  Parol
+                <label className="mb-1.5 block text-sm font-medium text-[#111827] dark:text-gray-200" htmlFor="password">
+                  {t('auth.password', { defaultValue: "Parol" })}
                 </label>
                 <div className="relative">
                   <LockIcon />
@@ -250,7 +277,7 @@ export default function LoginPage() {
                     type={showPassword ? 'text' : 'password'}
                     autoComplete="current-password"
                     placeholder="********"
-                    className="w-full rounded-xl border border-[#E5E7EB] bg-[#FFFDF9] py-3 pl-11 pr-11 text-sm text-[#111827] placeholder-gray-400 outline-none transition-all focus:border-[#F97316] focus:ring-4 focus:ring-orange-100"
+                    className="w-full rounded-xl border border-[#E5E7EB] dark:border-gray-600 bg-[#FFFDF9] dark:bg-gray-700 py-3 pl-11 pr-11 text-sm text-[#111827] dark:text-white placeholder-gray-400 dark:placeholder-gray-500 outline-none transition-all focus:border-[#F97316] focus:ring-4 focus:ring-orange-100"
                     {...register('password')}
                   />
                   <button
@@ -273,18 +300,18 @@ export default function LoginPage() {
                     onChange={(e) => setRemember(e.target.checked)}
                     className="h-4 w-4 rounded border-gray-300 text-[#F97316] focus:ring-[#F97316] cursor-pointer accent-[#F97316]"
                   />
-                  <span className="text-sm text-[#6B7280]">Meni eslab qolish</span>
+                  <span className="text-sm text-[#6B7280] dark:text-gray-400">{t('auth.rememberMe', { defaultValue: "Meni eslab qolish" })}</span>
                 </label>
                 <Link
                   to="/forgot-password"
                   className="text-sm font-medium text-[#F97316] hover:text-orange-600 transition-colors"
                 >
-                  Parolni unutdingizmi?
+                  {t('auth.forgotPassword', { defaultValue: "Parolni unutdingizmi?" })}
                 </Link>
               </div>
 
               {error && (
-                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                <div className="rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/50 px-4 py-3 text-sm text-red-600 dark:text-red-400">
                   {error}
                 </div>
               )}
@@ -301,16 +328,16 @@ export default function LoginPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
-                    Kirilmoqda...
+                    {t('loading', { defaultValue: "Kirilmoqda..." })}
                   </span>
-                ) : 'Kirish'}
+                ) : t('auth.loginBtn', { defaultValue: "Kirish" })}
               </button>
             </form>
 
-            <p className="mt-8 text-center text-sm text-[#6B7280]">
-              Hisobingiz yo'qmi?{' '}
+            <p className="mt-8 text-center text-sm text-[#6B7280] dark:text-gray-400">
+              {t('auth.noAccount')}{' '}
               <Link to="/register" className="font-semibold text-[#F97316] hover:text-orange-600 transition-colors">
-                Ro'yxatdan o'ting
+                {t('auth.registerTitle')}
               </Link>
             </p>
           </div>

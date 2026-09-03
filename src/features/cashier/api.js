@@ -34,6 +34,8 @@ export const createPayment = (payload) => api.post('/payments', payload)
 
 export const getPayments = (params) => api.get('/payments', { params })
 
+export const clearAllPayments = () => api.delete('/payments/clear-all')
+
 /** To'lanmagan buyurtmalar API */
 export const getUnpaidOrders = async (params) => {
   try {

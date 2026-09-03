@@ -1,6 +1,7 @@
 // Kassa — GET /api/payments/unpaid-orders, POST /api/payments, Split Bill, ReceiptPrintModal & To'lovlar tarixi
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import {
   AlertOctagon,
   Banknote,
@@ -48,6 +49,7 @@ const METHOD_ICONS = {
 }
 
 export default function Cashier() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
 
   // Joriy smena — smena ochilmagan bo'lsa to'lov qabul qilib bo'lmaydi
@@ -70,6 +72,9 @@ export default function Cashier() {
     queryFn: settingsApi.get,
     staleTime: 5 * 60_000,
   })
+
+
+
   const shift = shiftQuery.data
   const hasOpenShift = shift && shift.status === 'open'
 
@@ -103,29 +108,37 @@ export default function Cashier() {
         method,
         ...(amount ? { amount } : {}),
       }),
-    onSuccess: () => {
-      toast.success("To'lov muvaffaqiyatli qabul qilindi!")
+    onMutate: async (amount) => {
       setCustomAmount('')
       setSplitCount(1)
+      if (!amount || amount >= remaining) {
+        queryClient.setQueryData(['orders', 'unpaid'], (old) => {
+          if (!Array.isArray(old)) return old
+          return old.filter((o) => o._id !== selectedId)
+        })
+      }
+    },
+    onSuccess: () => {
+      toast.success(t('cashier.paymentSuccess'))
       queryClient.invalidateQueries({ queryKey: ['orders'] })
       queryClient.invalidateQueries({ queryKey: ['receipt', selectedId] })
       queryClient.invalidateQueries({ queryKey: ['reports'] })
       queryClient.invalidateQueries({ queryKey: ['payments'] })
     },
-    onError: (error) => toast.error(apiErrorMessage(error, "To'lov amalga oshmadi")),
+    onError: (error) => toast.error(apiErrorMessage(error, t('cashier.paymentFailed'))),
   })
 
   // Buyurtmani bekor qilish mutation
   const cancelMutation = useMutation({
     mutationFn: () => updateOrderStatus(selectedId, ORDER_STATUS.CANCELLED),
     onSuccess: () => {
-      toast.info("Buyurtma bekor qilindi")
+      toast.info(t('cashier.orderCancelled'))
       setShowCancelConfirm(false)
       setSelectedId(null)
       queryClient.invalidateQueries({ queryKey: ['orders'] })
       queryClient.invalidateQueries({ queryKey: ['reports'] })
     },
-    onError: (error) => toast.error(apiErrorMessage(error, "Buyurtmani bekor qilib bo'lmadi")),
+    onError: (error) => toast.error(apiErrorMessage(error, t('cashier.cancelFailed'))),
   })
 
   const unpaid = useMemo(() => unpaidQuery.data ?? [], [unpaidQuery.data])
@@ -151,11 +164,11 @@ export default function Cashier() {
   const handlePay = () => {
     const parsed = customAmount ? Number(customAmount) : null
     if (parsed !== null && (!Number.isFinite(parsed) || parsed <= 0)) {
-      toast.error("Summa 0 dan katta bo'lishi kerak")
+      toast.error(t('cashier.invalidAmount', { defaultValue: "Summa 0 dan katta bo'lishi kerak" }))
       return
     }
     if (parsed !== null && parsed > remaining) {
-      toast.error(`Summa qolgan balansdan (${formatSom(remaining)}) katta bo'lishi mumkin emas`)
+      toast.error(`${t('cashier.amountExceeds', { defaultValue: 'Summa qolgan balansdan katta bo\'lishi mumkin emas' })} (${formatSom(remaining)})`)
       return
     }
     paymentMutation.mutate(parsed)
@@ -163,7 +176,7 @@ export default function Cashier() {
 
   return (
     <div className="space-y-5">
-      <PageHeader title="Kassa" subtitle="To'lovlarni qabul qilish, hisobni bo'lish va to'lovlar tarixi" />
+      <PageHeader title={t('cashier.title')} subtitle={t('cashier.subtitle')} />
 
       {/* Smena paneli — smena ochilmagan bo'lsa to'lov bloklanadi */}
       <ShiftPanel onShiftChange={() => shiftQuery.refetch()} />
@@ -174,7 +187,7 @@ export default function Cashier() {
           <div className="flex items-center justify-center gap-2 text-amber-700 dark:text-amber-300">
             <Lock className="h-5 w-5" />
             <p className="text-sm font-semibold">
-              To'lov qabul qilish uchun avval smenani oching
+              {t('cashier.shiftNotOpenDesc')}
             </p>
           </div>
         </div>
@@ -192,7 +205,7 @@ export default function Cashier() {
           }`}
         >
           <Wallet className="h-4 w-4" />
-          Kassa & To'lov
+          {t('cashier.cashierAndPay')}
         </button>
         <button
           type="button"
@@ -204,7 +217,7 @@ export default function Cashier() {
           }`}
         >
           <History className="h-4 w-4" />
-          To'lovlar tarixi
+          {t('cashier.paymentsHistory')}
         </button>
       </div>
 
@@ -214,8 +227,8 @@ export default function Cashier() {
         <Card>
           <EmptyState
             icon={Lock}
-            title="Smena ochilmagan"
-            description={"To'lov qabul qilish uchun yuqoridagi \"Smena ochish\" tugmasini bosing."}
+            title={t('shift.shiftClosed')}
+            description={t('shift.shiftNotOpenDesc')}
           />
         </Card>
       ) : (
@@ -224,7 +237,7 @@ export default function Cashier() {
           <Card padded={false} className="overflow-hidden">
             <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-800">
               <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
-                To'lanmagan buyurtmalar
+                {t('cashier.unpaidOrders')}
                 <span className="ml-2 rounded-full bg-slate-200 px-2 py-0.5 text-xs dark:bg-slate-800">
                   {unpaid.length}
                 </span>
@@ -241,8 +254,8 @@ export default function Cashier() {
               ) : unpaid.length === 0 ? (
                 <EmptyState
                   icon={CheckCircle}
-                  title="Hammasi to'langan"
-                  description="Hozircha to'lanmagan buyurtma yo'q."
+                  title={t('cashier.allPaid')}
+                  description={t('cashier.noUnpaidOrders')}
                 />
               ) : (
                 unpaid.map((order) => (
@@ -263,13 +276,13 @@ export default function Cashier() {
                   >
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold text-slate-900 dark:text-white">
-                        Stol № {order.table?.number ?? '—'}
+                        {t('cashier.tableNum')} {order.table?.number ?? '—'}
                       </p>
                       <p className="truncate text-xs text-slate-500">
                         {order.waiter?.name ?? '—'} · {formatTime(order.createdAt)}
                       </p>
                       <Badge variant={ORDER_STATUS_TONE[order.status]} className="mt-1">
-                        {ORDER_STATUS_LABELS[order.status] ?? order.status}
+                        {t(`orderStatus.${order.status}`, ORDER_STATUS_LABELS[order.status] ?? order.status)}
                       </Badge>
                     </div>
                     <span className="shrink-0 text-sm font-bold text-slate-900 dark:text-white">
@@ -286,8 +299,8 @@ export default function Cashier() {
             <Card>
               <EmptyState
                 icon={ReceiptIcon}
-                title="Buyurtma tanlanmagan"
-                description="Chapdagi ro'yxatdan buyurtmani tanlang."
+                title={t('cashier.orderNotSelected')}
+                description={t('cashier.selectOrderDesc')}
               />
             </Card>
           ) : receiptQuery.isLoading ? (
@@ -297,7 +310,7 @@ export default function Cashier() {
           ) : receiptQuery.isError ? (
             <Card>
               <p className="text-sm text-rose-600">
-                {apiErrorMessage(receiptQuery.error, "Chekni yuklab bo'lmadi")}
+                {apiErrorMessage(receiptQuery.error, t('kitchen.loadFailed'))}
               </p>
             </Card>
           ) : (
@@ -307,15 +320,15 @@ export default function Cashier() {
                 <div className="mb-4 flex items-start justify-between border-b border-slate-200 pb-4 dark:border-slate-800">
                   <div>
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                      Stol № {receipt?.order?.table?.number ?? '—'}
+                      {t('cashier.tableNum')} {receipt?.order?.table?.number ?? '—'}
                     </h2>
                     <p className="text-xs text-slate-500">
-                      Ofitsiant: {receipt?.order?.waiter?.name ?? '—'} ·{' '}
+                      {t('dashboard.waiter')}: {receipt?.order?.waiter?.name ?? '—'} ·{' '}
                       {formatTime(receipt?.order?.createdAt)}
                     </p>
                   </div>
                   <Badge variant={receipt?.isPaid ? 'success' : 'warning'}>
-                    {receipt?.isPaid ? "To'langan" : "To'lanmagan"}
+                    {receipt?.isPaid ? t('cashier.paid') : t('cashier.unpaid')}
                   </Badge>
                 </div>
 
@@ -336,22 +349,22 @@ export default function Cashier() {
                 </div>
 
                 <div className="mt-4 space-y-1.5 border-t border-slate-200 pt-4 text-sm dark:border-slate-800">
-                  <Row label="Buyurtma summasi" value={formatSom(receipt?.order?.totalAmount)} />
-                  <Row label="To'langan summa" value={formatSom(receipt?.paidTotal)} />
+                  <Row label={t('cashier.orderAmount')} value={formatSom(receipt?.order?.totalAmount)} />
+                  <Row label={t('cashier.paidAmount')} value={formatSom(receipt?.paidTotal)} />
                   <div className="flex justify-between border-t border-slate-200 pt-2 text-base font-bold text-slate-900 dark:border-slate-800 dark:text-white">
-                    <span>Qolgan balans</span>
+                    <span>{t('cashier.remainingBalance')}</span>
                     <span className="text-indigo-600 dark:text-indigo-400">{formatSom(remaining)}</span>
                   </div>
                 </div>
 
                 {receipt?.payments?.length > 0 && (
                   <div className="mt-4 border-t border-slate-200 pt-4 dark:border-slate-800">
-                    <h3 className="mb-2 text-xs font-semibold text-slate-500">To'lovlar tarixi</h3>
+                    <h3 className="mb-2 text-xs font-semibold text-slate-500">{t('cashier.paymentsHistory')}</h3>
                     <div className="space-y-1">
                       {receipt.payments.map((payment) => (
                         <div key={payment._id} className="flex justify-between text-xs text-slate-500">
                           <span>
-                            {PAYMENT_METHOD_LABELS[payment.method] ?? payment.method} ·{' '}
+                            {t(`paymentMethods.${payment.method}`, PAYMENT_METHOD_LABELS[payment.method] ?? payment.method)} ·{' '}
                             {payment.receivedBy?.name ?? '—'} · {formatTime(payment.createdAt)}
                           </span>
                           <span className="font-semibold">{formatSom(payment.amount)}</span>
@@ -365,7 +378,7 @@ export default function Cashier() {
               {/* To'lov paneli */}
               <Card className="h-fit space-y-4">
                 <h3 className="border-b border-slate-200 pb-3 text-sm font-semibold text-slate-900 dark:border-slate-800 dark:text-white">
-                  To'lov usuli va Split Bill
+                  {t('cashier.paymentMethodAndSplit')}
                 </h3>
 
                 <div className="grid grid-cols-2 gap-2">
@@ -383,7 +396,7 @@ export default function Cashier() {
                         }`}
                       >
                         <Icon className="h-5 w-5" />
-                        <span className="text-xs">{PAYMENT_METHOD_LABELS[value]}</span>
+                        <span className="text-xs">{t(`paymentMethods.${value}`, PAYMENT_METHOD_LABELS[value])}</span>
                       </button>
                     )
                   })}
@@ -391,7 +404,7 @@ export default function Cashier() {
 
                 <div>
                   <p className="mb-2 flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
-                    <Users className="h-3.5 w-3.5 text-indigo-500" /> Hisobni bo'lish (Split Bill)
+                    <Users className="h-3.5 w-3.5 text-indigo-500" /> {t('cashier.splitBill')}
                   </p>
                   <div className="flex gap-1.5">
                     {[1, 2, 3, 4].map((num) => (
@@ -408,23 +421,23 @@ export default function Cashier() {
                             : 'border border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'
                         }`}
                       >
-                        {num === 1 ? 'Teng' : `${num} kishi`}
+                        {num === 1 ? '1' : `${num}`}
                       </button>
                     ))}
                   </div>
                   {splitCount > 1 && remaining > 0 && (
                     <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                      Har bir kishiga ulush: <strong>{formatSom(splitAmount)}</strong>
+                      {t('cashier.perPerson')} <strong>{formatSom(splitAmount)}</strong>
                     </p>
                   )}
                 </div>
 
                 <Input
-                  label="To'lov summasi (so'm)"
+                  label={t('cashier.paymentAmountLabel')}
                   type="number"
                   min={1}
                   max={remaining}
-                  placeholder={`Bo'sh qoldirilsa: ${formatSom(remaining)}`}
+                  placeholder={`${t('cashier.emptyDefault')} ${formatSom(remaining)}`}
                   value={customAmount}
                   onChange={(e) => setCustomAmount(e.target.value)}
                 />
@@ -435,11 +448,11 @@ export default function Cashier() {
                   isLoading={paymentMutation.isPending}
                   onClick={handlePay}
                 >
-                  {remaining <= 0 ? "To'liq to'langan" : "To'lovni qabul qilish"}
+                  {remaining <= 0 ? t('cashier.fullyPaid') : t('cashier.acceptPayment')}
                 </Button>
 
                 <Button variant="secondary" className="w-full" onClick={() => setIsReceiptModalOpen(true)}>
-                  <Printer className="mr-2 h-4 w-4" /> Chekni ko'rish / Chop etish
+                  <Printer className="mr-2 h-4 w-4" /> {t('cashier.viewPrintReceipt')}
                 </Button>
 
                 {/* Buyurtmani bekor qilish */}
@@ -450,13 +463,13 @@ export default function Cashier() {
                       onClick={() => setShowCancelConfirm(true)}
                       className="w-full text-center text-xs font-semibold text-rose-600 hover:underline dark:text-rose-400"
                     >
-                      Buyurtmani bekor qilish
+                      {t('cashier.cancelOrder')}
                     </button>
                   ) : (
                     <div className="space-y-2 rounded-xl bg-rose-50 p-3 dark:bg-rose-950/40">
                       <p className="flex items-center gap-1.5 text-xs font-medium text-rose-700 dark:text-rose-300">
                         <AlertOctagon className="h-4 w-4 shrink-0" />
-                        Buyurtmani rostdan ham bekor qilmoqchimisiz?
+                        {t('cashier.confirmCancel')}
                       </p>
                       <div className="flex gap-2">
                         <Button
@@ -464,14 +477,14 @@ export default function Cashier() {
                           className="h-8 flex-1 text-xs"
                           onClick={() => setShowCancelConfirm(false)}
                         >
-                          Yo'q
+                          {t('cashier.noKeep')}
                         </Button>
                         <Button
                           className="h-8 flex-1 bg-rose-600 text-xs text-white hover:bg-rose-700"
                           isLoading={cancelMutation.isPending}
                           onClick={() => cancelMutation.mutate()}
                         >
-                          Ha, bekor qilish
+                          {t('cashier.yesCancel')}
                         </Button>
                       </div>
                     </div>

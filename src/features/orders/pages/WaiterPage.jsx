@@ -2,6 +2,7 @@
 // O'ng ustunda ofitsiantning faol buyurtmalari real vaqtda ko'rinadi.
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { ArrowRightLeft, Minus, Plus, ShoppingCart, Trash2, UtensilsCrossed } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { useSearchParams } from 'react-router-dom'
@@ -31,6 +32,7 @@ import {
 } from '../../../components/ui'
 
 export default function WaiterPage() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [searchParams] = useSearchParams()
 
@@ -76,35 +78,45 @@ export default function WaiterPage() {
     mutationFn: () =>
       createOrder({
         table: tableId,
-        items: cart.map(({ product, quantity }) => ({ product, quantity })),
+        items: cart.map(({ product, quantity, note }) => ({
+          product,
+          quantity,
+          ...(note && note.trim() ? { note: note.trim().slice(0, 200) } : {}),
+        })),
         ...(notes.trim() ? { notes: notes.trim() } : {}),
       }),
     onSuccess: () => {
-      toast.success('Buyurtma yaratildi')
       setCart([])
       setNotes('')
       setTableId('')
+      toast.success(t('waiter.orderCreated'))
       queryClient.invalidateQueries({ queryKey: ['orders'] })
       queryClient.invalidateQueries({ queryKey: ['tables'] })
     },
-    onError: (error) => toast.error(apiErrorMessage(error, 'Buyurtma yaratilmadi')),
+    onError: (error) => toast.error(apiErrorMessage(error, t('waiter.orderCreateFailed'))),
   })
 
   const statusMutation = useMutation({
     mutationFn: ({ id, nextStatus }) => updateOrderStatus(id, nextStatus),
+    onMutate: async ({ id, nextStatus }) => {
+      queryClient.setQueryData(['orders', 'waiter-active'], (old) => {
+        if (!Array.isArray(old)) return old
+        return old.map((o) => (o._id === id ? { ...o, status: nextStatus } : o))
+      })
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['orders'] }),
-    onError: (error) => toast.error(apiErrorMessage(error, "Holat o'zgarmadi")),
+    onError: (error) => toast.error(apiErrorMessage(error, t('kitchen.statusChangeFailed'))),
   })
 
   const transferMutation = useMutation({
     mutationFn: ({ id, table }) => transferOrderTable(id, table),
     onSuccess: () => {
-      toast.success('Buyurtma boshqa stolga ko\'chirildi')
+      toast.success(t('waiter.transferSuccess'))
       closeTransferModal()
       queryClient.invalidateQueries({ queryKey: ['orders'] })
       queryClient.invalidateQueries({ queryKey: ['tables'] })
     },
-    onError: (error) => toast.error(apiErrorMessage(error, "Stolni ko'chirib bo'lmadi")),
+    onError: (error) => toast.error(apiErrorMessage(error, t('waiter.transferFailed'))),
   })
 
   const openTransferModal = (order) => {
@@ -130,7 +142,7 @@ export default function WaiterPage() {
           i.product === product._id ? { ...i, quantity: i.quantity + 1 } : i,
         )
       }
-      return [...prev, { product: product._id, name: product.name, price: product.price, quantity: 1 }]
+      return [...prev, { product: product._id, name: product.name, price: product.price, quantity: 1, note: '' }]
     })
   }
 
@@ -142,20 +154,26 @@ export default function WaiterPage() {
     )
   }
 
+  const updateItemNote = (productId, note) => {
+    setCart((prev) =>
+      prev.map((i) => (i.product === productId ? { ...i, note: note.slice(0, 200) } : i)),
+    )
+  }
+
   const activeOrders = (activeOrdersQuery.data ?? []).filter(
     (o) => o.status !== ORDER_STATUS.CLOSED && o.status !== ORDER_STATUS.CANCELLED,
   )
 
   return (
     <div>
-      <PageHeader title="Ofitsiant paneli" subtitle="Stol tanlang va buyurtma rasmiylashtiring" />
+      <PageHeader title={t('waiter.title')} subtitle={t('waiter.subtitle')} />
 
       <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
         <div className="space-y-5">
           {/* 1-qadam: stol */}
           <Card>
             <h2 className="mb-3 text-sm font-semibold text-slate-900 dark:text-white">
-              1. Stolni tanlang
+              {t('waiter.step1Table')}
             </h2>
             {tablesQuery.isLoading ? (
               <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
@@ -185,7 +203,7 @@ export default function WaiterPage() {
                         {table.number}
                       </span>
                       <span className="block text-[10px] text-slate-500 dark:text-slate-400">
-                        {TABLE_STATUS_LABELS[table.status]}
+                        {t(`tableStatus.${table.status}`, TABLE_STATUS_LABELS[table.status])}
                       </span>
                     </button>
                   )
@@ -198,11 +216,11 @@ export default function WaiterPage() {
           <Card>
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
-                2. Taomlarni qo'shing
+                {t('waiter.step2Dishes')}
               </h2>
               <div className="w-48">
                 <Input
-                  placeholder="Qidirish..."
+                  placeholder={t('waiter.searchPlaceholder')}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -211,7 +229,7 @@ export default function WaiterPage() {
 
             <div className="mb-4 flex flex-wrap gap-2">
               <CategoryChip active={!categoryId} onClick={() => setCategoryId('')}>
-                Barchasi
+                {t('waiter.allCategories')}
               </CategoryChip>
               {(categoriesQuery.data ?? []).map((cat) => (
                 <CategoryChip
@@ -233,8 +251,8 @@ export default function WaiterPage() {
             ) : (productsQuery.data ?? []).length === 0 ? (
               <EmptyState
                 icon={UtensilsCrossed}
-                title="Taom topilmadi"
-                description="Boshqa kategoriya yoki qidiruv so'zini sinab ko'ring."
+                title={t('waiter.noDishesFound')}
+                description={t('waiter.tryAnotherCat')}
               />
             ) : (
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -264,10 +282,10 @@ export default function WaiterPage() {
           {/* Faol buyurtmalar */}
           <Card>
             <h2 className="mb-3 text-sm font-semibold text-slate-900 dark:text-white">
-              Mening faol buyurtmalarim
+              {t('waiter.myActiveOrders')}
             </h2>
             {activeOrders.length === 0 ? (
-              <p className="py-4 text-center text-sm text-slate-400">Faol buyurtma yo'q</p>
+              <p className="py-4 text-center text-sm text-slate-400">{t('waiter.noActiveOrders')}</p>
             ) : (
               <div className="space-y-2">
                 {activeOrders.map((order) => {
@@ -278,10 +296,10 @@ export default function WaiterPage() {
                       className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 p-3 dark:border-slate-700"
                     >
                       <span className="font-semibold text-slate-900 dark:text-white">
-                        Stol {order.table?.number ?? '—'}
+                        {t('dashboard.table')} {order.table?.number ?? '—'}
                       </span>
                       <Badge variant={ORDER_STATUS_TONE[order.status]}>
-                        {ORDER_STATUS_LABELS[order.status]}
+                        {t(`orderStatus.${order.status}`, ORDER_STATUS_LABELS[order.status])}
                       </Badge>
                       <span className="text-xs text-slate-400">{formatTime(order.createdAt)}</span>
                       <span className="ml-auto text-sm font-semibold text-slate-900 dark:text-white">
@@ -293,7 +311,7 @@ export default function WaiterPage() {
                           onClick={() => statusMutation.mutate({ id: order._id, nextStatus: next })}
                           disabled={statusMutation.isPending}
                         >
-                          {ORDER_STATUS_LABELS[next]}
+                          {t(`orderStatus.${next}`, ORDER_STATUS_LABELS[next])}
                         </Button>
                       )}
                       {order.status !== ORDER_STATUS.CLOSED && (
@@ -312,56 +330,69 @@ export default function WaiterPage() {
         {/* Savat */}
         <Card className="lg:sticky lg:top-20 lg:self-start">
           <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
-            <ShoppingCart className="h-4 w-4" /> Savat
+            <ShoppingCart className="h-4 w-4" /> {t('waiter.cart')}
           </h2>
 
           {cart.length === 0 ? (
             <p className="py-6 text-center text-sm text-slate-400">
-              Taom tanlang — bu yerda ko'rinadi
+              {t('waiter.cartEmpty')}
             </p>
           ) : (
             <div className="space-y-2">
               {cart.map((item) => (
-                <div key={item.product} className="flex items-center gap-2">
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm text-slate-900 dark:text-white">
-                      {item.name}
+                <div
+                  key={item.product}
+                  className="rounded-lg border border-slate-100 p-2 dark:border-slate-800"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium text-slate-900 dark:text-white">
+                        {item.name}
+                      </span>
+                      <span className="block text-xs text-slate-500">
+                        {formatSom(item.price * item.quantity)}
+                      </span>
                     </span>
-                    <span className="block text-xs text-slate-500">
-                      {formatSom(item.price * item.quantity)}
-                    </span>
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => changeQuantity(item.product, -1)}
-                    className="grid h-7 w-7 place-items-center rounded border border-slate-300 text-slate-600 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300"
-                    aria-label="Kamaytirish"
-                  >
-                    <Minus className="h-3 w-3" />
-                  </button>
-                  <span className="w-6 text-center text-sm font-semibold">{item.quantity}</span>
-                  <button
-                    type="button"
-                    onClick={() => changeQuantity(item.product, 1)}
-                    className="grid h-7 w-7 place-items-center rounded border border-slate-300 text-slate-600 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300"
-                    aria-label="Ko'paytirish"
-                  >
-                    <Plus className="h-3 w-3" />
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => changeQuantity(item.product, -1)}
+                      className="grid h-7 w-7 place-items-center rounded border border-slate-300 text-slate-600 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300"
+                      aria-label="Kamaytirish"
+                    >
+                      <Minus className="h-3 w-3" />
+                    </button>
+                    <span className="w-6 text-center text-sm font-semibold">{item.quantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => changeQuantity(item.product, 1)}
+                      className="grid h-7 w-7 place-items-center rounded border border-slate-300 text-slate-600 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300"
+                      aria-label="Ko'paytirish"
+                    >
+                      <Plus className="h-3 w-3" />
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder={t('waiter.dishNotePlaceholder')}
+                    value={item.note || ''}
+                    maxLength={200}
+                    onChange={(e) => updateItemNote(item.product, e.target.value)}
+                    className="mt-1.5 w-full rounded border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-800 placeholder-slate-400 outline-none transition focus:border-indigo-400 focus:bg-white dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                  />
                 </div>
               ))}
 
               <div className="pt-2">
                 <Input
-                  label="Izoh (ixtiyoriy)"
-                  placeholder="Masalan: achchiq qilmang"
+                  label={t('waiter.orderNoteLabel')}
+                  placeholder={t('waiter.orderNotePlaceholder')}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                 />
               </div>
 
               <div className="flex items-center justify-between border-t border-slate-200 pt-3 dark:border-slate-700">
-                <span className="text-sm text-slate-500">Jami</span>
+                <span className="text-sm text-slate-500">{t('total')}</span>
                 <span className="text-lg font-bold text-slate-900 dark:text-white">
                   {formatSom(total)}
                 </span>
@@ -373,11 +404,11 @@ export default function WaiterPage() {
                 isLoading={createMutation.isPending}
                 onClick={() => createMutation.mutate()}
               >
-                {tableId ? 'Buyurtmani yuborish' : 'Avval stolni tanlang'}
+                {tableId ? t('waiter.submitOrder') : t('waiter.selectTableFirst')}
               </Button>
 
               <Button variant="ghost" className="w-full" onClick={() => setCart([])}>
-                <Trash2 className="mr-2 h-4 w-4" /> Savatni tozalash
+                <Trash2 className="mr-2 h-4 w-4" /> {t('waiter.clearCart')}
               </Button>
             </div>
           )}
@@ -387,32 +418,32 @@ export default function WaiterPage() {
       <Modal
         isOpen={!!transferOrder}
         onClose={closeTransferModal}
-        title={transferOrder ? `Stol ${transferOrder.table?.number ?? '—'} — ko'chirish` : ''}
+        title={transferOrder ? `${t('dashboard.table')} ${transferOrder.table?.number ?? '—'} — ${t('waiter.transfer')}` : ''}
         footer={
           <>
             <Button variant="secondary" onClick={closeTransferModal}>
-              Bekor qilish
+              {t('cancel')}
             </Button>
             <Button
               onClick={() => transferMutation.mutate({ id: transferOrder._id, table: transferTableId })}
               disabled={!transferTableId}
               isLoading={transferMutation.isPending}
             >
-              Ko'chirish
+              {t('waiter.transfer')}
             </Button>
           </>
         }
       >
         <Select
-          label="Yangi stolni tanlang"
+          label={t('waiter.selectNewTable')}
           value={transferTableId}
           onChange={(e) => setTransferTableId(e.target.value)}
-          placeholder="Stolni tanlang"
+          placeholder={t('waiter.selectNewTable')}
           options={(tablesQuery.data ?? [])
-            .filter((t) => t._id !== transferOrder?.table?._id)
-            .map((t) => ({
-              value: t._id,
-              label: `Stol ${t.number} — ${TABLE_STATUS_LABELS[t.status]}`,
+            .filter((item) => item._id !== transferOrder?.table?._id)
+            .map((item) => ({
+              value: item._id,
+              label: `${t('dashboard.table')} ${item.number} — ${t(`tableStatus.${item.status}`, TABLE_STATUS_LABELS[item.status])}`,
             }))}
         />
       </Modal>

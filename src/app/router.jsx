@@ -15,6 +15,7 @@ import AppLayout from '../layouts/AppLayout'
 import AuthLayout from '../layouts/AuthLayout'
 import { NAV_ITEMS } from '../constants/navigation'
 import { ROLE_HOME } from '../constants/roles'
+import { readUser } from '../features/auth/session'
 
 // ─── Ochiq sahifalar ─────────────────────────────────────────────
 const LoginPage = lazy(() => import('../features/auth/pages/LoginPage'))
@@ -78,8 +79,8 @@ function buildProtectedRoutes() {
 
 // '/' ga tushgan foydalanuvchini o'z roliga mos panelga yo'naltiradi.
 function RoleHomeRedirect() {
-  const user = useSelector((state) => state.auth.user)
-  return <Navigate to={ROLE_HOME[user?.role] ?? '/login'} replace />
+  const user = useSelector((state) => state.auth.user) || readUser()
+  return <Navigate to={(user?.role && ROLE_HOME[user.role]) ? ROLE_HOME[user.role] : '/login'} replace />
 }
 
 export const router = createBrowserRouter([

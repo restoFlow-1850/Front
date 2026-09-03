@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Modal from '../../../components/ui/Modal';
-import { TABLE_STATUS_LABELS } from '../../../constants/tableStatus';
+import { TABLE_STATUS_LABELS, TABLE_STATUS } from '../../../constants/roles';
 
 const EditTableModal = ({ table, onClose, onSave }) => {
   const [status, setStatus] = useState(table.status);
