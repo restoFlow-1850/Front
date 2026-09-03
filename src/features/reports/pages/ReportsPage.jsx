@@ -1,11 +1,9 @@
-import { useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import Chart from 'react-apexcharts'
 import {
   AlertTriangle,
   Calendar,
   DollarSign,
-  Download,
   Package,
   Receipt,
   RefreshCw,
@@ -18,6 +16,8 @@ import api from '../../../services/axios'
 import { getDashboardStats } from '../../../services/dashboardService'
 import { unwrap, apiErrorMessage, formatSom } from '../../../lib/api'
 import { Button, Card, EmptyState, Input, PageHeader, Skeleton, StatCard } from '../../../components/ui'
+
+const Chart = lazy(() => import('react-apexcharts'))
 
 export default function ReportsPage() {
   const [dateRange, setDateRange] = useState('today') // today | week | month | custom
@@ -42,7 +42,10 @@ export default function ReportsPage() {
   })
 
   const stats = statsQuery.data ?? {}
-  const topProducts = topProductsQuery.data ?? stats.topProducts ?? []
+  const topProducts = useMemo(
+    () => topProductsQuery.data ?? stats.topProducts ?? [],
+    [topProductsQuery.data, stats.topProducts],
+  )
 
   const chartOptions = useMemo(
     () => ({
@@ -78,43 +81,24 @@ export default function ReportsPage() {
     }
   }
 
-  const handleExportCSV = () => {
-    const headers = ['Mahsulot nomi', 'Sotilgan miqdor', 'Jami tushum (so\'m)']
-    const rows = topProducts.map((p) => [
-      `"${p.name}"`,
-      p.totalQuantity,
-      p.totalRevenue || 0,
-    ])
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n')
-    const encodedUri = encodeURI(csvContent)
-    const link = document.createElement('a')
-    link.setAttribute('href', encodedUri)
-    link.setAttribute('download', `restoflow-hisobot-${new Date().toISOString().slice(0, 10)}.csv`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    toast.success('CSV fayl yuklab olindi!')
-  }
-
   const isLoading = statsQuery.isLoading
+  const avgCheck = stats.todayPaymentsCount ? stats.todayRevenue / stats.todayPaymentsCount : 0
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
-        title="Hisobotlar & Analitika"
-        subtitle="Restoranning moliyaviy va savdo ko'rsatkichlari"
+        title="Analitika va Hisobotlar"
+        subtitle="Restoranning umumiy moliyaviy va sotuv ko'rsatkichlari"
         actions={
           <div className="flex items-center gap-2">
-            <Button variant="secondary" isLoading={isSendingTelegram} onClick={handleSendTelegram}>
+            <Button
+              variant="secondary"
+              isLoading={isSendingTelegram}
+              onClick={handleSendTelegram}
+            >
               <Send className="mr-2 h-4 w-4 text-sky-500" />
-              Telegram'ga yuborish
+              Telegram Botga hisobot yuborish
             </Button>
-
-            <Button variant="secondary" onClick={handleExportCSV}>
-              <Download className="mr-2 h-4 w-4 text-emerald-500" />
-              CSV Eksport
-            </Button>
-
             <Button
               variant="secondary"
               onClick={() => {
@@ -122,61 +106,72 @@ export default function ReportsPage() {
                 topProductsQuery.refetch()
               }}
             >
-              <RefreshCw className={`mr-2 h-4 w-4 ${statsQuery.isFetching ? 'animate-spin' : ''}`} />
+              <RefreshCw
+                className={`mr-2 h-4 w-4 ${statsQuery.isFetching ? 'animate-spin' : ''}`}
+              />
               Yangilash
             </Button>
           </div>
         }
       />
 
-      {/* Davr tanlash filteri */}
-      <Card className="mb-5">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+      {/* Date Filter Bar */}
+      <Card>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-slate-500" />
-            <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Davr:</span>
-            {['today', 'week', 'month', 'custom'].map((mode) => (
+            <Calendar className="h-4 w-4 text-slate-400" />
+            <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              Sana oralig'i:
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {[
+              { id: 'today', label: 'Bugun' },
+              { id: 'week', label: 'Shu hafta' },
+              { id: 'month', label: 'Shu oy' },
+              { id: 'custom', label: 'Tanlangan sana' },
+            ].map((item) => (
               <button
-                key={mode}
+                key={item.id}
                 type="button"
-                onClick={() => setDateRange(mode)}
+                onClick={() => setDateRange(item.id)}
                 className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                  dateRange === mode
-                    ? 'bg-indigo-600 text-white'
+                  dateRange === item.id
+                    ? 'bg-indigo-600 text-white shadow-sm'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300'
                 }`}
               >
-                {mode === 'today' && 'Bugun'}
-                {mode === 'week' && 'Shu hafta'}
-                {mode === 'month' && 'Shu oy'}
-                {mode === 'custom' && 'Tanlangan sana'}
+                {item.label}
               </button>
             ))}
           </div>
+        </div>
 
-          {dateRange === 'custom' && (
-            <div className="flex items-center gap-2">
+        {dateRange === 'custom' && (
+          <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4 dark:border-slate-800">
+            <div className="w-40">
               <Input
                 type="date"
+                label="Boshlanishi"
                 value={customFrom}
                 onChange={(e) => setCustomFrom(e.target.value)}
-                placeholder="Dan"
-              />
-              <span className="text-xs text-slate-400">—</span>
-              <Input
-                type="date"
-                value={customTo}
-                onChange={(e) => setCustomTo(e.target.value)}
-                placeholder="Gacha"
               />
             </div>
-          )}
-        </div>
+            <div className="w-40">
+              <Input
+                type="date"
+                label="Tugashi"
+                value={customTo}
+                onChange={(e) => setCustomTo(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
       </Card>
 
-      {/* Xatolik ogohlantirish */}
       {statsQuery.isError && (
-        <Card className="mb-5 border-rose-200 bg-rose-50 dark:border-rose-900 dark:bg-rose-950/40">
+        <Card className="border-rose-200 bg-rose-50 dark:border-rose-900 dark:bg-rose-950/40">
           <p className="flex items-center gap-2 text-sm text-rose-700 dark:text-rose-300">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             {apiErrorMessage(statsQuery.error, "Analitika ma'lumotlarini yuklab bo'lmadi")}
@@ -184,8 +179,8 @@ export default function ReportsPage() {
         </Card>
       )}
 
-      {/* Asosiy ko'rsatkichlar */}
-      <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {/* Primary Summary Stats */}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24" />)
         ) : (
@@ -193,52 +188,53 @@ export default function ReportsPage() {
             <StatCard
               icon={DollarSign}
               tone="emerald"
-              label="Tushum"
+              label="Jami tushum"
               value={formatSom(stats.todayRevenue)}
-              hint={`${stats.todayPaymentsCount ?? 0} ta to'lov`}
+              hint={`${stats.todayPaymentsCount ?? 0} ta to'lov yozuvi`}
             />
             <StatCard
               icon={Receipt}
               tone="indigo"
               label="O'rtacha chek"
-              value={formatSom(
-                stats.todayPaymentsCount ? stats.todayRevenue / stats.todayPaymentsCount : 0,
-              )}
-              hint="O'rtacha bir chek summasi"
+              value={formatSom(avgCheck)}
+              hint="To'lovlar summasidan"
             />
             <StatCard
               icon={TrendingUp}
-              tone="amber"
-              label="Faol buyurtmalar"
-              value={stats.activeOrdersCount ?? 0}
-              hint={`Jami bugun: ${stats.todayOrdersCount ?? 0} ta`}
+              tone="sky"
+              label="Jami buyurtmalar"
+              value={stats.todayOrdersCount ?? 0}
+              hint={`${stats.activeOrdersCount ?? 0} ta faol buyurtma`}
             />
             <StatCard
               icon={Package}
-              tone="indigo"
-              label="Ombor zaxirasi"
-              value={`${stats.totalProducts ?? 0} ta`}
-              hint={stats.lowStockCount > 0 ? `${stats.lowStockCount} ta kam qolgan` : "Zaxira etarli"}
+              tone="amber"
+              label="Jami mahsulotlar"
+              value={stats.totalProducts ?? 0}
+              hint={`${stats.lowStockCount ?? 0} ta kam qolgan`}
             />
           </>
         )}
       </div>
 
-      {/* Grafik va Top Taomlar */}
-      <Card className="mb-5">
-        <h2 className="mb-4 text-base font-semibold text-slate-900 dark:text-white">
-          Eng Ko'p Sotilgan Taomlar Analitikasi
+      {/* Top Selling Products Chart */}
+      <Card>
+        <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-white">
+          Eng ko'p sotilgan taomlar va ichimliklar (Top 10)
         </h2>
+
         {topProductsQuery.isLoading ? (
           <Skeleton className="h-72 w-full" />
         ) : topProducts.length === 0 ? (
           <EmptyState
             icon={Package}
-            title="Ma'lumot yo'q"
-            description="Tanlangan davr bo'yicha sotuv ma'lumotlari mavjud emas."
+            title="Sotuvlar topilmadi"
+            description="Ushbu sana oralig'ida yopilgan buyurtmalar yo'q."
           />
         ) : (
-          <Chart options={chartOptions} series={chartSeries} type="bar" height={320} />
+          <Suspense fallback={<Skeleton className="h-72 w-full" />}>
+            <Chart options={chartOptions} series={chartSeries} type="bar" height={320} />
+          </Suspense>
         )}
       </Card>
     </div>

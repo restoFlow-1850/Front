@@ -1,14 +1,8 @@
-// Boshqaruv paneli — /reports/dashboard va /orders dan HAQIQIY ma'lumot.
-//
-// Eslatma: ilgari bu sahifa mock ma'lumot ko'rsatardi va `revenueChange`,
-// `occupiedTables`, `avgCheck` kabi backendda umuman mavjud bo'lmagan maydonlarni
-// kutardi. Endi faqat /reports/dashboard qaytaradigan maydonlar ishlatiladi:
-//   todayRevenue, todayPaymentsCount, todayOrdersCount, activeOrdersCount,
-//   totalProducts, lowStockCount, topProducts[]
-// O'rtacha chek va band stollar shu ma'lumotlardan hisoblab chiqariladi.
-import { useMemo } from 'react'
+// Boshqaruv paneli — React.lazy va Dynamic Importlar yordamida optimallashtirilgan.
+// Initial bundle size < 500 kB bo'lishi uchun ApexCharts React.lazy bilan,
+// html2canvas / Excel / PDF kutubxonalari esa dinamik import qilinadi.
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import Chart from 'react-apexcharts'
 import {
   AlertTriangle,
   ClipboardList,
@@ -19,6 +13,7 @@ import {
   Send,
   Utensils,
 } from 'lucide-react'
+import { toast } from 'react-toastify'
 
 import { getDashboardStats } from '../../../services/dashboardService'
 import { getOrders } from '../../orders/api'
@@ -34,10 +29,10 @@ import {
   Skeleton,
   StatCard,
 } from '../../../components/ui'
-
-import { useState } from 'react'
-import { toast } from 'react-toastify'
 import api from '../../../services/axios'
+
+// ⚡ Dynamic React.lazy chart loading
+const Chart = lazy(() => import('react-apexcharts'))
 
 export default function Dashboard() {
   const [isSendingTelegram, setIsSendingTelegram] = useState(false)
@@ -56,8 +51,6 @@ export default function Dashboard() {
 
   const statsQuery = useQuery({
     queryKey: ['reports', 'dashboard'],
-    // Backend hisobotlarni `data.report` ichida qaytaradi (boshqa endpointlardek
-    // `data`ning o'zida emas) — kalitni ko'rsatmasak barcha maydon undefined bo'ladi.
     queryFn: async () => unwrap(await getDashboardStats(), 'report'),
     refetchInterval: 60_000,
   })
@@ -78,11 +71,8 @@ export default function Dashboard() {
   const tables = tablesQuery.data ?? []
 
   const occupied = tables.filter((t) => t.status === TABLE_STATUS.BUSY).length
-  // O'rtacha chek — bugungi tushumni to'lovlar soniga bo'lamiz (0 ga bo'linishdan himoya).
   const avgCheck = stats.todayPaymentsCount ? stats.todayRevenue / stats.todayPaymentsCount : 0
 
-  // `stats.topProducts ?? []` har renderda yangi massiv yaratardi va quyidagi
-  // useMemo hech qachon keshdan foydalana olmasdi.
   const topProducts = useMemo(() => statsQuery.data?.topProducts ?? [], [statsQuery.data])
 
   const chart = useMemo(
@@ -108,7 +98,7 @@ export default function Dashboard() {
   const isLoading = statsQuery.isLoading
 
   return (
-    <div>
+    <div id="dashboard-container">
       <PageHeader
         title="Boshqaruv paneli"
         subtitle="Restoranning bugungi ko'rsatkichlari"
@@ -196,7 +186,7 @@ export default function Dashboard() {
       )}
 
       <div className="grid gap-5 lg:grid-cols-2">
-        {/* Eng ko'p sotilgan taomlar */}
+        {/* Eng ko'p sotilgan taomlar (React.lazy Chart + Suspense) */}
         <Card>
           <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-white">
             Eng ko'p sotilgan taomlar
@@ -210,7 +200,9 @@ export default function Dashboard() {
               description="Yopilgan buyurtmalar bo'lgach statistika shu yerda ko'rinadi."
             />
           ) : (
-            <Chart options={chart.options} series={chart.series} type="bar" height={280} />
+            <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+              <Chart options={chart.options} series={chart.series} type="bar" height={280} />
+            </Suspense>
           )}
         </Card>
 

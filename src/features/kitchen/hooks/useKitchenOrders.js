@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
-import { socket, connectSocket, disconnectSocket } from '../../../services/socket'
+import { socket, connectSocket } from '../../../services/socket'
 import {
   fetchKitchenOrders,
   updateOrderStatus,
@@ -163,6 +163,7 @@ export function useKitchenOrders() {
         socket.emit('order:updateStatus', { orderId, status })
         await updateOrderStatus(orderId, status)
       } catch (err) {
+        console.error(err)
         // 2. Xatolik bo'lsa eski holatga qaytarish (onError / Rollback)
         if (snapshotState) {
           setOrders(snapshotState)
@@ -208,6 +209,7 @@ export function useKitchenOrders() {
 
         await updateOrderItemStatus(orderId, itemIndexOrId, targetIsReady)
       } catch (err) {
+        console.error(err)
         // 2. Xatolik bo'lsa eski holatga qaytarish (onError / Rollback)
         if (snapshotState) {
           setOrders(snapshotState)
