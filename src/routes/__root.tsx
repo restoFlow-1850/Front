@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import {
   Outlet,
   Link,
@@ -11,6 +11,11 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { getVenue } from "../lib/api";
+import { CartProvider } from "../lib/cart";
+import { SiteHeader } from "../components/SiteHeader";
+import { SiteFooter } from "../components/SiteFooter";
+import { CartDrawer } from "../components/CartDrawer";
 
 function NotFoundComponent() {
   return (
@@ -77,14 +82,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Uchxona — kafe menyusi va onlayn stol broni" },
+      {
+        name: "description",
+        content:
+          "Uchxona kafe: issiq taomlar, choy va shirinliklar menyusi, onlayn buyurtma va stol bron qilish.",
+      },
+      { property: "og:title", content: "Uchxona — kafe menyusi va onlayn stol broni" },
+      {
+        property: "og:description",
+        content: "Menyuni ko'ring, taom tanlang va stolingizni onlayn bron qiling.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
@@ -92,6 +102,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Inter:wght@400..600&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -119,8 +135,25 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <CartProvider>
+        <SiteChrome>
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+        </SiteChrome>
+      </CartProvider>
     </QueryClientProvider>
+  );
+}
+
+function SiteChrome({ children }: { children: ReactNode }) {
+  const venue = useQuery({ queryKey: ["venue"], queryFn: getVenue, retry: 1 });
+
+  return (
+    <div className="flex min-h-screen flex-col bg-cream text-ink">
+      <SiteHeader rating={venue.data?.rating} />
+      <div className="flex-1">{children}</div>
+      <SiteFooter venue={venue.data} />
+      <CartDrawer />
+    </div>
   );
 }

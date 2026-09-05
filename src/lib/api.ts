@@ -56,10 +56,20 @@ export type Venue = {
 export const getVenue = () => request<Venue>("/clients/default");
 
 export const getCategories = () =>
-  request<{ categories: Category[] }>("/categories").then((d) => d.categories ?? []);
+  request<{ categories: Category[] }>("/categories")
+    .then((d) => d.categories ?? [])
+    .catch(async () => {
+      const { FALLBACK_CATEGORIES } = await import("./menu-data");
+      return FALLBACK_CATEGORIES;
+    });
 
 export const getProducts = () =>
-  request<{ products: Product[] }>("/products?limit=100").then((d) => d.products ?? []);
+  request<{ products: Product[] }>("/products?limit=100")
+    .then((d) => (d.products?.length ? d.products : Promise.reject(new Error("Bo'sh"))))
+    .catch(async () => {
+      const { FALLBACK_PRODUCTS } = await import("./menu-data");
+      return FALLBACK_PRODUCTS;
+    });
 
 export const getTables = (dateISO: string) =>
   request<{ tables: Table[] }>(

@@ -152,7 +152,51 @@
   }
 
   body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+    background-color: var(--color-cream);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@layer components {
+  .card {
+    transition:
+      transform 0.4s cubic-bezier(0.32, 0.72, 0, 1),
+      box-shadow 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 24px 48px -28px rgb(122 51 69 / 0.35);
+  }
+  .tbl {
+    transition:
+      transform 0.35s cubic-bezier(0.32, 0.72, 0, 1),
+      box-shadow 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  .tbl:not(.is-off):hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px -26px rgb(122 51 69 / 0.35);
   }
 }

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { getCategories, getProducts } from "@/lib/api";
@@ -82,6 +82,21 @@ function MenuPage() {
       {!products.isLoading && list.length === 0 && (
         <p className="mt-8 text-sm text-soft">Bu bo'limda hozircha taom yo'q.</p>
       )}
+
+      <div className="mt-12 flex flex-wrap items-center justify-between gap-4 rounded-[22px] border border-ink/5 bg-lav/50 p-6 backdrop-blur-xl">
+        <div>
+          <p className="font-display text-2xl text-ink">Joyingizni oldindan band qiling</p>
+          <p className="mt-1 text-sm text-soft">
+            Taomlarni savatga qo'shing — buyurtma stol broni bilan birga rasmiylashtiriladi.
+          </p>
+        </div>
+        <Link
+          to="/bron"
+          className="rounded-full bg-plum px-6 py-3 text-sm font-medium text-cream transition-colors hover:bg-plum/90"
+        >
+          Stol bron qilish
+        </Link>
+      </div>
     </main>
   );
 }

@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useCart } from "@/lib/cart";
 
-export function SiteHeader({ rating }: { rating?: number }) {
+export function SiteHeader({ rating }: { rating?: number | undefined }) {
   const { count, setOpen } = useCart();
 
   return (
