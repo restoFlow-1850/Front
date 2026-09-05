@@ -1,6 +1,6 @@
 import type { Venue } from "@/lib/api";
 
-export function SiteFooter({ venue }: { venue?: Venue }) {
+export function SiteFooter({ venue }: { venue?: Venue | undefined }) {
   return (
     <footer className="mt-6 border-t border-ink/5">
       <div className="mx-auto grid max-w-6xl gap-8 px-6 py-12 sm:grid-cols-3">
