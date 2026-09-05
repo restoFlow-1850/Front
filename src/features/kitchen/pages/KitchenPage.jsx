@@ -1,13 +1,14 @@
 // Oshxona ekrani (KDS) — Kutilmoqda / Tayyorlanmoqda / Tayyor ustunlari.
 // Premium Orange brend dizayn sistemasi (Yorqin Oq va To'q Rejim).
 import { useTranslation } from 'react-i18next'
-import { RefreshCw, UtensilsCrossed, Volume2, VolumeX, Sparkles } from 'lucide-react'
+import { RefreshCw, UtensilsCrossed, Volume2, VolumeX, Sparkles, Bell } from 'lucide-react'
 
 import { ORDER_STATUS } from '../../../constants/roles'
 import { Button, Card, PageHeader } from '../../../components/ui'
 import { apiErrorMessage } from '../../../lib/api'
 import { useKitchenOrders } from '../hooks/useKitchenOrders'
 import KitchenColumn from '../components/KitchenColumn'
+import WaiterCallBanner from '../components/WaiterCallBanner'
 import LanguageSwitcher from '../../../components/common/LanguageSwitcher'
 
 const COLUMN_IDS = ['waiting', 'making', 'complete']
@@ -26,6 +27,11 @@ export default function KitchenPage() {
     soundEnabled,
     toggleSound,
     testSound,
+    waiterCalls,
+    dismissWaiterCall,
+    dismissAllWaiterCalls,
+    unseenCount,
+    acknowledgeNewOrders,
   } = useKitchenOrders()
 
   const onStartPreparing = (id) => setStatus(id, ORDER_STATUS.IN_KITCHEN, 'making')
@@ -56,6 +62,18 @@ export default function KitchenPage() {
         }
         actions={
           <div className="flex flex-wrap items-center gap-2">
+            {unseenCount > 0 && (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={acknowledgeNewOrders}
+                title={t('kitchen.newOrdersBadge', { count: unseenCount }) || 'Yangi buyurtmalar'}
+                className="relative rounded-xl border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100 dark:border-orange-800/80 dark:bg-orange-950/40 dark:text-orange-300"
+              >
+                <Bell className="mr-1.5 h-4 w-4 animate-bounce text-[#F97316]" />
+                <span className="font-bold">{unseenCount}</span>
+              </Button>
+            )}
             <Button
               type="button"
               variant="secondary"
@@ -100,6 +118,12 @@ export default function KitchenPage() {
           </p>
         </Card>
       )}
+
+      <WaiterCallBanner
+        calls={waiterCalls}
+        onDismiss={dismissWaiterCall}
+        onDismissAll={dismissAllWaiterCalls}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start w-full">
         {COLUMN_IDS.map((id) => (

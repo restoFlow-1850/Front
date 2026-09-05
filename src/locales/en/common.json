@@ -273,8 +273,17 @@
     "statusChanged": "Moved to \"{{status}}\"",
     "statusChangeFailed": "Status didn't change",
     "loadFailed": "Couldn't load orders",
+    "newOrdersBadge": "{{count}} new orders",
+    "waiterCall": {
+      "title": "Waiter Call",
+      "bannerTitle": "Waiter Calls ({{count}})",
+      "elapsed": "{{seconds}}s ago",
+      "dismiss": "Dismiss",
+      "dismissAll": "Dismiss all"
+    },
     "audio": {
       "newOrderAlert": "New order for table {{table}}!",
+      "waiterCalledAlert": "Table {{table}} called for waiter!",
       "testAlertMessage": "Testing kitchen sound alert. System ready!"
     }
   },

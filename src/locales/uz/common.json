@@ -273,8 +273,17 @@
     "statusChanged": "\"{{status}}\" holatiga o'tkazildi",
     "statusChangeFailed": "Holat o'zgarmadi",
     "loadFailed": "Buyurtmalarni yuklab bo'lmadi",
+    "newOrdersBadge": "{{count}} ta yangi buyurtma",
+    "waiterCall": {
+      "title": "Ofitsiant chaqiruvi",
+      "bannerTitle": "Ofitsiant chaqiruvlari ({{count}})",
+      "elapsed": "{{seconds}} soniya oldin",
+      "dismiss": "Yopish",
+      "dismissAll": "Barchasini tozalash"
+    },
     "audio": {
       "newOrderAlert": "{{table}}-stol uchun yangi buyurtma keldi!",
+      "waiterCalledAlert": "{{table}}-stol ofitsiant chaqirdi!",
       "testAlertMessage": "Oshxona ovozli signali tekshirilmoqda. Tizim tayyor!"
     }
   },

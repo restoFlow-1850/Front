@@ -7,7 +7,7 @@ import { fetchKitchenOrders, updateOrderStatus, updateOrderItemStatus } from '..
 import { apiErrorMessage } from '../../../lib/api'
 import { ORDER_STATUS } from '../../../constants/roles'
 import { socket } from '../../../services/socket'
-import { triggerNewOrderAlert } from '../../../utils/audioAlert'
+import { triggerNewOrderAlert, triggerWaiterCallAlert } from '../../../utils/audioAlert'
 
 const SOUND_PREF_KEY = 'kitchen:soundEnabled'
 const ANNOUNCED_IDS_MAX = 200
@@ -71,9 +71,14 @@ export function useKitchenOrders() {
     [t, i18n.language],
   )
 
+  const [waiterCalls, setWaiterCalls] = useState([])
+  const [unseenCount, setUnseenCount] = useState(0)
+  const WAITER_CALLS_MAX = 8
+
   useEffect(() => {
     const handleNewOrder = (payload) => {
       invalidateOrders()
+      setUnseenCount((prev) => prev + 1)
       announceNewOrder(extractOrder(payload))
     }
     const handleStatusUpdate = () => invalidateOrders()
@@ -101,6 +106,27 @@ export function useKitchenOrders() {
       invalidateOrders()
     }
 
+    const handleWaiterCalled = (payload) => {
+      const rawTable = payload?.table ?? payload?.tableId ?? payload
+      const tableId = typeof rawTable === 'object' ? rawTable?._id : rawTable
+      const tableNumber = rawTable?.number ?? tableId ?? '?'
+
+      const callEntry = {
+        id: `waiter-call-${tableId ?? tableNumber}-${Date.now()}`,
+        tableId,
+        tableNumber,
+        createdAt: new Date().toISOString(),
+      }
+      setWaiterCalls((prev) => {
+        const next = [callEntry, ...prev]
+        return next.length > WAITER_CALLS_MAX ? next.slice(0, WAITER_CALLS_MAX) : next
+      })
+
+      if (!soundEnabledRef.current) return
+      const message = t('kitchen.audio.waiterCalledAlert', { table: tableNumber })
+      triggerWaiterCallAlert(tableNumber, message, i18n.language)
+    }
+
     socket.on('order:new', handleNewOrder)
     socket.on('order:created', handleNewOrder)
     socket.on('kitchen:new_order', handleNewOrder)
@@ -108,6 +134,7 @@ export function useKitchenOrders() {
     socket.on('order:status_changed', handleStatusUpdate)
     socket.on('order:statusChanged', handleStatusUpdate)
     socket.on('table:status_updated', handleTableUpdate)
+    socket.on('table:waiter_called', handleWaiterCalled)
     socket.on('order:item_updated', handleItemUpdate)
     socket.on('order:itemUpdated', handleItemUpdate)
     socket.on('order:itemStatusChanged', handleItemUpdate)
@@ -120,11 +147,12 @@ export function useKitchenOrders() {
       socket.off('order:status_changed', handleStatusUpdate)
       socket.off('order:statusChanged', handleStatusUpdate)
       socket.off('table:status_updated', handleTableUpdate)
+      socket.off('table:waiter_called', handleWaiterCalled)
       socket.off('order:item_updated', handleItemUpdate)
       socket.off('order:itemUpdated', handleItemUpdate)
       socket.off('order:itemStatusChanged', handleItemUpdate)
     }
-  }, [invalidateOrders, announceNewOrder, queryClient])
+  }, [invalidateOrders, announceNewOrder, queryClient, t, i18n.language])
 
   // Buyurtma statusini yangilash (Optimistik + Rollback)
   const statusMutation = useMutation({
@@ -225,6 +253,18 @@ export function useKitchenOrders() {
     triggerNewOrderAlert('—', message, i18n.language)
   }, [t, i18n.language])
 
+  const dismissWaiterCall = useCallback((callId) => {
+    setWaiterCalls((prev) => prev.filter((c) => c.id !== callId))
+  }, [])
+
+  const dismissAllWaiterCalls = useCallback(() => {
+    setWaiterCalls([])
+  }, [])
+
+  const acknowledgeNewOrders = useCallback(() => {
+    setUnseenCount(0)
+  }, [])
+
   const orders = ordersQuery.data ?? []
   const columns = {
     waiting: orders.filter((o) => o.status === ORDER_STATUS.NEW),
@@ -245,5 +285,11 @@ export function useKitchenOrders() {
     soundEnabled,
     toggleSound,
     testSound,
+    waiterCalls,
+    dismissWaiterCall,
+    dismissAllWaiterCalls,
+    unseenCount,
+    acknowledgeNewOrders,
   }
 }
+
