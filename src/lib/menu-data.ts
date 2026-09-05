@@ -11,7 +11,8 @@ export const FALLBACK_CATEGORIES: Category[] = [
   { _id: "cat-shirin", name: "Shirinliklar" },
 ];
 
-const img = (i: number) => [dish1, dish2, dish3][i % 3];
+const imgs = [dish1, dish2, dish3];
+const img = (i: number): string => imgs[i % imgs.length] ?? dish1;
 
 export const FALLBACK_PRODUCTS: Product[] = [
   { _id: "p1", name: "Osh (palov)", price: 45000, description: "Ziravorli guruch, yumshoq mol go'shti va sariq sabzi bilan", image: img(0), isAvailable: true, stock: 20, category: "cat-mil" },
