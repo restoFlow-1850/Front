@@ -1,8 +1,8 @@
+// Profil — foydalanuvchi ma'lumotlari va parolni o'zgartirish.
 import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
 import { KeyRound, LogOut, Mail, Phone, ShieldCheck, User } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { authApi } from '../api'
@@ -14,7 +14,6 @@ import { ROLE_LABELS } from '../../../constants/roles'
 import { Badge, Button, Card, Input, PageHeader, Skeleton } from '../../../components/ui'
 
 export default function ProfilePage() {
-  const { t } = useTranslation()
   const dispatch = useDispatch()
   const navigate = useNavigate()
 
@@ -33,20 +32,20 @@ export default function ProfilePage() {
   const changePasswordMutation = useMutation({
     mutationFn: () => authApi.changePassword({ oldPassword, newPassword }),
     onSuccess: () => {
-      toast.success(t('auth.passwordChanged', { defaultValue: "Parol yangilandi. Iltimos, qaytadan kiring." }))
+      toast.success('Parol yangilandi. Iltimos, qaytadan kiring.')
       disconnectSocket()
       clearSession()
       dispatch(clearCredentials())
-      navigate('/login', { replace: true, state: null })
+      navigate('/login', { replace: true })
     },
-    onError: (error) => toast.error(apiErrorMessage(error, t('kitchen.loadFailed'))),
+    onError: (error) => toast.error(apiErrorMessage(error, "Parolni o'zgartirib bo'lmadi")),
   })
 
   const handleLogout = () => {
     disconnectSocket()
     clearSession()
     dispatch(clearCredentials())
-    navigate('/login', { replace: true, state: null })
+    navigate('/login', { replace: true })
   }
 
   const passwordsMatch = newPassword.length >= 6 && newPassword === confirmPassword
@@ -54,7 +53,7 @@ export default function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title={t('nav.profile')} subtitle={user?.name ?? ''} />
+      <PageHeader title="Profil" subtitle="Hisob ma'lumotlaringiz va xavfsizlik sozlamalari" />
 
       <div className="space-y-5">
         <Card>
@@ -73,22 +72,22 @@ export default function ProfilePage() {
                 <div>
                   <h2 className="text-lg font-bold text-slate-900 dark:text-white">{user?.name}</h2>
                   <div className="mt-1 flex items-center gap-2">
-                    <Badge variant="info">{t(`roles.${user?.role}`, ROLE_LABELS[user?.role] ?? user?.role)}</Badge>
+                    <Badge variant="info">{ROLE_LABELS[user?.role] ?? user?.role}</Badge>
                     <Badge variant={user?.isActive ? 'success' : 'neutral'}>
-                      {user?.isActive ? t('employees.active') : t('employees.inactive')}
+                      {user?.isActive ? 'Faol' : 'Faol emas'}
                     </Badge>
                   </div>
                 </div>
               </div>
 
               <dl className="space-y-2 text-sm">
-                <InfoRow icon={Mail} label={t('auth.email')} value={user?.email} />
-                <InfoRow icon={Phone} label={t('reservations.phone')} value={user?.phone || '—'} />
-                <InfoRow icon={User} label={t('employees.name')} value={user?.name} />
+                <InfoRow icon={Mail} label="Email" value={user?.email} />
+                <InfoRow icon={Phone} label="Telefon" value={user?.phone || '—'} />
+                <InfoRow icon={User} label="Ism" value={user?.name} />
                 <InfoRow
                   icon={ShieldCheck}
-                  label={t('employees.role')}
-                  value={t(`roles.${user?.role}`, ROLE_LABELS[user?.role] ?? user?.role)}
+                  label="Rol"
+                  value={ROLE_LABELS[user?.role] ?? user?.role}
                 />
               </dl>
             </>
@@ -97,44 +96,57 @@ export default function ProfilePage() {
 
         <Card>
           <h2 className="mb-1 flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
-            <KeyRound className="h-4 w-4" /> {t('auth.changePassword')}
+            <KeyRound className="h-4 w-4" /> Parolni o'zgartirish
           </h2>
+          <p className="mb-4 text-xs text-slate-500 dark:text-slate-400">
+            Parol almashtirilgach barcha qurilmalardagi sessiyalar tugatiladi.
+          </p>
 
           <div className="space-y-3">
             <Input
-              label={t('auth.currentPassword')}
+              label="Joriy parol"
               type="password"
               autoComplete="current-password"
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
             />
             <Input
-              label={t('auth.newPassword')}
+              label="Yangi parol"
               type="password"
               autoComplete="new-password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
+              error={
+                newPassword && newPassword.length < 6
+                  ? "Kamida 6 ta belgi bo'lishi kerak"
+                  : undefined
+              }
             />
             <Input
-              label={t('auth.confirmPassword')}
+              label="Yangi parolni tasdiqlang"
               type="password"
               autoComplete="new-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              error={
+                confirmPassword && confirmPassword !== newPassword
+                  ? 'Parollar mos kelmadi'
+                  : undefined
+              }
             />
             <Button
               disabled={!canSubmit}
               isLoading={changePasswordMutation.isPending}
               onClick={() => changePasswordMutation.mutate()}
             >
-              {t('save')}
+              Parolni yangilash
             </Button>
           </div>
         </Card>
 
         <Card>
           <Button variant="danger" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" /> {t('nav.logout')}
+            <LogOut className="mr-2 h-4 w-4" /> Hisobdan chiqish
           </Button>
         </Card>
       </div>

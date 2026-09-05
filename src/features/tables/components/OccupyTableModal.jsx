@@ -3,13 +3,7 @@ import Modal from '../../../components/ui/Modal';
 import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 
-const todayISO = () => {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-};
+const todayISO = () => new Date().toISOString().slice(0, 10);
 const nowHHMM = () => new Date().toTimeString().slice(0, 5);
 
 const OccupyTableModal = ({ table, onClose, onConfirm }) => {
@@ -38,22 +32,11 @@ const OccupyTableModal = ({ table, onClose, onConfirm }) => {
 
     setSubmitting(true);
     try {
-      // Mahalliy vaqtni UTC ga aylantiramiz, chunki backend UTC ishlatadi
-      const [h, m] = time.split(':').map(Number);
-      const localDate = new Date(date);
-      localDate.setHours(h, m, 0, 0);
-      const utcH = String(localDate.getUTCHours()).padStart(2, '0');
-      const utcM = String(localDate.getUTCMinutes()).padStart(2, '0');
-      const utcTime = `${utcH}:${utcM}`;
-
-      // Sana ham UTC ga mos
-      const utcDateStr = localDate.toISOString().slice(0, 10);
-
       await onConfirm({
         customerName: customerName.trim(),
         guestCount: Number(guestCount),
-        date: utcDateStr,
-        time: utcTime,
+        date,
+        time,
       });
     } finally {
       setSubmitting(false);

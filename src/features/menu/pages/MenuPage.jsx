@@ -1,688 +1,746 @@
-import { useMemo, useState } from 'react'
-import { useSelector } from 'react-redux'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useTranslation } from 'react-i18next'
-import {
-  Search,
-  Plus,
-  Filter,
-  Pencil,
-  Trash2,
-  CheckCircle2,
-  XCircle,
-  Eye,
-  UtensilsCrossed,
-  Sparkles,
-  Flame,
-  Star,
-  Leaf,
-  AlertTriangle,
-  FolderPlus,
-  RefreshCw,
-} from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'react-toastify'
-
 import {
-  getCategories,
-  createCategory,
-  updateCategory,
-  deleteCategory,
-  getProducts,
-  createProduct,
-  updateProduct,
-  deleteProduct,
-  resolveImageUrl,
-} from '../api'
+  FiPlus,
+  FiEdit2,
+  FiTrash2,
+  FiX,
+  FiSearch,
+  FiSliders,
+  FiChevronDown,
+  FiCalendar,
+  FiBell,
+  FiEye,
+  FiEyeOff,
+  FiCopy,
+  FiStar,
+  FiBarChart2,
+  FiMoreHorizontal,
+  FiChevronLeft,
+  FiChevronRight,
+} from 'react-icons/fi'
+import { GiMeal, GiSprout } from 'react-icons/gi'
+import { getCategories, getProducts, resolveImageUrl } from '../api'
 import CategoryModal, { ICONS } from '../components/CategoryModal'
 import ProductModal from '../components/ProductModal'
 import ProductPreviewModal from '../components/ProductPreviewModal'
-import { ROLES } from '../../../constants/roles'
-import { unwrapList, apiErrorMessage, formatSom } from '../../../lib/api'
-import { Modal, Button } from '../../../components/ui'
+import ConfirmDialog from '../components/ConfirmDialog'
+import { Skeleton } from '../../../components/ui'
+import './MenuPage.css'
 
-const TAG_CONFIG = {
-  spicy: { label: 'Achchiq', icon: Flame, color: 'text-rose-500 bg-rose-50 border-rose-200 dark:bg-rose-950/40 dark:border-rose-900' },
-  hot: { label: 'Xit', icon: Sparkles, color: 'text-amber-500 bg-amber-50 border-amber-200 dark:bg-amber-950/40 dark:border-amber-900' },
-  new: { label: 'Yangi', icon: Star, color: 'text-blue-500 bg-blue-50 border-blue-200 dark:bg-blue-950/40 dark:border-blue-900' },
-  vegetarian: { label: 'Vegetarian', icon: Leaf, color: 'text-emerald-500 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-900' },
+const STORAGE_KEY_CATEGORIES = 'menu_test_categories'
+const STORAGE_KEY_PRODUCTS = 'menu_test_products'
+const STORAGE_KEY_DELETED_COUNT = 'menu_test_deleted_count'
+
+// Если у блюда нет своей загруженной фотографии — подбираем подходящее фото
+// еды по ключевым словам в названии блюда, а затем в названии категории.
+const FALLBACK_PHOTOS = [
+  { keywords: ['бургер', 'burger'], url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=70&auto=format&fit=crop' },
+  { keywords: ['пицц', 'pizza'], url: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400&q=70&auto=format&fit=crop' },
+  { keywords: ['паст', 'спагетти', 'карбонара', 'pasta'], url: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=400&q=70&auto=format&fit=crop' },
+  { keywords: ['стейк', 'steak', 'мясо', 'гушт'], url: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400&q=70&auto=format&fit=crop' },
+  { keywords: ['салат', 'цезарь', 'salat', 'salad'], url: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&q=70&auto=format&fit=crop' },
+  { keywords: ['суп', 'борщ', 'шурпа', 'лагман', 'sup', 'soup'], url: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=400&q=70&auto=format&fit=crop' },
+  { keywords: ['торт', 'десерт', 'тирамису', 'чизкейк', 'пирож', 'cake', 'dessert'], url: 'https://images.unsplash.com/photo-1551024506-0bccd828d307?w=400&q=70&auto=format&fit=crop' },
+  { keywords: ['напит', 'сок', 'кофе', 'чай', 'лимонад', 'кола', 'choy', 'kola', 'ichimlik', 'drink'], url: 'https://images.unsplash.com/photo-1544145945-f90425340c7e?w=400&q=70&auto=format&fit=crop' },
+  { keywords: ['закуск', 'брускетта', 'снек', 'snack'], url: 'https://images.unsplash.com/photo-1541529086526-db283c563270?w=400&q=70&auto=format&fit=crop' },
+]
+
+const DEFAULT_DISH_PHOTO = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=70&auto=format&fit=crop'
+
+const fallbackPhotoFor = (productName, categoryName) => {
+  const haystack = `${productName ?? ''} ${categoryName ?? ''}`.toLowerCase()
+  const match = FALLBACK_PHOTOS.find(({ keywords }) => keywords.some((kw) => haystack.includes(kw)))
+  return match?.url ?? DEFAULT_DISH_PHOTO
+}
+
+const fileToDataUrl = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader()
+  reader.onload = () => resolve(reader.result)
+  reader.onerror = reject
+  reader.readAsDataURL(file)
+})
+
+// Читаем/пишем в localStorage бережно: битые данные или переполненная квота
+// не должны приводить к тому, что категории/блюда "исчезают".
+const safeLoadJSON = (key) => {
+  try {
+    const raw = localStorage.getItem(key)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
+const safeSaveJSON = (key, value) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value))
+    return true
+  } catch {
+    return false
+  }
+}
+
+// Блюда хранят фото как base64 и могут упереться в квоту localStorage.
+// Если обычное сохранение не влезло — сохраняем блюда без фото, чтобы
+// сами блюда не "пропадали" после перезагрузки (теряется только фото).
+// Возвращает 'ok' | 'fallback' (фото пришлось убрать) | 'failed'.
+const saveProductsWithFallback = (products) => {
+  if (safeSaveJSON(STORAGE_KEY_PRODUCTS, products)) return 'ok'
+  const stripped = products.map((p) => (p._localImage ? { ...p, image: null, _localImage: false } : p))
+  return safeSaveJSON(STORAGE_KEY_PRODUCTS, stripped) ? 'fallback' : 'failed'
+}
+
+// Ровно 2 ряда карточек (4 колонки × 2) на страницу — секция не растёт дальше,
+// следующие блюда открываются только кнопкой пагинации, без скролла страницы.
+const PAGE_SIZE = 8
+
+// Номера страниц с "..." для пропусков, как в референсе (1 2 3 ... 6)
+const getPageNumbers = (current, total) => {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  const pages = new Set([1, total, current, current - 1, current + 1])
+  const sorted = [...pages].filter((p) => p >= 1 && p <= total).sort((a, b) => a - b)
+  const result = []
+  sorted.forEach((p, i) => {
+    if (i > 0 && p - sorted[i - 1] > 1) result.push('...')
+    result.push(p)
+  })
+  return result
 }
 
 export default function MenuPage() {
-  const { t } = useTranslation()
-  const queryClient = useQueryClient()
-  const role = useSelector((state) => state.auth.user?.role)
-  const canManage = [ROLES.ADMIN, ROLES.MANAGER].includes(role)
+  const [categories, setCategories] = useState([])
+  const [products, setProducts] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isError, setIsError] = useState(false)
 
   const [activeCategory, setActiveCategory] = useState('all')
   const [search, setSearch] = useState('')
-  const [availabilityFilter, setAvailabilityFilter] = useState('all') // 'all' | 'available' | 'unavailable'
 
-  // Modals state
-  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
-  const [editingCategory, setEditingCategory] = useState(null)
-  const [deleteCategoryTarget, setDeleteCategoryTarget] = useState(null)
+  const [categoryModal, setCategoryModal] = useState({ open: false, category: null })
+  const [productModal, setProductModal] = useState({ open: false, product: null })
+  const [previewModal, setPreviewModal] = useState({ open: false, product: null })
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, type: null, item: null })
+  const [deletedCount, setDeletedCount] = useState(() => safeLoadJSON(STORAGE_KEY_DELETED_COUNT) ?? 0)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [openCardMenu, setOpenCardMenu] = useState(null)
 
-  const [isProductModalOpen, setIsProductModalOpen] = useState(false)
-  const [editingProduct, setEditingProduct] = useState(null)
-  const [deleteProductTarget, setDeleteProductTarget] = useState(null)
+  useEffect(() => {
+    if (!openCardMenu) return
+    const closeMenu = () => setOpenCardMenu(null)
+    const t = setTimeout(() => document.addEventListener('click', closeMenu), 0)
+    return () => {
+      clearTimeout(t)
+      document.removeEventListener('click', closeMenu)
+    }
+  }, [openCardMenu])
 
-  const [previewProduct, setPreviewProduct] = useState(null)
+  const [selectedDate, setSelectedDate] = useState(() => new Date())
+  const dateInputRef = useRef(null)
 
-  // Fetch Categories
-  const categoriesQuery = useQuery({
-    queryKey: ['categories'],
-    queryFn: async () => unwrapList(await getCategories(), 'categories'),
-  })
+  const openDatePicker = () => {
+    const el = dateInputRef.current
+    if (!el) return
+    if (typeof el.showPicker === 'function') el.showPicker()
+    else el.click()
+  }
 
-  // Fetch Products
-  const productsQuery = useQuery({
-    queryKey: ['products'],
-    queryFn: async () => unwrapList(await getProducts(), 'products'),
-  })
+  const handleDateChange = (e) => {
+    if (!e.target.value) return
+    setSelectedDate(new Date(`${e.target.value}T00:00:00`))
+  }
 
-  const categories = categoriesQuery.data ?? []
-  const products = productsQuery.data ?? []
+  const dateInputValue = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
+  const formattedDate = selectedDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
 
-  // Category Mutations
-  const createCategoryMutation = useMutation({
-    mutationFn: (data) => createCategory(data),
-    onSuccess: () => {
-      toast.success(t('menu.categoryAdded', { defaultValue: "Kategoriya muvaffaqiyatli qo'shildi" }))
-      setIsCategoryModalOpen(false)
-      setEditingCategory(null)
-      queryClient.invalidateQueries({ queryKey: ['categories'] })
-    },
-    onError: (err) => toast.error(apiErrorMessage(err, t('kitchen.loadFailed'))),
-  })
+  const loadCategories = async () => {
+    const res = await getCategories()
+    const payload = res.data?.data ?? res.data
+    return payload?.categories ?? payload ?? []
+  }
 
-  const updateCategoryMutation = useMutation({
-    mutationFn: ({ id, data }) => updateCategory(id, data),
-    onSuccess: () => {
-      toast.success(t('menu.categoryUpdated', { defaultValue: "Kategoriya yangilandi" }))
-      setIsCategoryModalOpen(false)
-      setEditingCategory(null)
-      queryClient.invalidateQueries({ queryKey: ['categories'] })
-    },
-    onError: (err) => toast.error(apiErrorMessage(err, t('kitchen.loadFailed'))),
-  })
+  const loadProducts = async () => {
+    const res = await getProducts()
+    const payload = res.data?.data ?? res.data
+    return payload?.products ?? payload ?? []
+  }
 
-  const deleteCategoryMutation = useMutation({
-    mutationFn: (id) => deleteCategory(id),
-    onSuccess: () => {
-      toast.success(t('menu.categoryDeleted', { defaultValue: "Kategoriya o'chirildi" }))
-      setDeleteCategoryTarget(null)
-      if (activeCategory === deleteCategoryTarget?._id) {
-        setActiveCategory('all')
-      }
-      queryClient.invalidateQueries({ queryKey: ['categories'] })
-      queryClient.invalidateQueries({ queryKey: ['products'] })
-    },
-    onError: (err) => toast.error(apiErrorMessage(err, t('kitchen.loadFailed'))),
-  })
+  // Тест-режим сохраняет категории/блюда в localStorage, чтобы они не пропадали
+  // при перезагрузке страницы (реального сохранения на сервере пока нет — см. комментарий ниже).
+  const loadAll = async () => {
+    setIsLoading(true)
+    setIsError(false)
+    try {
+      const savedCategories = safeLoadJSON(STORAGE_KEY_CATEGORIES)
+      const savedProducts = safeLoadJSON(STORAGE_KEY_PRODUCTS)
 
-  // Product Mutations
-  const createProductMutation = useMutation({
-    mutationFn: (formData) => createProduct(formData),
-    onSuccess: () => {
-      toast.success(t('menu.dishAdded', { defaultValue: "Taom muvaffaqiyatli qo'shildi" }))
-      setIsProductModalOpen(false)
-      setEditingProduct(null)
-      queryClient.invalidateQueries({ queryKey: ['products'] })
-    },
-    onError: (err) => toast.error(apiErrorMessage(err, t('kitchen.loadFailed'))),
-  })
+      const cats = savedCategories ?? (await loadCategories())
+      const prods = savedProducts ?? (await loadProducts())
+      setCategories(cats)
+      setProducts(prods)
+      if (!savedCategories) safeSaveJSON(STORAGE_KEY_CATEGORIES, cats)
+      if (!savedProducts) saveProductsWithFallback(prods)
+    } catch {
+      setIsError(true)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
-  const updateProductMutation = useMutation({
-    mutationFn: ({ id, formData }) => updateProduct(id, formData),
-    onSuccess: () => {
-      toast.success(t('menu.dishUpdated', { defaultValue: "Taom yangilandi" }))
-      setIsProductModalOpen(false)
-      setEditingProduct(null)
-      queryClient.invalidateQueries({ queryKey: ['products'] })
-    },
-    onError: (err) => toast.error(apiErrorMessage(err, t('kitchen.loadFailed'))),
-  })
-
-  const toggleAvailabilityMutation = useMutation({
-    mutationFn: ({ id, isAvailable }) => updateProduct(id, { isAvailable }),
-    onSuccess: (_data, { isAvailable }) => {
-      toast.success(isAvailable ? t('menu.available') : t('menu.outOfStock'))
-      queryClient.invalidateQueries({ queryKey: ['products'] })
-    },
-    onError: (err) => toast.error(apiErrorMessage(err, t('kitchen.statusChangeFailed'))),
-  })
-
-  const deleteProductMutation = useMutation({
-    mutationFn: (id) => deleteProduct(id),
-    onSuccess: () => {
-      toast.success(t('orders.deleted', { defaultValue: "Taom o'chirildi" }))
-      setDeleteProductTarget(null)
-      queryClient.invalidateQueries({ queryKey: ['products'] })
-    },
-    onError: (err) => toast.error(apiErrorMessage(err, t('orders.deleteFailed'))),
-  })
-
-  // Filtered Products
-  const filteredProducts = useMemo(() => {
-    return products.filter((p) => {
-      const pCatId = p.category?._id ?? p.category
-      const matchesCat = activeCategory === 'all' || pCatId === activeCategory
-      const matchesSearch =
-        !search.trim() ||
-        p.name?.toLowerCase().includes(search.toLowerCase()) ||
-        p.description?.toLowerCase().includes(search.toLowerCase())
-      const matchesAvailability =
-        availabilityFilter === 'all' ||
-        (availabilityFilter === 'available' && p.isAvailable) ||
-        (availabilityFilter === 'unavailable' && !p.isAvailable)
-
-      return matchesCat && matchesSearch && matchesAvailability
-    })
-  }, [products, activeCategory, search, availabilityFilter])
-
-  const iconMap = useMemo(() => {
-    const map = {}
-    ICONS.forEach(({ key, Icon }) => {
-      map[key] = Icon
-    })
-    return map
+  useEffect(() => {
+    loadAll()
   }, [])
 
+  const filteredProducts = useMemo(() => {
+    return products.filter((p) => {
+      const productCategoryId = p.category?._id ?? p.category
+      const matchesCategory = activeCategory === 'all' || productCategoryId === activeCategory
+      const matchesSearch = p.name?.toLowerCase().includes(search.trim().toLowerCase())
+      return matchesCategory && matchesSearch
+    })
+  }, [products, activeCategory, search])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [activeCategory, search])
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE))
+  const safePage = Math.min(currentPage, totalPages)
+  const pagedProducts = filteredProducts.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+  const rangeStart = filteredProducts.length === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1
+  const rangeEnd = Math.min(safePage * PAGE_SIZE, filteredProducts.length)
+
+  const categoryName = (id) => categories.find((c) => c._id === id)?.name
+  const categoryIconFor = (key) => ICONS.find((i) => i.key === key)?.Icon
+  const categoryColorFor = (id) => categories.find((c) => c._id === id)?.color || '#999'
+
+  const previewProduct = previewModal.product
+  const previewCategoryId = previewProduct?.category?._id ?? previewProduct?.category
+  const previewCategoryLabel = previewProduct ? categoryName(previewCategoryId) : ''
+  const previewImageUrl = previewProduct
+    ? (previewProduct._localImage ? previewProduct.image : resolveImageUrl(previewProduct.image)) ?? fallbackPhotoFor(previewProduct.name, previewCategoryLabel)
+    : null
+  const PreviewCategoryIcon = previewProduct ? categoryIconFor(categories.find((c) => c._id === previewCategoryId)?.icon) : null
+
+  const availableCount = products.filter((p) => p.isAvailable).length
+  const unavailableCount = products.length - availableCount
+  const newCount = products.filter((p) => p._id?.startsWith('local-')).length
+  const totalEver = products.length + deletedCount
+  const percentOf = (n) => (totalEver ? Math.round((n / totalEver) * 100) : 0)
+
+  const stats = [
+    {
+      label: 'Всего блюд',
+      value: products.length,
+      detail: `+${newCount} новых`,
+      icon: GiMeal,
+      bg: '#EAEAF8',
+      fg: '#3B3F72',
+    },
+    {
+      label: 'Активных',
+      value: availableCount,
+      detail: `${percentOf(availableCount)}% от всех`,
+      icon: GiSprout,
+      bg: '#E3F5E9',
+      fg: '#3FA65C',
+    },
+    {
+      label: 'Скрытых',
+      value: unavailableCount,
+      detail: `${percentOf(unavailableCount)}% от всех`,
+      icon: FiEye,
+      bg: '#FDECDA',
+      fg: '#E29A3E',
+    },
+    {
+      label: 'Удалённых',
+      value: deletedCount,
+      detail: `${percentOf(deletedCount)}% от всех`,
+      icon: FiTrash2,
+      bg: '#FBE3E3',
+      fg: '#DC4C4C',
+    },
+  ]
+
+  // Категории — ВРЕМЕННО (тест-режим): бэкенд требует роль admin/manager,
+  // которой пока нет у тестового аккаунта, поэтому сохраняем локально (localStorage), без реального API-запроса.
+  const handleCategorySubmit = async (values) => {
+    let next
+    if (categoryModal.category) {
+      const id = categoryModal.category._id
+      next = categories.map((c) => (c._id === id ? { ...c, ...values } : c))
+      toast.success('Категория обновлена (тест-режим, без сохранения на сервере)')
+    } else {
+      const newCategory = { _id: `local-${Date.now()}`, isActive: true, ...values }
+      next = [...categories, newCategory]
+      toast.success('Категория добавлена (тест-режим, без сохранения на сервере)')
+    }
+    setCategories(next)
+    if (!safeSaveJSON(STORAGE_KEY_CATEGORIES, next)) {
+      toast.error('Не удалось сохранить категорию в хранилище браузера (превышен лимит)')
+    }
+    setCategoryModal({ open: false, category: null })
+  }
+
+  // Блюда — тот же временный локальный режим, что и для категорий
+  const handleProductSubmit = async (formData) => {
+    const file = formData.get('image')
+    const hasNewImage = file && file.size > 0
+    const imageDataUrl = hasNewImage ? await fileToDataUrl(file) : null
+    const values = {
+      name: formData.get('name'),
+      description: formData.get('description'),
+      price: Number(formData.get('price')),
+      category: formData.get('category'),
+      weight: formData.get('weight'),
+      isAvailable: formData.get('isAvailable') === 'true',
+      isFeatured: formData.get('isFeatured') === 'true',
+      tags: JSON.parse(formData.get('tags') || '[]'),
+    }
+
+    let next
+    if (productModal.product) {
+      const id = productModal.product._id
+      next = products.map((p) => {
+        if (p._id !== id) return p
+        return {
+          ...p,
+          ...values,
+          image: hasNewImage ? imageDataUrl : p.image,
+          _localImage: hasNewImage ? true : p._localImage,
+        }
+      })
+      toast.success('Блюдо обновлено (тест-режим, без сохранения на сервере)')
+    } else {
+      const newProduct = {
+        _id: `local-${Date.now()}`,
+        ...values,
+        image: hasNewImage ? imageDataUrl : null,
+        _localImage: hasNewImage,
+      }
+      next = [...products, newProduct]
+      toast.success('Блюдо добавлено (тест-режим, без сохранения на сервере)')
+    }
+    setProducts(next)
+    const saveResult = saveProductsWithFallback(next)
+    if (saveResult === 'failed') {
+      toast.error('Не удалось сохранить блюдо в хранилище браузера (превышен лимит)')
+    } else if (saveResult === 'fallback') {
+      toast.warning('Блюдо сохранено, но фото не поместилось в хранилище браузера')
+    }
+    setProductModal({ open: false, product: null })
+  }
+
+  const persistProducts = (next) => {
+    setProducts(next)
+    const saveResult = saveProductsWithFallback(next)
+    if (saveResult === 'failed') {
+      toast.error('Не удалось сохранить изменения в хранилище браузера (превышен лимит)')
+    }
+  }
+
+  const handleDuplicateProduct = (product) => {
+    const copy = { ...product, _id: `local-${Date.now()}`, name: `${product.name} (копия)` }
+    persistProducts([...products, copy])
+    toast.success('Блюдо продублировано (тест-режим, без сохранения на сервере)')
+  }
+
+  const handleToggleAvailability = (product) => {
+    const next = products.map((p) => (p._id === product._id ? { ...p, isAvailable: !p.isAvailable } : p))
+    persistProducts(next)
+    toast.success(product.isAvailable ? 'Блюдо скрыто из меню' : 'Блюдо снова отображается в меню')
+  }
+
+  const handleToggleFeatured = (product) => {
+    const next = products.map((p) => (p._id === product._id ? { ...p, isFeatured: !p.isFeatured } : p))
+    persistProducts(next)
+    toast.success(product.isFeatured ? 'Убрано из рекомендуемых' : 'Блюдо теперь рекомендуемое')
+  }
+
+  const handleViewProduct = (product) => {
+    setPreviewModal({ open: true, product })
+  }
+
+  const handleShowStats = (product) => {
+    toast.info(`Статистика по «${product.name}» пока недоступна`)
+  }
+
+  // Удаление — локально, без реального API-запроса (см. комментарий выше)
+  const handleConfirmDelete = async () => {
+    if (confirmDelete.type === 'category') {
+      const next = categories.filter((c) => c._id !== confirmDelete.item._id)
+      setCategories(next)
+      safeSaveJSON(STORAGE_KEY_CATEGORIES, next)
+      if (activeCategory === confirmDelete.item._id) setActiveCategory('all')
+      toast.success('Категория удалена (тест-режим)')
+    } else {
+      const next = products.filter((p) => p._id !== confirmDelete.item._id)
+      setProducts(next)
+      saveProductsWithFallback(next)
+      const nextDeletedCount = deletedCount + 1
+      setDeletedCount(nextDeletedCount)
+      safeSaveJSON(STORAGE_KEY_DELETED_COUNT, nextDeletedCount)
+      toast.success('Блюдо удалено (тест-режим)')
+    }
+    setConfirmDelete({ open: false, type: null, item: null })
+  }
+
   return (
-    <div className="space-y-6">
-      {/* Top Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-            {t('menu.title')}
-          </h1>
-          <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            {t('menu.subtitle')}
-          </p>
+    <div className="menu-page">
+      <header className="menu-page-header">
+        <div className="menu-header-left">
+          <h1 className="menu-header-title">Меню</h1>
+          <p className="menu-header-crumb">Главная • Меню</p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Button
-            variant="secondary"
-            onClick={() => {
-              categoriesQuery.refetch()
-              productsQuery.refetch()
-            }}
+        <div className="menu-header-right">
+          <label className="menu-header-search">
+            <input
+              type="search"
+              placeholder="Поиск блюд..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <FiSearch className="menu-header-search-icon" />
+          </label>
+
+          <button type="button" className="menu-header-filter-btn">
+            <FiSliders className="menu-header-filter-icon" />
+            Фильтры
+            <FiChevronDown className="menu-header-filter-chevron" />
+          </button>
+
+          <button type="button" className="menu-header-notif" aria-label="Уведомления">
+            <FiBell className="menu-header-notif-icon" />
+            <span className="menu-header-notif-dot">3</span>
+          </button>
+
+          <div
+            className="menu-header-date"
+            role="button"
+            tabIndex={0}
+            onClick={openDatePicker}
+            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && openDatePicker()}
           >
-            <RefreshCw
-              className={`mr-1.5 h-4 w-4 ${
-                categoriesQuery.isFetching || productsQuery.isFetching ? 'animate-spin' : ''
-              }`}
+            <FiCalendar className="menu-header-date-icon" />
+            {formattedDate}
+            <FiChevronDown className="menu-header-date-chevron" />
+            <input
+              ref={dateInputRef}
+              type="date"
+              className="menu-header-date-input"
+              value={dateInputValue}
+              onChange={handleDateChange}
+              aria-label="Выбрать дату"
             />
-            {t('refresh')}
-          </Button>
-
-          {canManage && (
-            <>
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setEditingCategory(null)
-                  setIsCategoryModalOpen(true)
-                }}
-              >
-                <FolderPlus className="mr-1.5 h-4 w-4 text-[#F97316]" />
-                {t('menu.addCategory')}
-              </Button>
-
-              <Button
-                onClick={() => {
-                  setEditingProduct(null)
-                  setIsProductModalOpen(true)
-                }}
-              >
-                <Plus className="mr-1.5 h-4 w-4" />
-                {t('menu.addDish')}
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Filter and Search Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-xs dark:border-slate-800 dark:bg-[#111827]">
-        <div className="relative min-w-[260px] flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder={t('waiter.searchPlaceholder')}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2 pl-10 pr-4 text-xs sm:text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#F97316] focus:bg-white focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-          />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50/80 p-1 dark:border-slate-700 dark:bg-slate-800">
-            <button
-              type="button"
-              onClick={() => setAvailabilityFilter('all')}
-              className={`rounded-lg px-2.5 py-1 text-xs font-bold transition ${
-                availabilityFilter === 'all'
-                  ? 'bg-white text-slate-900 shadow-2xs dark:bg-slate-700 dark:text-white'
-                  : 'text-slate-500 hover:text-slate-900 dark:text-slate-400'
-              }`}
-            >
-              {t('all')}
-            </button>
-            <button
-              type="button"
-              onClick={() => setAvailabilityFilter('available')}
-              className={`rounded-lg px-2.5 py-1 text-xs font-bold transition ${
-                availabilityFilter === 'available'
-                  ? 'bg-emerald-500 text-white shadow-2xs'
-                  : 'text-slate-500 hover:text-slate-900 dark:text-slate-400'
-              }`}
-            >
-              {t('menu.available')}
-            </button>
-            <button
-              type="button"
-              onClick={() => setAvailabilityFilter('unavailable')}
-              className={`rounded-lg px-2.5 py-1 text-xs font-bold transition ${
-                availabilityFilter === 'unavailable'
-                  ? 'bg-rose-500 text-white shadow-2xs'
-                  : 'text-slate-500 hover:text-slate-900 dark:text-slate-400'
-              }`}
-            >
-              {t('menu.outOfStock')}
-            </button>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Category Pills Navigation */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        <button
-          type="button"
-          onClick={() => setActiveCategory('all')}
-          className={`flex shrink-0 items-center gap-2 rounded-2xl px-4 py-2.5 text-xs sm:text-sm font-bold transition-all ${
-            activeCategory === 'all'
-              ? 'bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white shadow-md shadow-orange-500/25 scale-102'
-              : 'border border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:bg-[#111827] dark:text-slate-300 dark:hover:bg-slate-800'
-          }`}
-        >
-          <UtensilsCrossed size={16} />
-          <span>{t('waiter.allCategories')} ({products.length})</span>
-        </button>
-
-        {categories.map((cat) => {
-          const Icon = iconMap[cat.icon] || UtensilsCrossed
-          const count = products.filter((p) => (p.category?._id ?? p.category) === cat._id).length
-          const isActive = activeCategory === cat._id
-
-          return (
-            <div key={cat._id} className="relative group shrink-0">
-              <button
-                type="button"
-                onClick={() => setActiveCategory(cat._id)}
-                className={`flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs sm:text-sm font-bold transition-all ${
-                  isActive
-                    ? 'bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white shadow-md shadow-orange-500/25 scale-102'
-                    : 'border border-slate-200/80 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:bg-[#111827] dark:text-slate-300 dark:hover:bg-slate-800'
-                }`}
-              >
-                <Icon size={16} />
-                <span>{cat.name}</span>
-                <span
-                  className={`rounded-full px-1.5 py-0.2 text-[11px] ${
-                    isActive ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
-                  }`}
-                >
-                  {count}
-                </span>
-              </button>
-
-              {/* Edit/Delete category actions for admin */}
-              {canManage && (
-                <div className="absolute right-1 top-1 hidden group-hover:flex items-center gap-1 bg-white/90 dark:bg-slate-900/90 rounded-lg p-0.5 shadow-sm border border-slate-200 dark:border-slate-700">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setEditingCategory(cat)
-                      setIsCategoryModalOpen(true)
-                    }}
-                    className="p-1 text-slate-600 hover:text-orange-500 dark:text-slate-300"
-                    title={t('edit')}
-                  >
-                    <Pencil size={12} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setDeleteCategoryTarget(cat)
-                    }}
-                    className="p-1 text-rose-500 hover:text-rose-600"
-                    title={t('delete')}
-                  >
-                    <Trash2 size={12} />
-                  </button>
-                </div>
-              )}
+      <div className="menu-stats-grid">
+        {stats.map(({ label, value, detail, icon: Icon, bg, fg }) => (
+          <div key={label} className="menu-stat-card">
+            <span className="menu-stat-icon" style={{ background: bg, color: fg }}>
+              <Icon />
+            </span>
+            <div className="menu-stat-text">
+              <span className="menu-stat-label">{label}</span>
+              <strong>{value}</strong>
+              <span className="menu-stat-detail">{detail}</span>
             </div>
-          )
-        })}
+          </div>
+        ))}
       </div>
 
-      {/* Products Grid */}
-      {productsQuery.isLoading ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, idx) => (
-            <div
-              key={idx}
-              className="h-72 animate-pulse rounded-3xl border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-800/50"
-            />
-          ))}
-        </div>
-      ) : filteredProducts.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-[#111827]">
-          <div className="flex size-14 items-center justify-center rounded-2xl bg-orange-500/10 text-[#F97316]">
-            <UtensilsCrossed size={28} />
-          </div>
-          <h3 className="mt-4 text-base font-bold text-slate-900 dark:text-white">{t('waiter.noDishesFound')}</h3>
-          <p className="mt-1 max-w-sm text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            {t('waiter.tryAnotherCat')}
-          </p>
-          {canManage && (
-            <Button
-              className="mt-4"
-              onClick={() => {
-                setEditingProduct(null)
-                setIsProductModalOpen(true)
-              }}
-            >
-              <Plus className="mr-1.5 h-4 w-4" /> {t('menu.addDish')}
-            </Button>
-          )}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredProducts.map((product) => {
-            const catName =
-              categories.find((c) => c._id === (product.category?._id ?? product.category))?.name ||
-              product.category?.name ||
-              ''
-            const imageUrl = product.image ? resolveImageUrl(product.image) : null
-
+      <div className="menu-tabs-row">
+        <div className="menu-tabs-left">
+          <button
+            type="button"
+            className={`menu-tab ${activeCategory === 'all' ? 'active' : ''}`}
+            onClick={() => setActiveCategory('all')}
+          >
+            Все блюда
+          </button>
+          {categories.map((cat) => {
+            const CatIcon = categoryIconFor(cat.icon)
             return (
-              <div
-                key={product._id}
-                className="group flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-xs transition-all hover:shadow-xl hover:shadow-slate-200/40 hover:-translate-y-1 dark:border-slate-800 dark:bg-[#111827] dark:hover:shadow-none"
-              >
-                {/* Top Image */}
-                <div
-                  className="relative h-44 w-full overflow-hidden bg-slate-100 dark:bg-slate-800 cursor-pointer"
-                  onClick={() => setPreviewProduct(product)}
+              <div key={cat._id} className="menu-tab-wrap">
+                <button
+                  type="button"
+                  className={`menu-tab ${activeCategory === cat._id ? 'active' : ''}`}
+                  onClick={() => setActiveCategory(cat._id)}
                 >
-                  {imageUrl ? (
-                    <img
-                      src={imageUrl}
-                      alt={product.name}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-slate-400">
-                      <UtensilsCrossed size={36} className="opacity-40" />
-                    </div>
-                  )}
-
-                  {/* Availability Badge */}
-                  <div className="absolute left-3 top-3">
-                    <span
-                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold backdrop-blur-md ${
-                        product.isAvailable
-                          ? 'bg-emerald-500/90 text-white'
-                          : 'bg-rose-500/90 text-white'
-                      }`}
-                    >
-                      {product.isAvailable ? t('menu.available') : t('menu.outOfStock')}
-                    </span>
-                  </div>
-
-                  {/* Weight Badge */}
-                  {product.weight && (
-                    <div className="absolute right-3 top-3">
-                      <span className="rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-md">
-                        {product.weight}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Content */}
-                <div className="flex flex-1 flex-col p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                        {catName}
-                      </span>
-                      <h3
-                        onClick={() => setPreviewProduct(product)}
-                        className="cursor-pointer font-bold text-slate-900 transition hover:text-[#F97316] dark:text-white text-base line-clamp-1"
-                      >
-                        {product.name}
-                      </h3>
-                    </div>
-                  </div>
-
-                  {product.description && (
-                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                      {product.description}
-                    </p>
-                  )}
-
-                  {/* Tags */}
-                  {product.tags?.length > 0 && (
-                    <div className="mt-2.5 flex flex-wrap gap-1">
-                      {product.tags.map((tagKey) => {
-                        const conf = TAG_CONFIG[tagKey]
-                        if (!conf) return null
-                        const Icon = conf.icon
-                        return (
-                          <span
-                            key={tagKey}
-                            className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-bold ${conf.color}`}
-                          >
-                            <Icon size={11} />
-                            <span>{conf.label}</span>
-                          </span>
-                        )
-                      })}
-                    </div>
-                  )}
-
-                  {/* Bottom Price & Controls */}
-                  <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-800/80">
-                    <span className="text-base font-extrabold text-[#F97316]">
-                      {formatSom(product.price)}
-                    </span>
-
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setPreviewProduct(product)}
-                        className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition"
-                        title={t('view')}
-                      >
-                        <Eye size={16} />
-                      </button>
-
-                      {canManage && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              toggleAvailabilityMutation.mutate({
-                                id: product._id,
-                                isAvailable: !product.isAvailable,
-                              })
-                            }
-                            className={`rounded-xl p-1.5 transition ${
-                              product.isAvailable
-                                ? 'text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/40'
-                                : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                            }`}
-                            title={product.isAvailable ? t('menu.outOfStock') : t('menu.available')}
-                          >
-                            {product.isAvailable ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEditingProduct(product)
-                              setIsProductModalOpen(true)
-                            }}
-                            className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition"
-                            title={t('edit')}
-                          >
-                            <Pencil size={16} />
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => setDeleteProductTarget(product)}
-                            className="rounded-xl p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition"
-                            title={t('delete')}
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                  {CatIcon && <CatIcon className="menu-tab-icon" />}
+                  {cat.name}
+                </button>
+                <button
+                  type="button"
+                  className="menu-tab-delete"
+                  aria-label="Удалить категорию"
+                  onClick={() => setConfirmDelete({ open: true, type: 'category', item: cat })}
+                >
+                  <FiX />
+                </button>
               </div>
             )
           })}
+          <button
+            type="button"
+            className="menu-tab menu-tab-action"
+            onClick={() => setCategoryModal({ open: true, category: null })}
+          >
+            <FiPlus /> Категория
+          </button>
+        </div>
+
+        <button type="button" className="menu-tab menu-tab-action" onClick={() => setProductModal({ open: true, product: null })}>
+          <FiPlus /> Добавить блюдо
+        </button>
+      </div>
+
+      {isLoading && (
+        <div className="dish-grid">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="h-56 w-full" />
+          ))}
         </div>
       )}
 
-      {/* Category Modal */}
+      {!isLoading && isError && <p className="menu-empty-hint">Не удалось загрузить меню</p>}
+
+      {!isLoading && !isError && filteredProducts.length === 0 && (
+        <p className="menu-empty-hint">Блюда не найдены</p>
+      )}
+
+      {!isLoading && !isError && filteredProducts.length > 0 && (
+        <>
+          <div className="dish-grid">
+            {pagedProducts.map((product) => {
+              const productCategoryId = product.category?._id ?? product.category
+              const categoryLabel = categoryName(productCategoryId)
+              const imageUrl = (product._localImage ? product.image : resolveImageUrl(product.image))
+                ?? fallbackPhotoFor(product.name, categoryLabel)
+              const CatIcon = categoryIconFor(categories.find((c) => c._id === productCategoryId)?.icon)
+              const catColor = categoryColorFor(productCategoryId)
+              const menuOpen = openCardMenu === product._id
+              return (
+                <div
+                  key={product._id}
+                  className={`dish-card ${menuOpen ? 'dish-card-menu-active' : ''}`}
+                  onClick={() => handleViewProduct(product)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleViewProduct(product) } }}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <div className="dish-card-image">
+                    <img src={imageUrl} alt={product.name} loading="lazy" />
+                    <button
+                      type="button"
+                      className="dish-card-dots"
+                      aria-label="Меню блюда"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setOpenCardMenu(menuOpen ? null : product._id)
+                      }}
+                    >
+                      <FiMoreHorizontal />
+                    </button>
+                  </div>
+
+                  <div className="dish-card-content">
+                    <h3 className="dish-card-title">{product.name}</h3>
+                    {product.description && <p className="dish-card-desc">{product.description}</p>}
+
+                    <div className="dish-card-category">
+                      {CatIcon && <CatIcon style={{ color: catColor }} />}
+                      <span>{categoryLabel || 'Без категории'}</span>
+                    </div>
+
+                    <div className="dish-card-bottom">
+                      <div className="dish-card-bottom-left">
+                        <span className="dish-card-price">{product.price} ₽</span>
+                        <span className={`dish-card-badge ${product.isAvailable ? 'active' : 'inactive'}`}>
+                          {product.isAvailable ? 'Активно' : 'Неактивно'}
+                        </span>
+                      </div>
+                      <div className="dish-card-bottom-right" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          className="dish-card-action-btn dish-card-edit-btn"
+                          aria-label="Редактировать"
+                          onClick={() => setProductModal({ open: true, product })}
+                        >
+                          <FiEdit2 />
+                        </button>
+                        <div className="dish-card-menu-wrap">
+                          <button
+                            type="button"
+                            className="dish-card-action-btn"
+                            aria-label="Меню"
+                            onClick={() => setOpenCardMenu(menuOpen ? null : product._id)}
+                          >
+                            <FiMoreHorizontal />
+                          </button>
+                          {menuOpen && (
+                            <div className="dish-card-dropdown">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleViewProduct(product)
+                                  setOpenCardMenu(null)
+                                }}
+                              >
+                                <FiEye /> Просмотреть
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setProductModal({ open: true, product })
+                                  setOpenCardMenu(null)
+                                }}
+                              >
+                                <FiEdit2 /> Редактировать
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleDuplicateProduct(product)
+                                  setOpenCardMenu(null)
+                                }}
+                              >
+                                <FiCopy /> Дублировать
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleToggleAvailability(product)
+                                  setOpenCardMenu(null)
+                                }}
+                              >
+                                <FiEyeOff /> {product.isAvailable ? 'Скрыть из меню' : 'Показать в меню'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleToggleFeatured(product)
+                                  setOpenCardMenu(null)
+                                }}
+                              >
+                                <FiStar /> {product.isFeatured ? 'Убрать из рекомендуемых' : 'Сделать рекомендуемым'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleShowStats(product)
+                                  setOpenCardMenu(null)
+                                }}
+                              >
+                                <FiBarChart2 /> Статистика
+                              </button>
+                              <div className="dish-card-dropdown-divider" />
+                              <button
+                                type="button"
+                                className="danger"
+                                onClick={() => {
+                                  setConfirmDelete({ open: true, type: 'product', item: product })
+                                  setOpenCardMenu(null)
+                                }}
+                              >
+                                <FiTrash2 /> Удалить
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          <div className="dish-pagination">
+            <button
+              type="button"
+              className="dish-page-btn"
+              disabled={safePage <= 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              aria-label="Предыдущая страница"
+            >
+              <FiChevronLeft />
+            </button>
+            {getPageNumbers(safePage, totalPages).map((p, i) => (
+              p === '...' ? (
+                <span key={`dots-${i}`} className="dish-page-dots">…</span>
+              ) : (
+                <button
+                  key={p}
+                  type="button"
+                  className={`dish-page-btn ${p === safePage ? 'active' : ''}`}
+                  onClick={() => setCurrentPage(p)}
+                >
+                  {p}
+                </button>
+              )
+            ))}
+            <button
+              type="button"
+              className="dish-page-btn"
+              disabled={safePage >= totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              aria-label="Следующая страница"
+            >
+              <FiChevronRight />
+            </button>
+          </div>
+
+          <p className="dish-pagination-caption">
+            Показано {rangeStart}–{rangeEnd} из {filteredProducts.length}
+          </p>
+        </>
+      )}
+
       <CategoryModal
-        isOpen={isCategoryModalOpen}
-        onClose={() => {
-          setIsCategoryModalOpen(false)
-          setEditingCategory(null)
-        }}
-        onSubmit={async (values) => {
-          if (editingCategory) {
-            await updateCategoryMutation.mutateAsync({ id: editingCategory._id, data: values })
-          } else {
-            await createCategoryMutation.mutateAsync(values)
-          }
-        }}
-        category={editingCategory}
+        isOpen={categoryModal.open}
+        category={categoryModal.category}
+        onClose={() => setCategoryModal({ open: false, category: null })}
+        onSubmit={handleCategorySubmit}
       />
 
-      {/* Product Modal */}
       <ProductModal
-        isOpen={isProductModalOpen}
-        onClose={() => {
-          setIsProductModalOpen(false)
-          setEditingProduct(null)
-        }}
-        onSubmit={async (formData) => {
-          if (editingProduct) {
-            await updateProductMutation.mutateAsync({ id: editingProduct._id, formData })
-          } else {
-            await createProductMutation.mutateAsync(formData)
-          }
-        }}
-        product={editingProduct}
+        isOpen={productModal.open}
+        product={productModal.product}
         categories={categories}
+        onClose={() => setProductModal({ open: false, product: null })}
+        onSubmit={handleProductSubmit}
       />
 
-      {/* Product Preview Modal */}
       <ProductPreviewModal
-        isOpen={Boolean(previewProduct)}
-        onClose={() => setPreviewProduct(null)}
-        onEdit={(p) => {
-          setPreviewProduct(null)
-          setEditingProduct(p)
-          setIsProductModalOpen(true)
-        }}
+        isOpen={previewModal.open}
         product={previewProduct}
-        imageUrl={previewProduct?.image ? resolveImageUrl(previewProduct.image) : null}
-        categoryLabel={
-          categories.find((c) => c._id === (previewProduct?.category?._id ?? previewProduct?.category))
-            ?.name || ''
-        }
-        CategoryIcon={
-          iconMap[
-            categories.find((c) => c._id === (previewProduct?.category?._id ?? previewProduct?.category))
-              ?.icon
-          ]
-        }
-        canManage={canManage}
+        imageUrl={previewImageUrl}
+        categoryLabel={previewCategoryLabel}
+        CategoryIcon={PreviewCategoryIcon}
+        onClose={() => setPreviewModal({ open: false, product: null })}
+        onEdit={(product) => {
+          setPreviewModal({ open: false, product: null })
+          setProductModal({ open: true, product })
+        }}
       />
 
-      {/* Delete Category Modal */}
-      <Modal
-        isOpen={Boolean(deleteCategoryTarget)}
-        onClose={() => setDeleteCategoryTarget(null)}
-        title={t('confirm')}
-        footer={
-          <>
-            <Button variant="secondary" onClick={() => setDeleteCategoryTarget(null)}>
-              {t('cancel')}
-            </Button>
-            <Button
-              variant="danger"
-              isLoading={deleteCategoryMutation.isPending}
-              onClick={() => deleteCategoryMutation.mutate(deleteCategoryTarget._id)}
-            >
-              {t('delete')}
-            </Button>
-          </>
+      <ConfirmDialog
+        isOpen={confirmDelete.open}
+        isLoading={false}
+        title={confirmDelete.type === 'category' ? 'Удалить категорию?' : 'Удалить блюдо?'}
+        message={
+          confirmDelete.type === 'category'
+            ? `Категория «${confirmDelete.item?.name}» будет удалена.`
+            : `Блюдо «${confirmDelete.item?.name}» будет удалено.`
         }
-      >
-        <div className="flex items-center gap-3 py-2">
-          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-400">
-            <AlertTriangle className="h-5 w-5" />
-          </div>
-          <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
-            "{deleteCategoryTarget?.name}" {t('cashier.confirmCancel')}
-          </p>
-        </div>
-      </Modal>
-
-      {/* Delete Product Modal */}
-      <Modal
-        isOpen={Boolean(deleteProductTarget)}
-        onClose={() => setDeleteProductTarget(null)}
-        title={t('confirm')}
-        footer={
-          <>
-            <Button variant="secondary" onClick={() => setDeleteProductTarget(null)}>
-              {t('cancel')}
-            </Button>
-            <Button
-              variant="danger"
-              isLoading={deleteProductMutation.isPending}
-              onClick={() => deleteProductMutation.mutate(deleteProductTarget._id)}
-            >
-              {t('delete')}
-            </Button>
-          </>
-        }
-      >
-        <div className="flex items-center gap-3 py-2">
-          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-400">
-            <AlertTriangle className="h-5 w-5" />
-          </div>
-          <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
-            "{deleteProductTarget?.name}" {t('cashier.confirmCancel')}
-          </p>
-        </div>
-      </Modal>
+        onClose={() => setConfirmDelete({ open: false, type: null, item: null })}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   )
 }

@@ -1,18 +1,9 @@
 # Notifications — Bildirishnomalar
 
-**Mas'ul:** Behruz Shogirt
+## Waiter calling / ready-order notification
 
-## Vazifalar
-- [ ] Bildirishnomalar ro'yxati
-- [ ] Socket.io real-time
-- [ ] O'qilgan / o'qilmagan holati
-
-## Tuzilma
-```
-notifications/
-  components/   # shu modul komponentlari
-  pages/        # sahifalar (route)
-  api.js        # backend so'rovlari (axios)
-  notificationsSlice.js # redux slice (kerak bo'lsa)
-  index.js      # eksport
-```
+- `table:waiter_called` and kitchen/bar `READY` notifications are Waiter-only.
+- Ready notifications listen to the existing `order:status_updated` / `order:status_changed` events.
+- When an order becomes `tayyor`, the Waiter receives table, order number and food items in real time.
+- If the backend includes an assigned waiter on the order/table, the frontend filters the event to that waiter.
+- Duplicate ready events for the same order are ignored.

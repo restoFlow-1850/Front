@@ -1,9 +1,7 @@
-import React, { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+﻿import React, { useState, useMemo } from 'react';
 import { ArrowRightLeft, Pencil } from '../../../lib/Icons';
-import { getTables, updateTable } from '../api';
-import { unwrapList } from '../../../lib/api';
-import { TABLE_STATUS, TABLE_STATUS_LABELS, TABLE_STATUS_COLORS } from '../../../constants/roles';
+import { useTables } from '../../../hooks/useTables';
+import { TABLE_STATUS, TABLE_STATUS_LABELS, TABLE_STATUS_COLORS } from '../../../constants/tableStatus';
 import EditTableModal from './EditTableModal';
 import TransferTableModal from './TransferTableModal';
 import OccupyTableModal from './OccupyTableModal';
@@ -17,40 +15,15 @@ const LEGEND = [
   TABLE_STATUS.CLEANING,
 ].map((status) => ({ status, label: TABLE_STATUS_LABELS[status], color: TABLE_STATUS_COLORS[status] }));
 
-const TableMap2D = ({
-  onTableClick,
-  onOrderTransferred,
-  selectedTable: externalSelected,
-  tables: externalTables,
-  pickerMode = false,
-}) => {
-  const queryClient = useQueryClient();
-
-  const tablesQuery = useQuery({
-    queryKey: ['tables'],
-    queryFn: async () => unwrapList(await getTables({ page: 1, limit: 100 }), 'tables'),
-    enabled: !pickerMode,
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => updateTable(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tables'] });
-    },
-  });
-
-  const loading = pickerMode ? false : tablesQuery.isLoading;
-  const error = pickerMode ? null : (tablesQuery.error ? (tablesQuery.error?.response?.data?.message || tablesQuery.error.message || 'Xatolik') : null);
-  const tables = externalTables ?? (tablesQuery.data ?? []);
-
+const TableMap2D = ({ onTableClick, onOrderTransferred, selectedTable: externalSelected }) => {
+  const { tables, loading, error, updateTableData, selectTable } = useTables();
   const [hoveredTable, setHoveredTable] = useState(null);
-  const [selectedLocal, setSelectedLocal] = useState(null);
   const [editingTable, setEditingTable] = useState(null);
   const [transferringTable, setTransferringTable] = useState(null);
   const [occupyingTable, setOccupyingTable] = useState(null);
   const [zoneFilter, setZoneFilter] = useState(ZONE_FILTER_ALL);
 
-  const selected = externalSelected ?? selectedLocal ?? null;
+  const selected = externalSelected || null;
 
   const zoneNames = useMemo(() => {
     const set = new Set(tables.map((t) => t.zone || 'Boshqa'));
@@ -72,33 +45,31 @@ const TableMap2D = ({
   }, [tables, zoneFilter]);
 
   const handleTableClick = (table) => {
-    if (pickerMode) {
-      onTableClick?.(table);
-      return;
-    }
     if (table.status === TABLE_STATUS.AVAILABLE) {
       setOccupyingTable(table);
       return;
     }
-    setSelectedLocal(table);
+    selectTable(table);
     onTableClick?.(table);
   };
 
   const handleOccupyConfirm = async (details) => {
     if (!occupyingTable) return;
 
-    try {
-      await updateMutation.mutateAsync({
-        id: occupyingTable.id,
-        data: { status: TABLE_STATUS.OCCUPIED, ...details },
-      });
-      const updated = { ...occupyingTable, status: TABLE_STATUS.OCCUPIED, ...details };
-      setOccupyingTable(null);
-      setSelectedLocal(updated);
-      onTableClick?.(updated);
-    } catch {
+    const result = await updateTableData(occupyingTable.id, {
+      status: TABLE_STATUS.OCCUPIED,
+      ...details,
+    });
+
+    if (!result.success) {
       alert('Stolni band qilishda xatolik yuz berdi');
+      return;
     }
+
+    const updated = { ...occupyingTable, status: TABLE_STATUS.OCCUPIED, ...details };
+    setOccupyingTable(null);
+    selectTable(updated);
+    onTableClick?.(updated);
   };
 
   const handleTransferConfirm = async (sourceTableId, targetTableId) => {
@@ -108,20 +79,21 @@ const TableMap2D = ({
       throw new Error('Stol topilmadi');
     }
 
-    try {
-      await updateMutation.mutateAsync({
-        id: fromTable.id,
-        data: { status: TABLE_STATUS.AVAILABLE, currentOrderId: null },
-      });
-      await updateMutation.mutateAsync({
-        id: toTable.id,
-        data: { status: TABLE_STATUS.OCCUPIED, currentOrderId: fromTable.currentOrderId },
-      });
-      onOrderTransferred?.(fromTable, toTable);
-      setTransferringTable(null);
-    } catch (err) {
-      throw err || new Error("Stolni ko'chirishda xatolik");
+    const freed = await updateTableData(fromTable.id, { status: TABLE_STATUS.AVAILABLE, currentOrderId: null });
+    if (!freed.success) {
+      throw freed.error || new Error('Manba stolni bo\'shatishda xatolik');
     }
+
+    const occupied = await updateTableData(toTable.id, {
+      status: TABLE_STATUS.OCCUPIED,
+      currentOrderId: fromTable.currentOrderId,
+    });
+    if (!occupied.success) {
+      throw occupied.error || new Error('Maqsadli stolni band qilishda xatolik');
+    }
+
+    onOrderTransferred?.(fromTable, toTable);
+    setTransferringTable(null);
   };
 
   if (loading) {
@@ -191,10 +163,9 @@ const TableMap2D = ({
                     onClick={() => handleTableClick(table)}
                     onEdit={() => setEditingTable(table)}
                     onTransfer={() => setTransferringTable(table)}
-                    isSelected={(selected?.id ?? selected?._id) === (table.id ?? table._id)}
-                    isHovered={(hoveredTable?.id ?? hoveredTable?._id) === (table.id ?? table._id)}
+                    isSelected={selected?.id === table.id}
+                    isHovered={hoveredTable?.id === table.id}
                     onHover={setHoveredTable}
-                    pickerMode={pickerMode}
                   />
                 ))}
               </div>
@@ -212,18 +183,18 @@ const TableMap2D = ({
         </div>
       </div>
 
-      {!pickerMode && editingTable && (
+      {editingTable && (
         <EditTableModal
           table={editingTable}
           onClose={() => setEditingTable(null)}
           onSave={(updated) => {
-            updateMutation.mutate({ id: updated.id, data: updated });
+            updateTableData(updated.id, updated);
             setEditingTable(null);
           }}
         />
       )}
 
-      {!pickerMode && transferringTable && (
+      {transferringTable && (
         <TransferTableModal
           sourceTable={transferringTable}
           tables={tables}
@@ -232,7 +203,7 @@ const TableMap2D = ({
         />
       )}
 
-      {!pickerMode && occupyingTable && (
+      {occupyingTable && (
         <OccupyTableModal
           table={occupyingTable}
           onClose={() => setOccupyingTable(null)}
@@ -243,7 +214,7 @@ const TableMap2D = ({
   );
 };
 
-const TableSeat = ({ table, onClick, onEdit, onTransfer, isSelected, isHovered, onHover, pickerMode }) => {
+const TableSeat = ({ table, onClick, onEdit, onTransfer, isSelected, isHovered, onHover }) => {
   const color = TABLE_STATUS_COLORS[table.status];
   const canTransfer = table.status === TABLE_STATUS.OCCUPIED;
   const capacity = table.capacity || 4;
@@ -290,7 +261,7 @@ const TableSeat = ({ table, onClick, onEdit, onTransfer, isSelected, isHovered, 
         )}
       </div>
 
-      {!pickerMode && <div className="mt-2 flex gap-1.5">
+      <div className="mt-2 flex gap-1.5">
         <button
           type="button"
           onClick={(e) => {
@@ -313,7 +284,7 @@ const TableSeat = ({ table, onClick, onEdit, onTransfer, isSelected, isHovered, 
             <ArrowRightLeft className="h-3 w-3" />
           </button>
         )}
-      </div>}
+      </div>
     </div>
   );
 };

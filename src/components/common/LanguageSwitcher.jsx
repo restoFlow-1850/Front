@@ -8,7 +8,7 @@ const LANGS = [
   { code: 'en', label: 'En' },
 ]
 
-const LANG_STORAGE_KEY = 'language'
+const LANG_STORAGE_KEY = 'app:language'
 
 export default function LanguageSwitcher({ className = '' }) {
   const { i18n } = useTranslation()

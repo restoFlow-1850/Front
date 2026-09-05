@@ -3,18 +3,17 @@
 import { useSelector } from 'react-redux'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 
-import { readToken, readUser } from '../features/auth/session'
-import { resolveRedirect } from '../constants/navigation'
+import { readToken } from '../features/auth/session'
+import { ROLE_HOME } from '../constants/roles'
 
 export default function PublicRoute() {
   const location = useLocation()
   const { accessToken, user } = useSelector((state) => state.auth)
   const token = accessToken || readToken('accessToken')
-  const currentUser = user || readUser()
 
   if (token) {
-    const target = resolveRedirect(location.state?.from, currentUser?.role)
-    return <Navigate to={target} replace />
+    const from = location.state?.from?.pathname
+    return <Navigate to={from || ROLE_HOME[user?.role] || '/'} replace />
   }
 
   return <Outlet />

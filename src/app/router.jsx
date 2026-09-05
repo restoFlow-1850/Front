@@ -15,7 +15,6 @@ import AppLayout from '../layouts/AppLayout'
 import AuthLayout from '../layouts/AuthLayout'
 import { NAV_ITEMS } from '../constants/navigation'
 import { ROLE_HOME } from '../constants/roles'
-import { readUser } from '../features/auth/session'
 
 // ─── Ochiq sahifalar ─────────────────────────────────────────────
 const LoginPage = lazy(() => import('../features/auth/pages/LoginPage'))
@@ -36,7 +35,6 @@ const TablesPage = lazy(() => import('../features/tables/pages/TablesPage'))
 const ReservationsPage = lazy(() => import('../features/reservations/pages/ReservationsPage'))
 const EmployeesPage = lazy(() => import('../features/employees/pages/EmployeesPage'))
 const NotificationsPage = lazy(() => import('../features/notifications/pages/NotificationsPage'))
-const SettingsPage = lazy(() => import('../features/settings/pages/SettingsPage'))
 const ProfilePage = lazy(() => import('../features/auth/pages/Profile'))
 
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage'))
@@ -56,7 +54,6 @@ const PAGE_BY_KEY = {
   reservations: <ReservationsPage />,
   employees: <EmployeesPage />,
   notifications: <NotificationsPage />,
-  settings: <SettingsPage />,
   profile: <ProfilePage />,
 }
 
@@ -79,8 +76,8 @@ function buildProtectedRoutes() {
 
 // '/' ga tushgan foydalanuvchini o'z roliga mos panelga yo'naltiradi.
 function RoleHomeRedirect() {
-  const user = useSelector((state) => state.auth.user) || readUser()
-  return <Navigate to={(user?.role && ROLE_HOME[user.role]) ? ROLE_HOME[user.role] : '/login'} replace />
+  const user = useSelector((state) => state.auth.user)
+  return <Navigate to={ROLE_HOME[user?.role] ?? '/login'} replace />
 }
 
 export const router = createBrowserRouter([

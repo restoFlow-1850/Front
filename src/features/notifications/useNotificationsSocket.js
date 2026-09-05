@@ -1,171 +1,197 @@
-// Real-time bildirishnomalar — bitta joyda ulanadi (AppLayout, ilova bo'ylab bir marta).
-// Bu muhim: har bir komponent o'zi socket.on() qo'yib ketsa, remount bo'lganda listener
-// ko'payadi va bitta xabar bir necha marta chiqadi. useEffect cleanup'da socket.off()
-// har doim mos ravishda chaqiriladi.
+// Real-time bildirishnomalar — AppLayout orqali ilova bo'ylab bir marta ulanadi.
 import { useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useQueryClient } from '@tanstack/react-query'
 import { socket } from '../../services/socket'
 import { getTables } from './api'
-import { addNotification, fetchNotifications } from './notificationsSlice'
+import { addNotification } from './notificationsSlice'
 import { toast } from '../../components/ui'
 import { ROLES, ORDER_STATUS } from '../../constants/roles'
-import { playNotificationSound } from '../../utils/sound'
+
+const READY_EVENT_NAMES = ['order:status_updated', 'order:status_changed']
+const SEEN_IDS_MAX = 200
+
+function getId(value) {
+    if (!value) return null
+    if (typeof value === 'object') return value._id ?? value.id ?? null
+    return value
+}
 
 function resolveTableWaiterId(table) {
-  const raw = table.waiter ?? table.assignedWaiter
-  if (!raw) return null
-  return typeof raw === 'object' ? raw._id : raw
+    if (!table) return null
+    return getId(table.waiter ?? table.assignedWaiter ?? table.waiterId ?? table.assignedWaiterId)
+}
+
+function extractOrder(payload) {
+    if (!payload) return null
+    return payload.order ?? payload.data?.order ?? payload
+}
+
+function getTableFromOrder(order, payload) {
+    return order?.table ?? payload?.table ?? payload?.tableId ?? null
+}
+
+function getTableNumber(table, tableInfo) {
+    if (tableInfo?.number != null) return tableInfo.number
+    if (typeof table === 'object') return table.number ?? table.name ?? table._id ?? '?'
+    return table ?? '?'
+}
+
+function getOrderItems(order) {
+    const items = Array.isArray(order?.items) ? order.items : []
+    return items
+        .map((item) => {
+            const name = item?.name ?? item?.product?.name ?? item?.product ?? 'Taom'
+            const quantity = item?.quantity ?? 1
+            return `${name} ×${quantity}`
+        })
+        .filter(Boolean)
+}
+
+function resolveOrderWaiterId(order, payload) {
+    return getId(
+        order?.waiter ??
+        order?.assignedWaiter ??
+        order?.waiterId ??
+        order?.assignedWaiterId ??
+        payload?.waiter ??
+        payload?.assignedWaiter ??
+        payload?.waiterId ??
+        payload?.assignedWaiterId,
+    )
 }
 
 export default function useNotificationsSocket() {
-  const dispatch = useDispatch()
-  const user = useSelector((state) => state.auth.user)
-  const queryClient = useQueryClient()
-  const tablesRef = useRef({ byId: new Map(), waiterFieldSeen: false })
-  const seenEventsRef = useRef(new Map())
+    const dispatch = useDispatch()
+    const user = useSelector((state) => state.auth.user)
+    const tablesRef = useRef(new Map())
+    const seenReadyIdsRef = useRef(new Set())
 
-  // Backend'dan bildirishnomalarni yuklash (birinchi kirishda)
-  useEffect(() => {
-    dispatch(fetchNotifications())
-  }, [dispatch])
+    useEffect(() => {
+        // This feature is strictly for Waiters. Non-waiter accounts do not even
+        // subscribe to the waiter notification events.
+        if (user?.role !== ROLES.WAITER) return undefined
 
-  useEffect(() => {
-    let cancelled = false
+        let cancelled = false
 
-    const isDuplicate = (key) => {
-      const now = Date.now()
-      const last = seenEventsRef.current.get(key)
-      if (last && now - last < 2000) {
-        return true
-      }
-      seenEventsRef.current.set(key, now)
-      if (seenEventsRef.current.size > 100) {
-        for (const [k, ts] of seenEventsRef.current.entries()) {
-          if (now - ts > 5000) seenEventsRef.current.delete(k)
+        const loadTables = async () => {
+            try {
+                const res = await getTables()
+                const payload = res.data?.data ?? res.data
+                const tables = payload?.tables ?? payload ?? []
+                if (cancelled || !Array.isArray(tables)) return
+
+                const byId = new Map()
+                tables.forEach((table) => {
+                    if (table?._id || table?.id) {
+                        byId.set(table._id ?? table.id, {
+                            number: table.number,
+                            waiterId: resolveTableWaiterId(table),
+                        })
+                    }
+                })
+                tablesRef.current = byId
+            } catch {
+                // The socket payload may already contain table information, so
+                // notifications can still be displayed if the table request fails.
+            }
         }
-      }
-      return false
-    }
 
-    const loadTables = async () => {
-      try {
-        const res = await getTables()
-        const payload = res.data.data ?? res.data
-        const tables = payload.tables ?? payload ?? []
-        if (cancelled) return
+        loadTables()
 
-        const byId = new Map()
-        let waiterFieldSeen = false
-        tables.forEach((table) => {
-          const waiterId = resolveTableWaiterId(table)
-          if (waiterId) waiterFieldSeen = true
-          byId.set(table._id, { number: table.number, waiterId })
-        })
-        tablesRef.current = { byId, waiterFieldSeen }
-      } catch {
-        // Stollar ro'yxati kelmasa ham bildirishnoma ko'rsatishda davom etamiz
-      }
-    }
+        const currentUserId = getId(user)
 
-    const invalidateTablesAndOrders = () => {
-      queryClient.invalidateQueries({ queryKey: ['tables'], exact: false })
-      queryClient.invalidateQueries({ queryKey: ['orders'], exact: false })
-    }
+        const isForCurrentWaiter = (order, payload, tableInfo) => {
+            const targetWaiterId =
+                resolveOrderWaiterId(order, payload) ?? tableInfo?.waiterId ?? null
 
-    const handleTableUpdated = async () => {
-      invalidateTablesAndOrders()
-      await loadTables()
-    }
+            // If backend identifies the assigned waiter, enforce the assignment.
+            // If it does not, the role gate above still guarantees that only
+            // Waiter accounts receive this feature.
+            return !targetWaiterId || !currentUserId || targetWaiterId === currentUserId
+        }
 
-    const handleOrderEvent = () => {
-      invalidateTablesAndOrders()
-    }
+        const handleWaiterCalled = (payload) => {
+            const rawTable = payload?.table ?? payload?.tableId ?? payload
+            const tableId = getId(rawTable)
+            const tableInfo = tableId ? tablesRef.current.get(tableId) : null
+            const targetWaiterId = getId(
+                payload?.waiter ?? payload?.assignedWaiter ?? payload?.waiterId ?? payload?.assignedWaiterId,
+            ) ?? tableInfo?.waiterId ?? null
 
-    loadTables()
+            if (targetWaiterId && currentUserId && targetWaiterId !== currentUserId) return
 
-    const handleOrderReady = (payload) => {
-      const orderId = payload.orderId ?? payload.order?._id ?? payload._id
-      const dedupKey = `ready:${orderId}`
-      if (isDuplicate(dedupKey)) return
+            const tableNumber = getTableNumber(rawTable, tableInfo)
+            const message = `Stol ${tableNumber}: ofitsiant chaqirilmoqda!`
+            const notification = {
+                id: `waiter-call-${tableId ?? tableNumber}-${Date.now()}`,
+                type: 'table:waiter_called',
+                tableId,
+                tableNumber,
+                message,
+                read: false,
+                createdAt: new Date().toISOString(),
+            }
 
-      const { byId, waiterFieldSeen } = tablesRef.current
-      const tableInfo = byId.get(payload.table)
-      const tableNumber = tableInfo?.number ?? payload.table
+            dispatch(addNotification(notification))
+            toast.success(message)
+        }
 
-      const isWaiter = user?.role === ROLES.WAITER
-      const currentUserId = user?._id ?? user?.id
-      if (isWaiter && waiterFieldSeen && tableInfo?.waiterId && tableInfo.waiterId !== currentUserId) {
-        return
-      }
+        const handleOrderReady = (payload) => {
+            const order = extractOrder(payload)
+            const status = order?.status ?? payload?.status
+            if (status !== ORDER_STATUS.READY) return
 
-      const notification = {
-        id: `${orderId}-${Date.now()}`,
-        type: 'order:ready',
-        orderId,
-        tableNumber,
-        message: `Stol ${tableNumber}: buyurtma tayyor!`,
-        read: false,
-        createdAt: new Date().toISOString(),
-      }
+            const orderId = getId(order)
+            if (orderId && seenReadyIdsRef.current.has(orderId)) return
+            if (orderId) {
+                seenReadyIdsRef.current.add(orderId)
+                if (seenReadyIdsRef.current.size > SEEN_IDS_MAX) {
+                    const oldest = seenReadyIdsRef.current.values().next().value
+                    seenReadyIdsRef.current.delete(oldest)
+                }
+            }
 
-      playNotificationSound()
-      dispatch(addNotification(notification))
-      toast.success(notification.message)
-    }
+            const rawTable = getTableFromOrder(order, payload)
+            const tableId = getId(rawTable)
+            const tableInfo = tableId ? tablesRef.current.get(tableId) : null
+            const tableNumber = getTableNumber(rawTable, tableInfo)
 
-    const handleNotificationNew = (payload) => {
-      const notifId = payload._id ?? payload.id ?? `${payload.title}-${payload.message}`
-      const dedupKey = `notif:${notifId}`
-      if (isDuplicate(dedupKey)) return
+            if (!isForCurrentWaiter(order, payload, tableInfo)) return
 
-      const notification = {
-        _id: notifId,
-        type: payload.type ?? 'info',
-        title: payload.title ?? payload.message ?? 'Bildirishnoma',
-        message: payload.message ?? payload.body ?? '',
-        orderId: payload.orderId,
-        tableNumber: payload.tableNumber,
-        read: false,
-        createdAt: payload.createdAt ?? new Date().toISOString(),
-      }
-      playNotificationSound()
-      dispatch(addNotification(notification))
-      if (notification.message) {
-        toast.success(notification.message)
-      }
-    }
+            const items = getOrderItems(order)
+            const orderNumber = order?.number ?? order?.orderNumber ?? orderId ?? '?'
+            const itemsText = items.length ? items.join(', ') : 'Buyurtma tayyor'
+            const message = `Stol ${tableNumber}: #${orderNumber} — ${itemsText}`
 
-    const handleStatusEvent = (payload) => {
-      invalidateTablesAndOrders()
-      const status = payload?.status ?? payload?.order?.status
-      if (status === ORDER_STATUS.READY) {
-        handleOrderReady({
-          orderId: payload?.orderId ?? payload?._id ?? payload?.order?._id,
-          table: payload?.table ?? payload?.order?.table,
-        })
-      }
-    }
+            const notification = {
+                id: `order-ready-${orderId ?? tableId ?? Date.now()}`,
+                type: 'order:ready',
+                orderId,
+                orderNumber,
+                tableId,
+                tableNumber,
+                items,
+                message,
+                read: false,
+                createdAt: new Date().toISOString(),
+            }
 
-    socket.on('order:ready', handleOrderReady)
-    socket.on('order:new', handleOrderEvent)
-    socket.on('order:created', handleOrderEvent)
-    socket.on('order:status_changed', handleStatusEvent)
-    socket.on('order:cancelled', handleOrderEvent)
-    socket.on('table:updated', handleTableUpdated)
-    socket.on('table:status_updated', handleTableUpdated)
-    socket.on('notification:new', handleNotificationNew)
+            dispatch(addNotification(notification))
+            toast.success(message)
+        }
 
-    return () => {
-      cancelled = true
-      socket.off('order:ready', handleOrderReady)
-      socket.off('order:new', handleOrderEvent)
-      socket.off('order:created', handleOrderEvent)
-      socket.off('order:status_changed', handleStatusEvent)
-      socket.off('order:cancelled', handleOrderEvent)
-      socket.off('table:status_updated', handleTableUpdated)
-      socket.off('table:updated', handleTableUpdated)
-      socket.off('notification:new', handleNotificationNew)
-    }
-  }, [dispatch, queryClient, user])
+        // Existing backend contract: order status changes to the Uzbek READY value.
+        READY_EVENT_NAMES.forEach((eventName) => socket.on(eventName, handleOrderReady))
+        socket.on('table:status_updated', loadTables)
+        socket.on('table:waiter_called', handleWaiterCalled)
+
+        return () => {
+            cancelled = true
+            READY_EVENT_NAMES.forEach((eventName) => socket.off(eventName, handleOrderReady))
+            socket.off('table:status_updated', loadTables)
+            socket.off('table:waiter_called', handleWaiterCalled)
+        }
+    }, [dispatch, user])
 }
+
+export { getOrderItems, resolveOrderWaiterId }

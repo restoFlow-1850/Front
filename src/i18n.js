@@ -10,17 +10,14 @@ const resources = {
     en: { translation: en },
 }
 
-const savedLanguage = localStorage.getItem('language') || 'uz'
+const STORED_LANG =
+  typeof window !== 'undefined' ? window.localStorage.getItem('app:language') : null
 
 i18n.use(initReactI18next).init({
-  resources,
-  lng: savedLanguage,
-  fallbackLng: 'uz',
-  interpolation: { escapeValue: false },
-})
-
-i18n.on('languageChanged', (lng) => {
-  localStorage.setItem('language', lng)
+    resources,
+    lng: STORED_LANG || 'uz',
+    fallbackLng: 'uz',
+    interpolation: { escapeValue: false },
 })
 
 export default i18n

@@ -1,13 +1,18 @@
 // Axios instance — barcha API so'rovlari shu orqali yuboriladi.
 // Mas'ul: Fayoz (auth interceptor). Foydalanadi: hamma feature.
 import axios from 'axios'
-import { disconnectSocket } from './socket.js'
+import { disconnectSocket } from './socket'
+import { isStaleBackendSession, stampBackendOrigin, clearSession } from '../features/auth/session'
 
-const rawApiUrl = typeof import.meta !== 'undefined' ? import.meta.env?.VITE_API_URL : undefined
-const isDev = typeof import.meta !== 'undefined' && Boolean(import.meta.env?.DEV)
-const baseURL = isDev
-  ? (rawApiUrl && !rawApiUrl.startsWith('http') ? rawApiUrl : '/api')
-  : (rawApiUrl || 'https://backend-production-109c0.up.railway.app/api')
+const baseURL = import.meta.env.VITE_API_URL || 'https://backend-production-109c0.up.railway.app/api'
+
+// Backend Railway manzili o'zgargan bo'lsa (masalan qayta deploy qilingach),
+// brauzerda eski backend bergan token qolib ketishi mumkin. Yangi backend uni
+// tanimaydi va so'rovlar "sababsiz" 401/403 bilan qaytadi. Shuning uchun ilova
+// yuklanishi bilan — birinchi so'rov ketishidan OLDIN — tekshiramiz.
+if (isStaleBackendSession(baseURL)) {
+  clearSession()
+}
 
 const api = axios.create({
   baseURL,
@@ -37,20 +42,10 @@ const processQueue = (error, accessToken = null) => {
   pendingQueue = []
 }
 
-const AUTH_ENDPOINTS = [
-  '/auth/login',
-  '/auth/register',
-  '/auth/refresh',
-  '/auth/forgot-password',
-  '/auth/reset-password',
-  '/auth/send-otp',
-  '/auth/verify-otp',
-]
+const AUTH_ENDPOINTS = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/forgot-password']
 
 const redirectToLogin = () => {
-  localStorage.removeItem('accessToken')
-  localStorage.removeItem('refreshToken')
-  localStorage.removeItem('user')
+  clearSession()
   disconnectSocket()
   window.location.href = '/login'
 }
@@ -92,6 +87,7 @@ api.interceptors.response.use(
       const data = res.data?.data ?? res.data
       localStorage.setItem('accessToken', data.accessToken)
       if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken)
+      stampBackendOrigin(baseURL)
 
       processQueue(null, data.accessToken)
       originalRequest.headers.Authorization = `Bearer ${data.accessToken}`

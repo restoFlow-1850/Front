@@ -10,4 +10,3 @@ export const updateReservation = (id, payload) => api.put(`/reservations/${id}`,
 
 /** O'chirish faqat admin/manager uchun ochiq. */
 export const deleteReservation = (id) => api.delete(`/reservations/${id}`)
-export const clearAllReservations = () => api.delete('/reservations/clear-all')

@@ -4,11 +4,10 @@ import { useSelector } from 'react-redux'
 import { ShieldAlert } from 'lucide-react'
 
 import { ROLE_HOME, ROLE_LABELS } from '../constants/roles'
-import { readUser } from '../features/auth/session'
 
 export default function ForbiddenPage() {
-  const user = useSelector((state) => state.auth.user) || readUser()
-  const home = (user?.role && ROLE_HOME[user.role]) ? ROLE_HOME[user.role] : '/'
+  const user = useSelector((state) => state.auth.user)
+  const home = ROLE_HOME[user?.role] ?? '/'
 
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-4 text-center">
@@ -22,7 +21,7 @@ export default function ForbiddenPage() {
       </div>
       <Link
         to={home}
-        className="rounded-xl bg-gradient-to-r from-[#F97316] to-[#EA580C] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-orange-500/25 transition-all hover:scale-105"
+        className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
       >
         O'z panelimga qaytish
       </Link>

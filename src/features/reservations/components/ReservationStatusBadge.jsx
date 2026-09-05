@@ -1,10 +1,12 @@
 import Badge from '../../../components/ui/Badge';
-import { RESERVATION_STATUS_LABELS, RESERVATION_STATUS_TONE } from '../../../constants/roles';
+import { RESERVATION_STATUS_LABELS, RESERVATION_STATUS_COLORS } from '../../../constants/reservationStatus';
 
 const ReservationStatusBadge = ({ status }) => (
-  <Badge variant={RESERVATION_STATUS_TONE[status] || 'neutral'}>
-    {RESERVATION_STATUS_LABELS[status] || status}
-  </Badge>
+  <Badge
+    status={status}
+    label={RESERVATION_STATUS_LABELS[status] || status}
+    color={RESERVATION_STATUS_COLORS[status]}
+  />
 );
 
 export default ReservationStatusBadge;

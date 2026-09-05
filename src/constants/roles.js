@@ -41,7 +41,6 @@ export const ORDER_STATUS = {
   READY: 'tayyor',
   SERVED: 'berildi',
   CLOSED: 'yopilgan',
-  CANCELLED: 'bekor_qilingan',
 }
 
 export const ORDER_STATUS_LIST = [
@@ -50,7 +49,6 @@ export const ORDER_STATUS_LIST = [
   ORDER_STATUS.READY,
   ORDER_STATUS.SERVED,
   ORDER_STATUS.CLOSED,
-  ORDER_STATUS.CANCELLED,
 ]
 
 export const ORDER_STATUS_LABELS = {
@@ -59,7 +57,6 @@ export const ORDER_STATUS_LABELS = {
   [ORDER_STATUS.READY]: 'Tayyor',
   [ORDER_STATUS.SERVED]: 'Berildi',
   [ORDER_STATUS.CLOSED]: 'Yopilgan',
-  [ORDER_STATUS.CANCELLED]: 'Bekor qilingan',
 }
 
 // Badge ranglari (components/ui/Badge variantlari).
@@ -69,7 +66,6 @@ export const ORDER_STATUS_TONE = {
   [ORDER_STATUS.READY]: 'success',
   [ORDER_STATUS.SERVED]: 'neutral',
   [ORDER_STATUS.CLOSED]: 'neutral',
-  [ORDER_STATUS.CANCELLED]: 'danger',
 }
 
 // Statusni faqat oldinga surish mumkin — UI shu ketma-ketlikka tayanadi.
@@ -79,49 +75,16 @@ export const NEXT_ORDER_STATUS = {
   [ORDER_STATUS.READY]: ORDER_STATUS.SERVED,
   [ORDER_STATUS.SERVED]: ORDER_STATUS.CLOSED,
   [ORDER_STATUS.CLOSED]: null,
-  [ORDER_STATUS.CANCELLED]: null,
 }
 
-export const TABLE_STATUS = {
-  AVAILABLE: 'available',
-  BUSY: 'occupied',
-  RESERVED: 'reserved',
-  CLEANING: 'cleaning',
-}
-// Aliases for legacy component compatibility
-TABLE_STATUS.FREE = TABLE_STATUS.AVAILABLE
-TABLE_STATUS.OCCUPIED = TABLE_STATUS.BUSY
-
-export const TABLE_STATUS_LIST = [
-  TABLE_STATUS.AVAILABLE,
-  TABLE_STATUS.BUSY,
-  TABLE_STATUS.RESERVED,
-  TABLE_STATUS.CLEANING,
-]
-
-export const TABLE_STATUS_LABELS = {
-  [TABLE_STATUS.AVAILABLE]: "Bo'sh",
-  [TABLE_STATUS.BUSY]: 'Band',
-  [TABLE_STATUS.RESERVED]: 'Bron qilingan',
-  [TABLE_STATUS.CLEANING]: 'Tozalanmoqda',
-}
-
-export const TABLE_STATUS_TONE = {
-  [TABLE_STATUS.AVAILABLE]: 'success',
-  [TABLE_STATUS.BUSY]: 'danger',
-  [TABLE_STATUS.RESERVED]: 'warning',
-  [TABLE_STATUS.CLEANING]: 'neutral',
-}
-
-export const TABLE_STATUS_COLORS = {
-  [TABLE_STATUS.AVAILABLE]: '#22C55E',
-  [TABLE_STATUS.BUSY]: '#EF4444',
-  [TABLE_STATUS.RESERVED]: '#F59E0B',
-  [TABLE_STATUS.CLEANING]: '#94A3B8',
-}
-
-export const TRANSFERABLE_TARGET_STATUSES = [TABLE_STATUS.AVAILABLE]
-
+// ─── Stol holati ────────────────────────────────────────────────────────────
+// KO'CHIRILDI: bu yerda ilgari TABLE_STATUS/TABLE_STATUS_LABELS/TABLE_STATUS_TONE
+// alohida (va boshqacha kalitlar bilan: FREE/BUSY) qayta e'lon qilingan edi,
+// constants/tableStatus.js dagi versiyadan (AVAILABLE/OCCUPIED/RESERVED/CLEANING)
+// mustaqil holda. Ikkalasi ham 'available'/'occupied' qiymatlariga ega bo'lsa-da,
+// har xil kalit nomlari import qilingan joyga qarab noto'g'ri ishlatilishiga olib
+// kelishi mumkin edi. Endi YAGONA manba: constants/tableStatus.js.
+// import { TABLE_STATUS, TABLE_STATUS_LABELS, TABLE_STATUS_TONE } from './tableStatus'
 
 // ─── To'lov usuli ───────────────────────────────────────────────────────────
 // Backend Payment.METHODS = ['naqd','karta','click','payme']

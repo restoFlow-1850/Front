@@ -16,7 +16,7 @@ export const updateProduct = (id, formData) =>
   api.put(`/products/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
 export const deleteProduct = (id) => api.delete(`/products/${id}`)
 
-const API_ORIGIN = (import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'https://backend-production-109c0.up.railway.app/api')).replace(
+const API_ORIGIN = (import.meta.env.VITE_API_URL || 'https://backend-production-109c0.up.railway.app/api').replace(
   /\/api\/?$/,
   '',
 )

@@ -2,28 +2,26 @@
 // Mas'ul: Ziyoddila (infra). Foydalanadi: kitchen, orders, notifications.
 import { io } from 'socket.io-client'
 
-const rawApiUrl = typeof import.meta !== 'undefined' ? import.meta.env?.VITE_API_URL : undefined
-const apiUrl = rawApiUrl || (typeof window !== 'undefined' ? `${window.location.origin}/api` : 'https://backend-production-109c0.up.railway.app/api')
-const defaultSocketUrl = apiUrl.replace(/\/api\/?$/, '')
-const rawSocketUrl = typeof import.meta !== 'undefined' ? import.meta.env?.VITE_SOCKET_URL : undefined
-const isDev = typeof import.meta !== 'undefined' && Boolean(import.meta.env?.DEV)
-const URL = rawSocketUrl || (isDev && typeof window !== 'undefined' ? window.location.origin : defaultSocketUrl)
+// DIQQAT: bu yerdagi fallback services/axios.js dagi bilan BIR XIL bo'lishi SHART.
+// http://localhost:3000 turgani uchun mahalliy backend ishlamasa, brauzer
+// WebSocket'ni cheksiz qayta ulashga urinib, konsolni xato bilan to'ldirardi.
+const URL =
+  import.meta.env.VITE_SOCKET_URL || 'https://backend-production-109c0.up.railway.app'
 
 export const socket = io(URL, {
   autoConnect: false,
-  transports: ['websocket', 'polling'],
-  reconnection: true,
-  reconnectionAttempts: Infinity,
+  transports: ['websocket'],
+  reconnectionAttempts: 5,
   reconnectionDelay: 1000,
-  reconnectionDelayMax: 5000,
+  reconnectionDelayMax: 8000,
 })
 
-// Eventlar (backend bilan kelishilgan):
-//   order:new             — yangi buyurtma (oshxona)
-//   order:statusChanged   — status o'zgardi
-//   order:ready           — tayyor (ofitsiantga)
-//   table:status_updated — stol holati (backend kanonik nomi)
-//   notification:new      — yangi bildirishnoma
+// Eventlar (backenddan tasdiqlangan):
+//   order:created          — yangi buyurtma (umumiy)
+//   kitchen:new_order      — yangi buyurtma, oshxona xonasiga maxsus (ovozli signal shu yerda)
+//   order:status_updated   — buyurtma statusi o'zgardi
+//   order:status_changed   — status o'zgarishi uchun muqobil nom (ikkalasi ham tinglanadi)
+//   table:status_updated   — stol holati o'zgardi
 export const connectSocket = (token) => {
   socket.auth = { token }
   socket.connect()
@@ -31,6 +29,4 @@ export const connectSocket = (token) => {
 
 export const disconnectSocket = () => socket.disconnect()
 
-if (typeof import.meta !== 'undefined' && import.meta.env?.DEV && typeof window !== 'undefined') {
-  window.__socket = socket // TEMP: demo uchun
-}
+if (import.meta.env.DEV) window.__socket = socket // TEMP: demo uchun
