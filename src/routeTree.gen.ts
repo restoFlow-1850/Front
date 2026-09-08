@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AloqaRouteImport } from './routes/aloqa'
 import { Route as BronRouteImport } from './routes/bron'
 import { Route as MenyuRouteImport } from './routes/menyu'
+import { Route as RestoranSlugRouteImport } from './routes/restoran.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,18 +35,25 @@ const MenyuRoute = MenyuRouteImport.update({
   path: '/menyu',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RestoranSlugRoute = RestoranSlugRouteImport.update({
+  id: '/restoran/$slug',
+  path: '/restoran/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/aloqa': typeof AloqaRoute
   '/bron': typeof BronRoute
   '/menyu': typeof MenyuRoute
+  '/restoran/$slug': typeof RestoranSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/aloqa': typeof AloqaRoute
   '/bron': typeof BronRoute
   '/menyu': typeof MenyuRoute
+  '/restoran/$slug': typeof RestoranSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,14 @@ export interface FileRoutesById {
   '/aloqa': typeof AloqaRoute
   '/bron': typeof BronRoute
   '/menyu': typeof MenyuRoute
+  '/restoran/$slug': typeof RestoranSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/aloqa' | '/bron' | '/menyu'
+  fullPaths: '/' | '/aloqa' | '/bron' | '/menyu' | '/restoran/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/aloqa' | '/bron' | '/menyu'
-  id: '__root__' | '/' | '/aloqa' | '/bron' | '/menyu'
+  to: '/' | '/aloqa' | '/bron' | '/menyu' | '/restoran/$slug'
+  id: '__root__' | '/' | '/aloqa' | '/bron' | '/menyu' | '/restoran/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +76,7 @@ export interface RootRouteChildren {
   AloqaRoute: typeof AloqaRoute
   BronRoute: typeof BronRoute
   MenyuRoute: typeof MenyuRoute
+  RestoranSlugRoute: typeof RestoranSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,6 +109,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MenyuRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/restoran/$slug': {
+      id: '/restoran/$slug'
+      path: '/restoran/$slug'
+      fullPath: '/restoran/$slug'
+      preLoaderRoute: typeof RestoranSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +124,7 @@ const rootRouteChildren: RootRouteChildren = {
   AloqaRoute: AloqaRoute,
   BronRoute: BronRoute,
   MenyuRoute: MenyuRoute,
+  RestoranSlugRoute: RestoranSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
