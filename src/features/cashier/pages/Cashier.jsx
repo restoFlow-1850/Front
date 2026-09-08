@@ -1,4 +1,4 @@
-// Kassa — GET /api/payments/unpaid-orders, POST /api/payments, Split Bill, ReceiptPrintModal & To'lovlar tarixi
+// Kassa — GET /api/payments/unpaid-orders, POST /api/payments, Split Bill, ReceiptPrintModal, Socket Real-time & Ovozli Signal
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -36,6 +36,8 @@ import {
   PageHeader,
   Skeleton,
 } from '../../../components/ui'
+import { socket } from '../../../services/socket'
+import { playNotificationSound } from '../../../utils/sound'
 
 const METHOD_ICONS = {
   [PAYMENT_METHODS.CASH]: Banknote,
@@ -77,6 +79,33 @@ export default function Cashier() {
     enabled: Boolean(selectedId),
   })
 
+  // 🔔 Socket Real-time obunalar va ortiqcha listenerlarni tozalash (cleanup)
+  useEffect(() => {
+    const handleOrderEvent = () => {
+      playNotificationSound()
+      queryClient.invalidateQueries({ queryKey: ['orders', 'unpaid'] })
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    }
+
+    const handlePaymentEvent = () => {
+      playNotificationSound()
+      queryClient.invalidateQueries({ queryKey: ['orders', 'unpaid'] })
+      queryClient.invalidateQueries({ queryKey: ['payments'] })
+      queryClient.invalidateQueries({ queryKey: ['reports'] })
+    }
+
+    socket.on('order:new', handleOrderEvent)
+    socket.on('order:statusChanged', handleOrderEvent)
+    socket.on('payment:created', handlePaymentEvent)
+
+    // Unmount bo'lganda obunalarni toza o'chirish (Memory leak bo'lmaydi)
+    return () => {
+      socket.off('order:new', handleOrderEvent)
+      socket.off('order:statusChanged', handleOrderEvent)
+      socket.off('payment:created', handlePaymentEvent)
+    }
+  }, [queryClient])
+
   // To'lov mutation — POST /api/payments
   const paymentMutation = useMutation({
     mutationFn: (amount) =>
@@ -86,10 +115,11 @@ export default function Cashier() {
         ...(amount ? { amount } : {}),
       }),
     onSuccess: () => {
+      playNotificationSound() // 🔔 Ovozli bildirishnoma (Chime)
       toast.success("To'lov muvaffaqiyatli qabul qilindi!")
       setCustomAmount('')
       setSplitCount(1)
-      setIsReceiptModalOpen(true) // Automatically pop up receipt print modal for step 5
+      setIsReceiptModalOpen(true)
       queryClient.invalidateQueries({ queryKey: ['orders'] })
       queryClient.invalidateQueries({ queryKey: ['receipt', selectedId] })
       queryClient.invalidateQueries({ queryKey: ['reports'] })
@@ -117,7 +147,7 @@ export default function Cashier() {
   useEffect(() => {
     if (selectedId && unpaidQuery.isSuccess && !unpaid.some((o) => o._id === selectedId)) {
       if (!receipt || receipt.isPaid) {
-        // keep selected until cashier closes or moves on
+        // preserve selected receipt for print modal
       }
     }
   }, [unpaid, selectedId, unpaidQuery.isSuccess, receipt])

@@ -1,8 +1,6 @@
-// Boshqaruv paneli — React.lazy va Dynamic Importlar yordamida optimallashtirilgan.
-// Initial bundle size < 500 kB bo'lishi uchun ApexCharts React.lazy bilan,
-// html2canvas / Excel / PDF kutubxonalari esa dinamik import qilinadi.
-import { lazy, Suspense, useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+// Boshqaruv paneli — React.lazy, Dynamic Importlar va Real-time Socket obunalari bilan optimallashtirilgan.
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   AlertTriangle,
   ClipboardList,
@@ -30,12 +28,35 @@ import {
   StatCard,
 } from '../../../components/ui'
 import api from '../../../services/axios'
+import { socket } from '../../../services/socket'
 
 // ⚡ Dynamic React.lazy chart loading
 const Chart = lazy(() => import('react-apexcharts'))
 
 export default function Dashboard() {
+  const queryClient = useQueryClient()
   const [isSendingTelegram, setIsSendingTelegram] = useState(false)
+
+  // 🔔 Real-time socket eventlar obunasi va ortiqcha listenerlarni tozalash (cleanup)
+  useEffect(() => {
+    const handleRefetch = () => {
+      queryClient.invalidateQueries({ queryKey: ['reports', 'dashboard'] })
+      queryClient.invalidateQueries({ queryKey: ['orders', 'recent'] })
+      queryClient.invalidateQueries({ queryKey: ['tables'] })
+    }
+
+    socket.on('payment:created', handleRefetch)
+    socket.on('order:new', handleRefetch)
+    socket.on('order:statusChanged', handleRefetch)
+    socket.on('table:updated', handleRefetch)
+
+    return () => {
+      socket.off('payment:created', handleRefetch)
+      socket.off('order:new', handleRefetch)
+      socket.off('order:statusChanged', handleRefetch)
+      socket.off('table:updated', handleRefetch)
+    }
+  }, [queryClient])
 
   const handleSendTelegram = async () => {
     setIsSendingTelegram(true)
