@@ -23,6 +23,8 @@ const ForgotPasswordPage = lazy(() => import('../features/auth/pages/ForgotPassw
 const ResetPasswordPage = lazy(() => import('../features/auth/pages/ResetPassword'))
 const OTPPage = lazy(() => import('../features/auth/pages/OTP'))
 const GuestMenuPage = lazy(() => import('../features/qr-menu/pages/GuestMenuPage'))
+const LandingPage = lazy(() => import('../features/landing/pages/LandingPage'))
+const ClientsPage = lazy(() => import('../features/landing/pages/ClientsPage'))
 
 // ─── Himoyalangan sahifalar ─────────────────────────────────────
 const DashboardPage = lazy(() => import('../features/dashboard/pages/Dashboard'))
@@ -99,6 +101,10 @@ export const router = createBrowserRouter([
 
   // QR menyu — mehmon uchun, login talab qilinmaydi.
   { path: '/guest', element: <GuestMenuPage /> },
+
+  // Public landing sahifalari — token talab qilinmaydi.
+  { path: '/landing', element: <LandingPage /> },
+  { path: '/clients', element: <ClientsPage /> },
 
   {
     element: <PrivateRoute />,
