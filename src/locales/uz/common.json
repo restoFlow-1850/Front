@@ -348,7 +348,10 @@
     "reservationTime": "Bron vaqti",
     "selectDate": "Sanani tanlang",
     "confirmReservation": "Bronni tasdiqlash",
-    "cancelReservation": "Bronni bekor qilish"
+    "cancelReservation": "Bronni bekor qilish",
+    "checkin": "Mehmon keldi",
+    "checkinSuccess": "Mehmon keldi (Check-in muvaffaqiyatli)",
+    "checkinFailed": "Check-in amalga oshmadi"
   },
 
   "employees": {

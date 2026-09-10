@@ -3,10 +3,11 @@ import { useState, useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSelector } from 'react-redux'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, CalendarDays, Check, Pencil, Plus, Trash2, X } from 'lucide-react'
+import { AlertTriangle, CalendarDays, Check, Pencil, Plus, Trash2, UserCheck, X } from 'lucide-react'
 import { toast } from 'react-toastify'
 
 import {
+  checkinReservation,
   clearAllReservations,
   createReservation,
   deleteReservation,
@@ -67,6 +68,7 @@ export default function ReservationsPage() {
   const queryClient = useQueryClient()
   const role = useSelector((state) => state.auth.user?.role)
   const canDelete = [ROLES.ADMIN, ROLES.MANAGER].includes(role)
+  const canCheckIn = [ROLES.ADMIN, ROLES.MANAGER, ROLES.WAITER].includes(role)
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState(null)
@@ -95,6 +97,16 @@ export default function ReservationsPage() {
     queryClient.invalidateQueries({ queryKey: ['reservations'] })
     queryClient.invalidateQueries({ queryKey: ['tables'] })
   }
+
+  const checkinMutation = useMutation({
+    mutationFn: (id) => checkinReservation(id),
+    onSuccess: () => {
+      toast.success(t('reservations.checkinSuccess', { defaultValue: "Mehmon keldi — buyurtma oshxonaga yuborildi!" }))
+      invalidate()
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    },
+    onError: (error) => toast.error(apiErrorMessage(error, t('reservations.checkinFailed', { defaultValue: "Check-in amalga oshmadi" }))),
+  })
 
   const saveMutation = useMutation({
     mutationFn: () => {
@@ -369,6 +381,17 @@ export default function ReservationsPage() {
                     title={t('confirm')}
                   >
                     <Check className="mr-1 h-4 w-4" /> {t('confirm')}
+                  </Button>
+                )}
+                {reservation.status === RESERVATION_STATUS.CONFIRMED && canCheckIn && (
+                  <Button
+                    variant="primary"
+                    disabled={checkinMutation.isPending}
+                    isLoading={checkinMutation.isPending && checkinMutation.variables === reservation._id}
+                    onClick={() => checkinMutation.mutate(reservation._id)}
+                    title={t('reservations.checkin', { defaultValue: "Mehmon keldi" })}
+                  >
+                    <UserCheck className="mr-1.5 h-4 w-4" /> {t('reservations.checkin', { defaultValue: "Mehmon keldi" })}
                   </Button>
                 )}
                 {[RESERVATION_STATUS.PENDING, RESERVATION_STATUS.CONFIRMED].includes(reservation.status) && (

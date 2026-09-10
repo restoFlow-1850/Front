@@ -348,7 +348,10 @@
     "reservationTime": "Reservation Time",
     "selectDate": "Select Date",
     "confirmReservation": "Confirm Reservation",
-    "cancelReservation": "Cancel Reservation"
+    "cancelReservation": "Cancel Reservation",
+    "checkin": "Guest Arrived",
+    "checkinSuccess": "Guest arrived (Check-in successful)",
+    "checkinFailed": "Check-in failed"
   },
 
   "employees": {
