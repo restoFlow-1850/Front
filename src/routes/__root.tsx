@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
   Link,
@@ -11,7 +11,6 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { getVenue } from "../lib/api";
 import { CartProvider } from "../lib/cart";
 import { SiteHeader } from "../components/SiteHeader";
 import { SiteFooter } from "../components/SiteFooter";
@@ -146,13 +145,11 @@ function RootComponent() {
 }
 
 function SiteChrome({ children }: { children: ReactNode }) {
-  const venue = useQuery({ queryKey: ["venue"], queryFn: getVenue, retry: 1 });
-
   return (
     <div className="flex min-h-screen flex-col bg-cream text-ink">
-      <SiteHeader rating={venue.data?.rating} />
+      <SiteHeader />
       <div className="flex-1">{children}</div>
-      <SiteFooter venue={venue.data} />
+      <SiteFooter />
       <CartDrawer />
     </div>
   );

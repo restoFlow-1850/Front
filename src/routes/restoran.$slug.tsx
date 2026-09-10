@@ -1,11 +1,17 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { createReservation, formatSum, type Product } from "@/lib/api";
+import {
+  createReservation,
+  formatSum,
+  getCategories,
+  getProducts,
+  type Category,
+  type Product,
+} from "@/lib/api";
 import { useCart } from "@/lib/cart";
 import { MenuCard } from "@/components/MenuCard";
-import { FALLBACK_CATEGORIES } from "@/lib/menu-data";
-import { getRestaurant, restaurantMenu, restaurantTables } from "@/lib/restaurants";
+import { getRestaurant, restaurantTables } from "@/lib/restaurants";
 
 export const Route = createFileRoute("/restoran/$slug")({
   loader: ({ params }) => {
@@ -67,9 +73,15 @@ function RestaurantPage() {
   const [tab, setTab] = useState<"menyu" | "bron">("menyu");
   const [cat, setCat] = useState("all");
 
-  const menu: Product[] = useMemo(() => restaurantMenu(restaurant), [restaurant]);
-  const cats = FALLBACK_CATEGORIES.filter((c) => restaurant.categories.includes(c._id));
-  const list = menu.filter((p) => cat === "all" || String(p.category) === cat);
+  const productsQuery = useQuery({ queryKey: ["products"], queryFn: getProducts });
+  const categoriesQuery = useQuery({ queryKey: ["categories"], queryFn: getCategories });
+
+  const menu: Product[] = useMemo(() => productsQuery.data ?? [], [productsQuery.data]);
+  const catId = (p: Product) =>
+    typeof p.category === "string" ? p.category : (p.category?._id ?? "");
+  const used = new Set(menu.map(catId));
+  const cats: Category[] = (categoriesQuery.data ?? []).filter((c) => used.has(c._id));
+  const list = menu.filter((p) => cat === "all" || catId(p) === cat);
 
   return (
     <main className="mx-auto max-w-6xl px-6 pb-16">
@@ -159,11 +171,15 @@ function RestaurantPage() {
               </button>
             ))}
           </div>
-          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {list.map((p, i) => (
-              <MenuCard key={p._id} product={p} index={i} />
-            ))}
-          </div>
+          {productsQuery.isLoading ? (
+            <p className="mt-8 text-sm text-soft">Menyu yuklanmoqda…</p>
+          ) : (
+            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {list.map((p, i) => (
+                <MenuCard key={p._id} product={p} index={i} />
+              ))}
+            </div>
+          )}
           <div className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded-[22px] border border-ink/5 bg-lav/50 p-6 backdrop-blur-xl">
             <div>
               <p className="font-display text-2xl text-ink">Taomni tanladingizmi?</p>
