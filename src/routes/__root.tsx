@@ -146,13 +146,11 @@ function RootComponent() {
 }
 
 function SiteChrome({ children }: { children: ReactNode }) {
-  const venue = useQuery({ queryKey: ["venue"], queryFn: getVenue, retry: 1 });
-
   return (
     <div className="flex min-h-screen flex-col bg-cream text-ink">
-      <SiteHeader rating={venue.data?.rating} />
+      <SiteHeader />
       <div className="flex-1">{children}</div>
-      <SiteFooter venue={venue.data} />
+      <SiteFooter />
       <CartDrawer />
     </div>
   );
