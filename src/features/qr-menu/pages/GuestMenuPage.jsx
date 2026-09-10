@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'react-toastify'
-import { User, UtensilsCrossed, Sparkles } from 'lucide-react'
+import { User, UtensilsCrossed, MapPin } from 'lucide-react'
 
 import {
   createGuestReservation,
@@ -20,6 +20,17 @@ import LanguageSwitcher from '../../../components/common/LanguageSwitcher'
 
 const PHONE_RE = /^[+\d][\d\s-]{6,17}$/
 
+// Landing kartasidan o'tilganda sessionStorage'ga yozilgan restoran ma'lumoti.
+// Qidiruv tabda ochilsa ham ishlaydi — sessionStorage tab bo'yicha saqlanadi.
+function readGuestRestaurant() {
+  try {
+    const raw = sessionStorage.getItem('guestRestaurant')
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
 function initialTimeFor(dateStr) {
   const slots = buildTimeSlots(dateStr)
   return slots[0] || ''
@@ -28,6 +39,9 @@ function initialTimeFor(dateStr) {
 export default function GuestMenuPage() {
   const { t } = useTranslation()
   const [step, setStep] = useState('hall')
+
+  // Landing → restoran kartasi orqali kelinsa, restoran nomini ko'rsatamiz.
+  const [guestRestaurant] = useState(readGuestRestaurant)
 
   // Zal — sana/vaqt/mehmonlar va stollar
   const [date, setDate] = useState(() => toDateInputValue(new Date()))
@@ -192,7 +206,13 @@ export default function GuestMenuPage() {
               <p className="text-lg font-black tracking-tight text-white">
                 Resto<span className="text-[#F97316]">Flow</span>
               </p>
-              <p className="text-[11px] font-bold text-slate-400">{t('qrMenu.reserveTable')}</p>
+              {guestRestaurant?.name ? (
+                <p className="flex items-center gap-1 text-[11px] font-bold text-[#F97316]">
+                  <MapPin size={11} /> {guestRestaurant.name}
+                </p>
+              ) : (
+                <p className="text-[11px] font-bold text-slate-400">{t('qrMenu.reserveTable')}</p>
+              )}
             </div>
           </div>
 
