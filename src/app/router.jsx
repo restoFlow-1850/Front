@@ -35,6 +35,7 @@ const TablesPage = lazy(() => import('../features/tables/pages/TablesPage'))
 const ReservationsPage = lazy(() => import('../features/reservations/pages/ReservationsPage'))
 const EmployeesPage = lazy(() => import('../features/employees/pages/EmployeesPage'))
 const NotificationsPage = lazy(() => import('../features/notifications/pages/NotificationsPage'))
+const FeedbackPage = lazy(() => import('../features/feedback/pages/FeedbackPage'))
 const SettingsPage = lazy(() => import('../features/settings/pages/SettingsPage'))
 const ProfilePage = lazy(() => import('../features/auth/pages/Profile'))
 
@@ -55,6 +56,7 @@ const PAGE_BY_KEY = {
   reservations: <ReservationsPage />,
   employees: <EmployeesPage />,
   notifications: <NotificationsPage />,
+  feedback: <FeedbackPage />,
   settings: <SettingsPage />,
   profile: <ProfilePage />,
 }

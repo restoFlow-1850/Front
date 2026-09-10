@@ -13,6 +13,7 @@ import {
   Users,
   Bell,
   Settings,
+  MessageSquareHeart,
 } from 'lucide-react'
 
 import { ROLES } from './roles'
@@ -111,6 +112,14 @@ export const NAV_ITEMS = [
     label: 'Bildirishnomalar',
     icon: Bell,
     roles: ALL,
+    inSidebar: true,
+  },
+  {
+    key: 'feedback',
+    path: '/feedback',
+    label: 'Mijozlar fikri',
+    icon: MessageSquareHeart,
+    roles: STAFF,
     inSidebar: true,
   },
   {
