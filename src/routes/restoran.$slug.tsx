@@ -1,11 +1,17 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { createReservation, formatSum, type Product } from "@/lib/api";
+import {
+  createReservation,
+  formatSum,
+  getCategories,
+  getProducts,
+  type Category,
+  type Product,
+} from "@/lib/api";
 import { useCart } from "@/lib/cart";
 import { MenuCard } from "@/components/MenuCard";
-import { FALLBACK_CATEGORIES } from "@/lib/menu-data";
-import { getRestaurant, restaurantMenu, restaurantTables } from "@/lib/restaurants";
+import { getRestaurant, restaurantTables } from "@/lib/restaurants";
 
 export const Route = createFileRoute("/restoran/$slug")({
   loader: ({ params }) => {
