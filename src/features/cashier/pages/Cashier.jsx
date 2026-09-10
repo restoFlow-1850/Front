@@ -1,4 +1,4 @@
-// Kassa — GET /api/payments/unpaid-orders, POST /api/payments, Split Bill, ReceiptPrintModal & To'lovlar tarixi
+// Kassa — GET /api/payments/unpaid-orders, POST /api/payments, Split Bill, ReceiptPrintModal, Socket Real-time & Ovozli Signal
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -40,6 +40,7 @@ import {
   PageHeader,
   Skeleton,
 } from '../../../components/ui'
+import { socket } from '../../../services/socket'
 
 const METHOD_ICONS = {
   [PAYMENT_METHODS.CASH]: Banknote,
@@ -106,6 +107,35 @@ export default function Cashier() {
     enabled: Boolean(selectedId),
   })
 
+  // 🔔 Socket Real-time obunalar va ortiqcha listenerlarni tozalash (cleanup)
+  useEffect(() => {
+    const handleOrderEvent = () => {
+      playNotificationSound()
+      queryClient.invalidateQueries({ queryKey: ['orders', 'unpaid'] })
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    }
+
+    const handlePaymentEvent = () => {
+      playNotificationSound()
+      queryClient.invalidateQueries({ queryKey: ['orders', 'unpaid'] })
+      queryClient.invalidateQueries({ queryKey: ['payments'] })
+      queryClient.invalidateQueries({ queryKey: ['reports'] })
+    }
+
+    socket.on('order:created', handleOrderEvent)
+    socket.on('order:status_changed', handleOrderEvent)
+    socket.on('table:status_updated', handleOrderEvent)
+    socket.on('payment:created', handlePaymentEvent)
+
+    // Unmount bo'lganda obunalarni toza o'chirish (Memory leak bo'lmaydi)
+    return () => {
+      socket.off('order:created', handleOrderEvent)
+      socket.off('order:status_changed', handleOrderEvent)
+      socket.off('table:status_updated', handleOrderEvent)
+      socket.off('payment:created', handlePaymentEvent)
+    }
+  }, [queryClient])
+
   // To'lov mutation — POST /api/payments
   const paymentMutation = useMutation({
     mutationFn: (amount) =>
@@ -117,7 +147,7 @@ export default function Cashier() {
     onMutate: async (amount) => {
       setCustomAmount('')
       setSplitCount(1)
-      setIsReceiptModalOpen(true) // Automatically pop up receipt print modal for step 5
+      setIsReceiptModalOpen(true)
       if (!amount || amount >= remaining) {
         queryClient.setQueryData(['orders', 'unpaid'], (old) => {
           if (!Array.isArray(old)) return old
@@ -154,7 +184,7 @@ export default function Cashier() {
   useEffect(() => {
     if (selectedId && unpaidQuery.isSuccess && !unpaid.some((o) => o._id === selectedId)) {
       if (!receipt || receipt.isPaid) {
-        // keep selected until cashier closes or moves on
+        // preserve selected receipt for print modal
       }
     }
   }, [unpaid, selectedId, unpaidQuery.isSuccess, receipt])

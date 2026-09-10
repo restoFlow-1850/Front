@@ -5,10 +5,16 @@ import api from '../../services/axios'
 export const getTableAvailability = (isoDateTime) =>
   api.get('/tables/availability', { params: { date: isoDateTime } })
 
+export const getRestaurantTableAvailability = (restaurantId, isoDateTime) =>
+  api.get(`/restaurants/${restaurantId}/tables/availability`, { params: { date: isoDateTime } })
+
 export const getPublicCategories = () => api.get('/categories')
 
 export const getPublicProducts = (params) =>
   api.get('/products', { params: { limit: 100, isAvailable: true, ...params } })
+
+export const getRestaurantMenu = (restaurantId, params) =>
+  api.get(`/restaurants/${restaurantId}/menu`, { params: { isAvailable: true, ...params } })
 
 export const createGuestReservation = (payload) => api.post('/reservations', payload)
 

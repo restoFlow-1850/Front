@@ -1,8 +1,6 @@
-// Boshqaruv paneli — React.lazy va Dynamic Importlar yordamida optimallashtirilgan.
-// Initial bundle size < 500 kB bo'lishi uchun ApexCharts React.lazy bilan,
-// html2canvas / Excel / PDF kutubxonalari esa dinamik import qilinadi.
-import { lazy, Suspense, useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+// Boshqaruv paneli — React.lazy, Dynamic Importlar va Real-time Socket obunalari bilan optimallashtirilgan.
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import {
   AlertTriangle,
@@ -36,14 +34,37 @@ import {
 import { exportToCSV, exportToExcel } from '../../../utils/exportToExcel'
 import { exportToPDF as exportPDFUtil } from '../../../utils/exportUtils'
 import api from '../../../services/axios'
+import { socket } from '../../../services/socket'
 
 // ⚡ Dynamic React.lazy chart loading to keep bundle size under 500 kB
 const Chart = lazy(() => import('react-apexcharts'))
 
 export default function Dashboard() {
   const { t } = useTranslation()
+  const queryClient = useQueryClient()
   const [isExporting, setIsExporting] = useState(false)
   const [isSendingTelegram, setIsSendingTelegram] = useState(false)
+
+  // 🔔 Real-time socket eventlar obunasi va ortiqcha listenerlarni tozalash (cleanup)
+  useEffect(() => {
+    const handleRefetch = () => {
+      queryClient.invalidateQueries({ queryKey: ['reports', 'dashboard'] })
+      queryClient.invalidateQueries({ queryKey: ['orders', 'recent'] })
+      queryClient.invalidateQueries({ queryKey: ['tables'] })
+    }
+
+    socket.on('payment:created', handleRefetch)
+    socket.on('order:created', handleRefetch)
+    socket.on('order:status_changed', handleRefetch)
+    socket.on('table:status_updated', handleRefetch)
+
+    return () => {
+      socket.off('payment:created', handleRefetch)
+      socket.off('order:created', handleRefetch)
+      socket.off('order:status_changed', handleRefetch)
+      socket.off('table:status_updated', handleRefetch)
+    }
+  }, [queryClient])
 
   const handleSendTelegram = async () => {
     setIsSendingTelegram(true)

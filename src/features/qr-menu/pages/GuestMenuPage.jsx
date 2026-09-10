@@ -1,13 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'react-toastify'
-import { User, UtensilsCrossed, Sparkles } from 'lucide-react'
+import { User, UtensilsCrossed, MapPin } from 'lucide-react'
 
 import {
   createGuestReservation,
   getPublicCategories,
   getPublicProducts,
+  getRestaurantMenu,
+  getRestaurantTableAvailability,
   getTableAvailability,
 } from '../api'
 import StepHeader from '../components/StepHeader'
@@ -17,8 +19,21 @@ import MenuStep from '../components/MenuStep'
 import ConfirmStep from '../components/ConfirmStep'
 import SuccessStep from '../components/SuccessStep'
 import LanguageSwitcher from '../../../components/common/LanguageSwitcher'
+import FeedbackModal from '../../feedback/components/FeedbackModal'
+import { MessageSquareHeart } from 'lucide-react'
 
 const PHONE_RE = /^[+\d][\d\s-]{6,17}$/
+
+// Landing kartasidan o'tilganda sessionStorage'ga yozilgan restoran ma'lumoti.
+// Qidiruv tabda ochilsa ham ishlaydi — sessionStorage tab bo'yicha saqlanadi.
+function readGuestRestaurant() {
+  try {
+    const raw = sessionStorage.getItem('guestRestaurant')
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
 
 function initialTimeFor(dateStr) {
   const slots = buildTimeSlots(dateStr)
@@ -27,7 +42,14 @@ function initialTimeFor(dateStr) {
 
 export default function GuestMenuPage() {
   const { t } = useTranslation()
+  const [searchParams] = useSearchParams()
+  const qrTableId = searchParams.get('table')
+  const hasAppliedQrTable = useRef(false)
   const [step, setStep] = useState('hall')
+
+  // Landing → restoran kartasi orqali kelinsa, restoran nomini ko'rsatamiz.
+  const [guestRestaurant] = useState(readGuestRestaurant)
+  const restaurantId = searchParams.get('restaurant') ?? guestRestaurant?.id ?? guestRestaurant?._id
 
   // Zal — sana/vaqt/mehmonlar va stollar
   const [date, setDate] = useState(() => toDateInputValue(new Date()))
@@ -51,6 +73,7 @@ export default function GuestMenuPage() {
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [reservation, setReservation] = useState(null)
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false)
 
   useEffect(() => {
     const slots = buildTimeSlots(date)
@@ -68,7 +91,9 @@ export default function GuestMenuPage() {
     if (!isoDateTime) return
     setTablesLoading(true)
     try {
-      const res = await getTableAvailability(isoDateTime)
+      const res = restaurantId
+        ? await getRestaurantTableAvailability(restaurantId, isoDateTime)
+        : await getTableAvailability(isoDateTime)
       const payload = res.data?.data ?? res.data
       setTables(payload.tables ?? [])
     } catch {
@@ -76,33 +101,57 @@ export default function GuestMenuPage() {
     } finally {
       setTablesLoading(false)
     }
-  }, [isoDateTime, t])
+  }, [isoDateTime, restaurantId, t])
 
   useEffect(() => {
     fetchAvailability()
   }, [fetchAvailability])
 
   useEffect(() => {
+    if (!qrTableId || tablesLoading || hasAppliedQrTable.current) return
+
+    hasAppliedQrTable.current = true
+    const qrTable = tables.find((table) => String(table._id ?? table.id) === qrTableId)
+    if (qrTable && !qrTable.isReserved) {
+      setSelectedTable(qrTable)
+      return
+    }
+
+    toast.error("QR koddagi stol hozir band yoki topilmadi")
+  }, [qrTableId, tables, tablesLoading])
+
+  useEffect(() => {
     if (step !== 'hall') return
     setSelectedTable((prev) => {
       if (!prev) return prev
-      const fresh = tables.find((t) => t._id === prev._id)
+      const fresh = tables.find((t) => (t._id ?? t.id) === (prev._id ?? prev.id))
       return fresh && !fresh.isReserved ? fresh : null
     })
   }, [tables, step])
 
   useEffect(() => {
     setMenuLoading(true)
-    Promise.all([getPublicCategories(), getPublicProducts()])
-      .then(([catRes, prodRes]) => {
-        const catPayload = catRes.data?.data ?? catRes.data
-        const prodPayload = prodRes.data?.data ?? prodRes.data
-        setCategories((catPayload.categories ?? []).filter((c) => c.isActive !== false))
-        setProducts(prodPayload.products ?? [])
+    const menuRequest = restaurantId
+      ? getRestaurantMenu(restaurantId)
+      : Promise.all([getPublicCategories(), getPublicProducts()]).then(([categories, products]) => ({ categories, products }))
+
+    menuRequest
+      .then((response) => {
+        if (restaurantId) {
+          const payload = response.data?.data ?? response.data
+          return [payload.categories ?? [], payload.products ?? []]
+        }
+        return Promise.all([response.categories, response.products]).then(([categories, products]) => [categories.data?.data ?? categories.data, products.data?.data ?? products.data])
+      })
+      .then(([catPayload, prodPayload]) => {
+        const nextCategories = Array.isArray(catPayload) ? catPayload : (catPayload.categories ?? [])
+        const nextProducts = Array.isArray(prodPayload) ? prodPayload : (prodPayload.products ?? [])
+        setCategories(nextCategories.filter((category) => category.isActive !== false))
+        setProducts(nextProducts)
       })
       .catch(() => toast.error(t('kitchen.loadFailed')))
       .finally(() => setMenuLoading(false))
-  }, [t])
+  }, [restaurantId, t])
 
   const handleQtyChange = useCallback((product, qty) => {
     setCart((prev) => {
@@ -141,7 +190,7 @@ export default function GuestMenuPage() {
       const res = await createGuestReservation({
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
-        table: selectedTable._id,
+        table: selectedTable._id ?? selectedTable.id,
         date: isoDateTime,
         guests,
         notes: notes.trim() || undefined,
@@ -150,7 +199,7 @@ export default function GuestMenuPage() {
       const payload = res.data?.data ?? res.data
       setReservation(payload.reservation)
       setTables((prev) =>
-        prev.map((tbl) => (tbl._id === selectedTable._id ? { ...tbl, isReserved: true } : tbl))
+        prev.map((tbl) => ((tbl._id ?? tbl.id) === (selectedTable._id ?? selectedTable.id) ? { ...tbl, isReserved: true } : tbl))
       )
       fetchAvailability()
       setStep('success')
@@ -192,7 +241,13 @@ export default function GuestMenuPage() {
               <p className="text-lg font-black tracking-tight text-white">
                 Resto<span className="text-[#F97316]">Flow</span>
               </p>
-              <p className="text-[11px] font-bold text-slate-400">{t('qrMenu.reserveTable')}</p>
+              {guestRestaurant?.name ? (
+                <p className="flex items-center gap-1 text-[11px] font-bold text-[#F97316]">
+                  <MapPin size={11} /> {guestRestaurant.name}
+                </p>
+              ) : (
+                <p className="text-[11px] font-bold text-slate-400">{t('qrMenu.reserveTable')}</p>
+              )}
             </div>
           </div>
 
@@ -279,6 +334,22 @@ export default function GuestMenuPage() {
           />
         )}
       </main>
+
+      {/* Floating Fikr-mulohaza Button */}
+      <button
+        type="button"
+        onClick={() => setIsFeedbackOpen(true)}
+        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-gradient-to-r from-[#F97316] to-[#EA580C] px-4 py-3 text-sm font-bold text-white shadow-xl shadow-orange-500/30 hover:scale-105 active:scale-95 transition-transform"
+      >
+        <MessageSquareHeart className="h-5 w-5" />
+        <span className="hidden sm:inline">Fikr bildirish</span>
+      </button>
+
+      <FeedbackModal
+        isOpen={isFeedbackOpen}
+        onClose={() => setIsFeedbackOpen(false)}
+        defaultTable={selectedTable?.number ? String(selectedTable.number) : ''}
+      />
     </div>
   )
 }

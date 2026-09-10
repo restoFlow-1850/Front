@@ -273,8 +273,17 @@
     "statusChanged": "Статус изменён на «{{status}}»",
     "statusChangeFailed": "Не удалось изменить статус",
     "loadFailed": "Не удалось загрузить заказы",
+    "newOrdersBadge": "{{count}} новых заказов",
+    "waiterCall": {
+      "title": "Вызов официанта",
+      "bannerTitle": "Вызовы официанта ({{count}})",
+      "elapsed": "{{seconds}} сек. назад",
+      "dismiss": "Закрыть",
+      "dismissAll": "Очистить все"
+    },
     "audio": {
       "newOrderAlert": "Новый заказ для стола {{table}}!",
+      "waiterCalledAlert": "Стол {{table}} вызывает официанта!",
       "testAlertMessage": "Проверка звукового оповещения кухни. Система готова!"
     }
   },
@@ -339,7 +348,10 @@
     "reservationTime": "Время брони",
     "selectDate": "Выберите дату",
     "confirmReservation": "Подтвердить бронь",
-    "cancelReservation": "Отменить бронь"
+    "cancelReservation": "Отменить бронь",
+    "checkin": "Гость пришел",
+    "checkinSuccess": "Гость пришел (Check-in успешен)",
+    "checkinFailed": "Ошибка при Check-in"
   },
 
   "employees": {

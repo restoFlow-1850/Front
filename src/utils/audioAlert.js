@@ -64,3 +64,44 @@ export function triggerNewOrderAlert(table, message, langCode = 'uz') {
     // Ovoz ishlamasa ham oshxona ekrani ishlashda davom etishi kerak — jim o'tkazamiz.
   }
 }
+
+// Ofitsiant chaqiruvi uchun alohida signal — uch notali "ring-ring-ring",
+// tezroq va balandroq, yangi buyurtma chime'dan farqli.
+function playWaiterCallChime() {
+  const ctx = getAudioContext()
+  if (!ctx) return
+  if (ctx.state === 'suspended') ctx.resume()
+
+  const notes = [
+    { freq: 1200, start: 0, duration: 0.12 },
+    { freq: 1000, start: 0.1, duration: 0.12 },
+    { freq: 1200, start: 0.2, duration: 0.18 },
+  ]
+
+  notes.forEach(({ freq, start, duration }) => {
+    const oscillator = ctx.createOscillator()
+    const gain = ctx.createGain()
+    oscillator.type = 'triangle'
+    oscillator.frequency.value = freq
+    oscillator.connect(gain)
+    gain.connect(ctx.destination)
+
+    const startTime = ctx.currentTime + start
+    gain.gain.setValueAtTime(0.0001, startTime)
+    gain.gain.exponentialRampToValueAtTime(0.5, startTime + 0.01)
+    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration)
+
+    oscillator.start(startTime)
+    oscillator.stop(startTime + duration + 0.05)
+  })
+}
+
+export function triggerWaiterCallAlert(table, message, langCode = 'uz') {
+  try {
+    playWaiterCallChime()
+    window.setTimeout(() => speak(message, langCode), 450)
+  } catch {
+    // Jim o'tkazamiz — oshxona ishlashda davom etishi kerak.
+  }
+}
+
