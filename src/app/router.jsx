@@ -5,8 +5,7 @@
 // quriladi — shuning uchun "menyuda ko'rinadi, lekin ochilmaydi" turidagi
 // nomuvofiqlik printsipial ravishda yuzaga kelmaydi.
 import { lazy } from 'react'
-import { createBrowserRouter, Navigate } from 'react-router-dom'
-import { useSelector } from 'react-redux'
+import { createBrowserRouter } from 'react-router-dom'
 
 import PrivateRoute from '../routes/PrivateRoute'
 import PublicRoute from '../routes/PublicRoute'
@@ -14,8 +13,6 @@ import RoleRoute from '../routes/RoleRoute'
 import AppLayout from '../layouts/AppLayout'
 import AuthLayout from '../layouts/AuthLayout'
 import { NAV_ITEMS } from '../constants/navigation'
-import { ROLE_HOME } from '../constants/roles'
-import { readUser } from '../features/auth/session'
 
 // ─── Ochiq sahifalar ─────────────────────────────────────────────
 const LoginPage = lazy(() => import('../features/auth/pages/LoginPage'))
@@ -24,6 +21,8 @@ const ForgotPasswordPage = lazy(() => import('../features/auth/pages/ForgotPassw
 const ResetPasswordPage = lazy(() => import('../features/auth/pages/ResetPassword'))
 const OTPPage = lazy(() => import('../features/auth/pages/OTP'))
 const GuestMenuPage = lazy(() => import('../features/qr-menu/pages/GuestMenuPage'))
+const LandingPage = lazy(() => import('../features/landing/pages/LandingPage'))
+const ClientsPage = lazy(() => import('../features/landing/pages/ClientsPage'))
 
 // ─── Himoyalangan sahifalar ─────────────────────────────────────
 const DashboardPage = lazy(() => import('../features/dashboard/pages/Dashboard'))
@@ -77,12 +76,6 @@ function buildProtectedRoutes() {
   }).filter(Boolean)
 }
 
-// '/' ga tushgan foydalanuvchini o'z roliga mos panelga yo'naltiradi.
-function RoleHomeRedirect() {
-  const user = useSelector((state) => state.auth.user) || readUser()
-  return <Navigate to={(user?.role && ROLE_HOME[user.role]) ? ROLE_HOME[user.role] : '/login'} replace />
-}
-
 export const router = createBrowserRouter([
   {
     element: <PublicRoute />,
@@ -100,6 +93,12 @@ export const router = createBrowserRouter([
     ],
   },
 
+  // Public landing (bosh sahifa / manzil) va mijozlar sahifalari — token
+  // talab qilinmaydi. '/' har doim landing: login qilmagan mehmon ham
+  // restoranlarni ko'rib, mehmon menyusiga o'ta oladi.
+  { path: '/', element: <LandingPage /> },
+  { path: '/clients', element: <ClientsPage /> },
+
   // QR menyu — mehmon uchun, login talab qilinmaydi.
   { path: '/guest', element: <GuestMenuPage /> },
 
@@ -109,7 +108,6 @@ export const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
-          { index: true, element: <RoleHomeRedirect /> },
           { path: '/403', element: <ForbiddenPage /> },
           ...buildProtectedRoutes(),
         ],
