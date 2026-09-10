@@ -171,11 +171,15 @@ function RestaurantPage() {
               </button>
             ))}
           </div>
-          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {list.map((p, i) => (
-              <MenuCard key={p._id} product={p} index={i} />
-            ))}
-          </div>
+          {productsQuery.isLoading ? (
+            <p className="mt-8 text-sm text-soft">Menyu yuklanmoqda…</p>
+          ) : (
+            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {list.map((p, i) => (
+                <MenuCard key={p._id} product={p} index={i} />
+              ))}
+            </div>
+          )}
           <div className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded-[22px] border border-ink/5 bg-lav/50 p-6 backdrop-blur-xl">
             <div>
               <p className="font-display text-2xl text-ink">Taomni tanladingizmi?</p>
