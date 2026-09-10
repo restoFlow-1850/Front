@@ -15,6 +15,7 @@ import {
   Settings,
   ScrollText,
   SlidersHorizontal,
+  MessageSquareHeart,
 } from 'lucide-react'
 
 import { ROLES, ROLE_HOME } from './roles.js'
@@ -113,6 +114,14 @@ export const NAV_ITEMS = [
     label: 'Bildirishnomalar',
     icon: Bell,
     roles: ALL,
+    inSidebar: true,
+  },
+  {
+    key: 'feedback',
+    path: '/feedback',
+    label: 'Mijozlar fikri',
+    icon: MessageSquareHeart,
+    roles: STAFF,
     inSidebar: true,
   },
   {

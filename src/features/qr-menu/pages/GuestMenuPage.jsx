@@ -17,6 +17,8 @@ import MenuStep from '../components/MenuStep'
 import ConfirmStep from '../components/ConfirmStep'
 import SuccessStep from '../components/SuccessStep'
 import LanguageSwitcher from '../../../components/common/LanguageSwitcher'
+import FeedbackModal from '../../feedback/components/FeedbackModal'
+import { MessageSquareHeart } from 'lucide-react'
 
 const PHONE_RE = /^[+\d][\d\s-]{6,17}$/
 
@@ -65,6 +67,7 @@ export default function GuestMenuPage() {
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [reservation, setReservation] = useState(null)
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false)
 
   useEffect(() => {
     const slots = buildTimeSlots(date)
@@ -299,6 +302,22 @@ export default function GuestMenuPage() {
           />
         )}
       </main>
+
+      {/* Floating Fikr-mulohaza Button */}
+      <button
+        type="button"
+        onClick={() => setIsFeedbackOpen(true)}
+        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-gradient-to-r from-[#F97316] to-[#EA580C] px-4 py-3 text-sm font-bold text-white shadow-xl shadow-orange-500/30 hover:scale-105 active:scale-95 transition-transform"
+      >
+        <MessageSquareHeart className="h-5 w-5" />
+        <span className="hidden sm:inline">Fikr bildirish</span>
+      </button>
+
+      <FeedbackModal
+        isOpen={isFeedbackOpen}
+        onClose={() => setIsFeedbackOpen(false)}
+        defaultTable={selectedTable?.number ? String(selectedTable.number) : ''}
+      />
     </div>
   )
 }
