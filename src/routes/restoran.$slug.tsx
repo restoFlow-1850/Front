@@ -6,12 +6,14 @@ import {
   formatSum,
   getCategories,
   getProducts,
+  getTables,
   type Category,
   type Product,
 } from "@/lib/api";
 import { useCart } from "@/lib/cart";
 import { MenuCard } from "@/components/MenuCard";
 import { getRestaurant, restaurantTables } from "@/lib/restaurants";
+import { placeOrder } from "@/lib/orders.functions";
 
 export const Route = createFileRoute("/restoran/$slug")({
   loader: ({ params }) => {
@@ -216,7 +218,15 @@ function BookingSection({ slug, name }: { slug: string; name: string }) {
 
   const { lines, total, clear } = useCart();
   const dateISO = new Date(`${day}T${time}:00`).toISOString();
-  const tables = useMemo(() => restaurantTables(restaurant, dateISO), [restaurant, dateISO]);
+
+  const tablesQuery = useQuery({
+    queryKey: ["tables", day, time],
+    queryFn: () => getTables(dateISO),
+  });
+  const tables = useMemo(() => {
+    if (tablesQuery.data?.length) return tablesQuery.data;
+    return restaurantTables(restaurant, dateISO);
+  }, [tablesQuery.data, restaurant, dateISO]);
 
   const reserve = useMutation({
     mutationFn: async () => {
@@ -238,12 +248,38 @@ function BookingSection({ slug, name }: { slug: string; name: string }) {
     },
     onSuccess: () => {
       setMsg({ ok: true, text: `${name}da bron qabul qilindi. Tez orada siz bilan bog'lanamiz.` });
+    },
+  });
+
+  const order = useMutation({
+    mutationFn: async () => {
+      const res = await placeOrder({
+        data: {
+          table: tableId!,
+          items: lines.map((l) => ({ product: l.id, quantity: l.quantity })),
+          notes:
+            [notes, customer && `Mijoz: ${customer}`, phone && `Tel: ${phone}`]
+              .filter(Boolean)
+              .join(" · ") || undefined,
+        },
+      });
+      if (!res.ok) throw new Error(res.message);
+      return res;
+    },
+    onSuccess: (res) => {
+      setMsg({
+        ok: true,
+        text: `Buyurtmangiz ${name} oshxonasiga yuborildi${res.orderId ? ` (№ ${res.orderId.slice(-6)})` : ""}.`,
+      });
       clear();
-      setTableId(null);
+    },
+    onError: (e) => {
+      setMsg({ ok: false, text: e instanceof Error ? e.message : "Buyurtma yuborilmadi" });
     },
   });
 
   const canSubmit = tableId && customer.trim().length > 1 && phone.trim().length > 5;
+  const canOrder = tableId && lines.length > 0;
   const field =
     "mt-1.5 w-full rounded-xl border border-ink/10 bg-cream/60 px-3.5 py-2.5 text-ink outline-none focus:border-plum/50 focus:ring-2 focus:ring-plum/10";
 
