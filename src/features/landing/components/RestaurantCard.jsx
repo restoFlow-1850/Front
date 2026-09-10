@@ -6,19 +6,20 @@ import { FiMapPin, FiStar, FiArrowRight, FiBookOpen } from 'react-icons/fi'
 // menyusi" sarlavhasini ko'rsatish uchun shu ma'lumotni o'qiydi (Abdugani).
 export default function RestaurantCard({ restaurant }) {
   const navigate = useNavigate()
-  const { name, slug, address, cuisine, rating, image, description } = restaurant
+  const { _id, id, name, slug, address, cuisine, rating, image, description } = restaurant
+  const restaurantId = _id ?? id
 
   // Kartani bosganda: restoran kontekstini saqlab, mehmon menyusiga o'tamiz.
   function openGuestMenu() {
     try {
       sessionStorage.setItem(
         'guestRestaurant',
-        JSON.stringify({ name, slug, address, cuisine }),
+        JSON.stringify({ id: restaurantId, name, slug, address, cuisine }),
       )
     } catch {
       // sessionStorage band bo'lsa ham menyuning ochilishiga xalaqit bermaymiz
     }
-    navigate('/guest')
+    navigate(restaurantId ? `/guest?restaurant=${encodeURIComponent(restaurantId)}` : '/guest')
   }
 
   return (

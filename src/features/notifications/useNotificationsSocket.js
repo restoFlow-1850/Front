@@ -115,6 +115,10 @@ export default function useNotificationsSocket() {
     }
 
     const handleNotificationNew = (payload) => {
+      // Backend bir tayyor buyurtma uchun order:ready va notification:new ni
+      // birga yuboradi. Birinchisi allaqachon toast hamda ovozni boshqaradi.
+      if (payload?.type === 'order:ready') return
+
       const notifId = payload._id ?? payload.id ?? `${payload.title}-${payload.message}`
       const dedupKey = `notif:${notifId}`
       if (isDuplicate(dedupKey)) return
@@ -148,23 +152,19 @@ export default function useNotificationsSocket() {
     }
 
     socket.on('order:ready', handleOrderReady)
-    socket.on('order:new', handleOrderEvent)
     socket.on('order:created', handleOrderEvent)
     socket.on('order:status_changed', handleStatusEvent)
     socket.on('order:cancelled', handleOrderEvent)
-    socket.on('table:updated', handleTableUpdated)
     socket.on('table:status_updated', handleTableUpdated)
     socket.on('notification:new', handleNotificationNew)
 
     return () => {
       cancelled = true
       socket.off('order:ready', handleOrderReady)
-      socket.off('order:new', handleOrderEvent)
       socket.off('order:created', handleOrderEvent)
       socket.off('order:status_changed', handleStatusEvent)
       socket.off('order:cancelled', handleOrderEvent)
       socket.off('table:status_updated', handleTableUpdated)
-      socket.off('table:updated', handleTableUpdated)
       socket.off('notification:new', handleNotificationNew)
     }
   }, [dispatch, queryClient, user])

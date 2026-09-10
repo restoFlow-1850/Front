@@ -41,7 +41,6 @@ import {
   Skeleton,
 } from '../../../components/ui'
 import { socket } from '../../../services/socket'
-import { playNotificationSound } from '../../../utils/sound'
 
 const METHOD_ICONS = {
   [PAYMENT_METHODS.CASH]: Banknote,
@@ -123,14 +122,16 @@ export default function Cashier() {
       queryClient.invalidateQueries({ queryKey: ['reports'] })
     }
 
-    socket.on('order:new', handleOrderEvent)
-    socket.on('order:statusChanged', handleOrderEvent)
+    socket.on('order:created', handleOrderEvent)
+    socket.on('order:status_changed', handleOrderEvent)
+    socket.on('table:status_updated', handleOrderEvent)
     socket.on('payment:created', handlePaymentEvent)
 
     // Unmount bo'lganda obunalarni toza o'chirish (Memory leak bo'lmaydi)
     return () => {
-      socket.off('order:new', handleOrderEvent)
-      socket.off('order:statusChanged', handleOrderEvent)
+      socket.off('order:created', handleOrderEvent)
+      socket.off('order:status_changed', handleOrderEvent)
+      socket.off('table:status_updated', handleOrderEvent)
       socket.off('payment:created', handlePaymentEvent)
     }
   }, [queryClient])
@@ -155,7 +156,6 @@ export default function Cashier() {
       }
     },
     onSuccess: () => {
-      playNotificationSound()
       toast.success(t('cashier.paymentSuccess'))
       queryClient.invalidateQueries({ queryKey: ['orders'] })
       queryClient.invalidateQueries({ queryKey: ['receipt', selectedId] })

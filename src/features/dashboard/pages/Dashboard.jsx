@@ -54,15 +54,15 @@ export default function Dashboard() {
     }
 
     socket.on('payment:created', handleRefetch)
-    socket.on('order:new', handleRefetch)
-    socket.on('order:statusChanged', handleRefetch)
-    socket.on('table:updated', handleRefetch)
+    socket.on('order:created', handleRefetch)
+    socket.on('order:status_changed', handleRefetch)
+    socket.on('table:status_updated', handleRefetch)
 
     return () => {
       socket.off('payment:created', handleRefetch)
-      socket.off('order:new', handleRefetch)
-      socket.off('order:statusChanged', handleRefetch)
-      socket.off('table:updated', handleRefetch)
+      socket.off('order:created', handleRefetch)
+      socket.off('order:status_changed', handleRefetch)
+      socket.off('table:status_updated', handleRefetch)
     }
   }, [queryClient])
 
