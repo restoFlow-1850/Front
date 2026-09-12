@@ -155,7 +155,7 @@ export default function LoginPage() {
               className="h-full w-full object-cover"
               style={{ animation: 'imageZoom 1.5s ease-out forwards' }}
             />
-            <div className="absolute inset-0 bg-gradient-to-br from-black/90 via-black/80 to-black/70" />
+            <div className="absolute inset-0 bg-linear-to-br from-black/90 via-black/80 to-black/70" />
           </div>
 
           {/* Dark solid overlay for readability */}
@@ -185,7 +185,7 @@ export default function LoginPage() {
               className="max-w-lg rounded-3xl bg-black/50 p-6 backdrop-blur-sm"
               style={{ animation: 'fadeInUp 1s ease-out 0.4s both' }}
             >
-              <h1 className="text-4xl font-bold leading-tight xl:text-5xl !text-white" style={{ filter: 'drop-shadow(0 2px 10px rgba(0,0,0,0.5))' }}>
+              <h1 className="text-4xl font-bold leading-tight xl:text-5xl text-white" style={{ filter: 'drop-shadow(0 2px 10px rgba(0,0,0,0.5))' }}>
                 {t('auth.heroTitlePart1', { defaultValue: "Restoraningizni boshqarishni " })}
                 <span style={{ background: 'linear-gradient(135deg, #F97316 0%, #FBBF24 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 0 20px rgba(249,115,22,0.6))' }}>
                   {t('auth.heroTitlePart2', { defaultValue: "osonlashtiramiz" })}
@@ -225,7 +225,7 @@ export default function LoginPage() {
         {/* RIGHT LOGIN CARD */}
         <div className="flex flex-1 items-center justify-center px-6 py-8 sm:px-10 lg:px-16 overflow-y-auto">
           <div
-            className="w-full max-w-[450px] rounded-[32px] bg-white dark:bg-[#1F2937] p-8 sm:p-10 shadow-[0_25px_80px_rgba(0,0,0,0.08)] my-auto"
+            className="w-full max-w-112.5 rounded-4xl bg-white dark:bg-[#1F2937] p-8 sm:p-10 shadow-[0_25px_80px_rgba(0,0,0,0.08)] my-auto"
             style={{ animation: 'fadeInUp 0.8s ease-out 0.3s both' }}
           >
             {/* Tab */}
@@ -319,7 +319,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full rounded-xl bg-gradient-to-r from-[#F97316] to-orange-500 py-3.5 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition-all hover:shadow-xl hover:shadow-orange-500/30 hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+                className="w-full rounded-xl bg-linear-to-r from-[#F97316] to-orange-500 py-3.5 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition-all hover:shadow-xl hover:shadow-orange-500/30 hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
                 style={{ height: '52px' }}
               >
                 {isSubmitting ? (
