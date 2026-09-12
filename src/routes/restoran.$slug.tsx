@@ -325,7 +325,7 @@ function BookingSection({ slug, name }: { slug: string; name: string }) {
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {tables.map((t) => {
-          const busy = t.isReserved;
+          const busy = t.isReserved ?? (t.status ? t.status !== "available" : false);
           const selected = tableId === t._id;
           return (
             <div
