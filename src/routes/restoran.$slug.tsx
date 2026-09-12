@@ -237,7 +237,7 @@ function BookingSection({ slug, name }: { slug: string; name: string }) {
           table: tableId!,
           date: dateISO,
           guests,
-          notes: notes || undefined,
+          ...(notes ? { notes } : {}),
           items: lines.length
             ? lines.map((l) => ({ product: l.id, quantity: l.quantity }))
             : undefined,
