@@ -431,7 +431,14 @@ function BookingSection({ slug, name }: { slug: string; name: string }) {
           <p className={`text-sm md:col-span-2 ${msg.ok ? "text-ink" : "text-plum"}`}>{msg.text}</p>
         )}
 
-        <div className="flex justify-end pt-1 md:col-span-2">
+        <div className="flex flex-wrap justify-end gap-3 pt-1 md:col-span-2">
+          <button
+            disabled={!canOrder || order.isPending}
+            onClick={() => order.mutate()}
+            className="rounded-full border border-plum/40 px-6 py-3 text-sm font-medium text-plum transition-colors hover:bg-plum/5 disabled:border-ink/15 disabled:text-soft"
+          >
+            {order.isPending ? "Yuborilmoqda…" : "Buyurtma berish"}
+          </button>
           <button
             disabled={!canSubmit || reserve.isPending}
             onClick={() => reserve.mutate()}
