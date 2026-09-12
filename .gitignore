@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+<<<<<<< HEAD
 .output
 .vinxi
 .tanstack/**
@@ -19,6 +20,10 @@ dist-ssr
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
+=======
+*.local
+.env
+>>>>>>> b09cbbfb5b387846185a4da908b4002ce5862c25
 
 # Editor directories and files
 .vscode/*
@@ -30,3 +35,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+<<<<<<< HEAD
+=======
+
+# Local env fayllari
+.env
+.env.local
+>>>>>>> b09cbbfb5b387846185a4da908b4002ce5862c25
