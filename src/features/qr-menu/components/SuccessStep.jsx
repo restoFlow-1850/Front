@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { FiCalendar, FiCheck, FiClock, FiMapPin } from 'react-icons/fi'
 
 export default function SuccessStep({ reservation, table, date, time, onReset }) {
@@ -31,13 +32,21 @@ export default function SuccessStep({ reservation, table, date, time, onReset })
         )}
       </div>
 
-      <button
-        type="button"
-        onClick={onReset}
-        className="rounded-lg bg-[#C89B5E] px-6 py-2.5 text-sm font-semibold text-[#2a0e10] shadow-sm transition hover:bg-[#D9A968]"
-      >
-        Yana bron qilish
-      </button>
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        <button
+          type="button"
+          onClick={onReset}
+          className="rounded-lg bg-[#C89B5E] px-6 py-2.5 text-sm font-semibold text-[#2a0e10] shadow-sm transition hover:bg-[#D9A968]"
+        >
+          Yana bron qilish
+        </button>
+        <Link
+          to="/"
+          className="rounded-lg border border-[#4a1616] px-6 py-2.5 text-sm font-semibold text-[#cbbcbc] transition hover:bg-[#2a1315] hover:text-white"
+        >
+          Bosh sahifaga
+        </Link>
+      </div>
     </div>
   )
 }

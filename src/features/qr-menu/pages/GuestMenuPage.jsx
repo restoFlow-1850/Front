@@ -49,12 +49,14 @@ export default function GuestMenuPage() {
   const [guests, setGuests] = useState(2)
   const [tables, setTables] = useState([])
   const [tablesLoading, setTablesLoading] = useState(true)
+  const [tablesError, setTablesError] = useState(null)
   const [selectedTable, setSelectedTable] = useState(null)
 
   // Menyu
   const [categories, setCategories] = useState([])
   const [products, setProducts] = useState([])
   const [menuLoading, setMenuLoading] = useState(true)
+  const [menuError, setMenuError] = useState(null)
   const [activeCategory, setActiveCategory] = useState(null)
   const [cart, setCart] = useState({})
 
@@ -78,19 +80,24 @@ export default function GuestMenuPage() {
     return new Date(`${date}T${time}:00`).toISOString()
   }, [date, time])
 
+  // Stollar holatini olish: yuklanish, xatolik (retry bilan) va bo'sh ro'yxat
+  // holatlari HallStep'da ko'rsatiladi (Abdugani vazifasi).
   const fetchAvailability = useCallback(async () => {
     if (!isoDateTime) return
     setTablesLoading(true)
+    setTablesError(null)
     try {
       const res = await getTableAvailability(isoDateTime)
       const payload = res.data?.data ?? res.data
       setTables(payload.tables ?? [])
-    } catch {
-      toast.error(t('kitchen.loadFailed'))
+    } catch (err) {
+      setTablesError(
+        err.response?.data?.message || err.message || "Zal planini yuklab bo'lmadi"
+      )
     } finally {
       setTablesLoading(false)
     }
-  }, [isoDateTime, t])
+  }, [isoDateTime])
 
   useEffect(() => {
     fetchAvailability()
@@ -105,18 +112,32 @@ export default function GuestMenuPage() {
     })
   }, [tables, step])
 
-  useEffect(() => {
+  // Menyu: kategoriyalar + mahsulotlar. Xatolik bo'lsa foydalanuvchi "Qayta
+  // urinish" tugmasi bilan takrorlashi mumkin.
+  const fetchMenu = useCallback(async () => {
     setMenuLoading(true)
-    Promise.all([getPublicCategories(), getPublicProducts()])
-      .then(([catRes, prodRes]) => {
-        const catPayload = catRes.data?.data ?? catRes.data
-        const prodPayload = prodRes.data?.data ?? prodRes.data
-        setCategories((catPayload.categories ?? []).filter((c) => c.isActive !== false))
-        setProducts(prodPayload.products ?? [])
-      })
-      .catch(() => toast.error(t('kitchen.loadFailed')))
-      .finally(() => setMenuLoading(false))
-  }, [t])
+    setMenuError(null)
+    try {
+      const [catRes, prodRes] = await Promise.all([
+        getPublicCategories(),
+        getPublicProducts(),
+      ])
+      const catPayload = catRes.data?.data ?? catRes.data
+      const prodPayload = prodRes.data?.data ?? prodRes.data
+      setCategories((catPayload.categories ?? []).filter((c) => c.isActive !== false))
+      setProducts(prodPayload.products ?? [])
+    } catch (err) {
+      setMenuError(
+        err.response?.data?.message || err.message || "Menyuni yuklab bo'lmadi"
+      )
+    } finally {
+      setMenuLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchMenu()
+  }, [fetchMenu])
 
   const handleQtyChange = useCallback((product, qty) => {
     setCart((prev) => {
@@ -172,11 +193,14 @@ export default function GuestMenuPage() {
       const status = err.response?.status
       const message = err.response?.data?.message
       if (status === 409) {
-        toast.error(message || t('kitchen.loadFailed'))
+        // Stol kimningdir oldin band qilingan — zaldagi holatni yangilab,
+        // foydalanuvchini stol tanlashga qaytaramiz.
+        toast.error(message || 'Bu stol allaqachon band qilingan. Iltimos, boshqa stol tanlang.')
         setStep('hall')
         setSelectedTable(null)
+        fetchAvailability()
       } else {
-        toast.error(message || t('kitchen.loadFailed'))
+        toast.error(message || "Bronni yuborib bo'lmadi. Internetni tekshirib ko'ring.")
       }
     } finally {
       setIsSubmitting(false)
@@ -246,6 +270,8 @@ export default function GuestMenuPage() {
             onGuestsChange={setGuests}
             tables={tables}
             isLoading={tablesLoading}
+            error={tablesError}
+            onRetry={fetchAvailability}
             selectedTable={selectedTable}
             onSelectTable={setSelectedTable}
             onNext={() => setStep('menu')}
@@ -257,6 +283,8 @@ export default function GuestMenuPage() {
             categories={categories}
             products={products}
             isLoading={menuLoading}
+            error={menuError}
+            onRetry={fetchMenu}
             activeCategory={activeCategory}
             onCategoryChange={setActiveCategory}
             cart={cart}
