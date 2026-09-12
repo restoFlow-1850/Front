@@ -1,18 +1,11 @@
-export const API_BASE = "https://backend-production-109c0.up.railway.app/api";
-
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
-  });
-  const json = (await res.json().catch(() => null)) as
-    | { success: boolean; message?: string; data?: unknown }
-    | null;
-  if (!res.ok || !json || json.success === false) {
-    throw new Error(json?.message || "So'rovda xatolik yuz berdi");
-  }
-  return json.data as T;
-}
+import {
+  fetchCategories,
+  fetchProducts,
+  fetchTables,
+  fetchVenue,
+  submitCallWaiter,
+  submitReservation,
+} from "@/lib/backend.functions";
 
 export type Category = {
   _id: string;
@@ -53,46 +46,30 @@ export type Venue = {
   reviewsCount?: number;
 };
 
-export const getVenue = () => request<Venue>("/clients/default");
-
-export const getCategories = () =>
-  request<{ categories: Category[] }>("/categories")
-    .then((d) => d.categories ?? [])
-    .catch(async () => {
-      const { FALLBACK_CATEGORIES } = await import("./menu-data");
-      return FALLBACK_CATEGORIES;
-    });
-
-export const getProducts = () =>
-  request<{ products: Product[] }>("/products?limit=100")
-    .then((d) => (d.products?.length ? d.products : Promise.reject(new Error("Bo'sh"))))
-    .catch(async () => {
-      const { FALLBACK_PRODUCTS } = await import("./menu-data");
-      return FALLBACK_PRODUCTS;
-    });
-
-export const getTables = (dateISO: string) =>
-  request<{ tables: Table[] }>(
-    `/tables/availability?date=${encodeURIComponent(dateISO)}`,
-  ).then((d) => d.tables ?? []);
-
 export type ReservationInput = {
   customerName: string;
   customerPhone: string;
   table: string;
   date: string;
   guests: number;
-  notes?: string | undefined;
-  items?: { product: string; quantity: number }[] | undefined;
+  notes?: string;
+  items?: { product: string; quantity: number }[];
 };
 
-export const createReservation = (body: ReservationInput) =>
-  request<unknown>("/reservations", { method: "POST", body: JSON.stringify(body) });
+export const getVenue = () => fetchVenue();
+export const getCategories = () => fetchCategories();
+export const getProducts = () => fetchProducts();
+export const getTables = (date: string) => fetchTables({ data: { date } });
 
-export const callWaiter = (tableId: string, type: "call" | "bill_cash" | "bill_card" = "call") =>
-  request<unknown>(`/tables/${tableId}/call-waiter`, {
-    method: "POST",
-    body: JSON.stringify({ type }),
-  });
+export async function createReservation(input: ReservationInput) {
+  const res = await submitReservation({ data: input });
+  if (!res.ok) throw new Error(res.message);
+}
 
-export const formatSum = (n: number) => new Intl.NumberFormat("uz-UZ").format(n);
+export async function callWaiter(tableId: string, type: "call" | "bill_cash" | "bill_card" = "call") {
+  const res = await submitCallWaiter({ data: { tableId, type } });
+  if (!res.ok) throw new Error(res.message);
+}
+
+export const formatSum = (n: number) =>
+  n.toLocaleString("uz-UZ").replace(/,/g, " ") + " so'm";

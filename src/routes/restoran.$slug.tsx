@@ -13,7 +13,7 @@ import {
 import { useCart } from "@/lib/cart";
 import { MenuCard } from "@/components/MenuCard";
 import { getRestaurant, restaurantTables } from "@/lib/restaurants";
-import { placeOrder } from "@/lib/orders.functions";
+import { placeOrder } from "@/lib/backend.functions";
 
 export const Route = createFileRoute("/restoran/$slug")({
   loader: ({ params }) => {
