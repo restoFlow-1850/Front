@@ -13,7 +13,7 @@ import {
 import { useCart } from "@/lib/cart";
 import { MenuCard } from "@/components/MenuCard";
 import { getRestaurant, restaurantTables } from "@/lib/restaurants";
-import { placeOrder } from "@/lib/orders.functions";
+import { placeOrder } from "@/lib/backend.functions";
 
 export const Route = createFileRoute("/restoran/$slug")({
   loader: ({ params }) => {
@@ -237,7 +237,7 @@ function BookingSection({ slug, name }: { slug: string; name: string }) {
           table: tableId!,
           date: dateISO,
           guests,
-          notes: notes || undefined,
+          ...(notes ? { notes } : {}),
           items: lines.length
             ? lines.map((l) => ({ product: l.id, quantity: l.quantity }))
             : undefined,
@@ -325,7 +325,7 @@ function BookingSection({ slug, name }: { slug: string; name: string }) {
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {tables.map((t) => {
-          const busy = t.isReserved;
+          const busy = t.isReserved ?? (t.status ? t.status !== "available" : false);
           const selected = tableId === t._id;
           return (
             <div
@@ -431,7 +431,14 @@ function BookingSection({ slug, name }: { slug: string; name: string }) {
           <p className={`text-sm md:col-span-2 ${msg.ok ? "text-ink" : "text-plum"}`}>{msg.text}</p>
         )}
 
-        <div className="flex justify-end pt-1 md:col-span-2">
+        <div className="flex flex-wrap justify-end gap-3 pt-1 md:col-span-2">
+          <button
+            disabled={!canOrder || order.isPending}
+            onClick={() => order.mutate()}
+            className="rounded-full border border-plum/40 px-6 py-3 text-sm font-medium text-plum transition-colors hover:bg-plum/5 disabled:border-ink/15 disabled:text-soft"
+          >
+            {order.isPending ? "Yuborilmoqda…" : "Buyurtma berish"}
+          </button>
           <button
             disabled={!canSubmit || reserve.isPending}
             onClick={() => reserve.mutate()}
