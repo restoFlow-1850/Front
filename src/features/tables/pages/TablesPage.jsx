@@ -269,7 +269,7 @@ export default function TablesPage() {
 
         <div className="flex flex-wrap items-center gap-3">
           {/* Search Box */}
-          <div className="relative min-w-[240px] flex-1 sm:w-64">
+          <div className="relative w-full min-w-[240px] flex-1 sm:w-64">
             <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
