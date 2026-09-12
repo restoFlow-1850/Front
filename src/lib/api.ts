@@ -52,8 +52,8 @@ export type ReservationInput = {
   table: string;
   date: string;
   guests: number;
-  notes?: string;
-  items?: { product: string; quantity: number }[];
+  notes?: string | undefined;
+  items?: { product: string; quantity: number }[] | undefined;
 };
 
 export const getVenue = () => fetchVenue();
