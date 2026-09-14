@@ -164,6 +164,8 @@ export default function WaiterPage() {
     (o) => o.status !== ORDER_STATUS.CLOSED && o.status !== ORDER_STATUS.CANCELLED,
   )
 
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0)
+
   return (
     <div>
       <PageHeader title={t('waiter.title')} subtitle={t('waiter.subtitle')} />
@@ -218,7 +220,7 @@ export default function WaiterPage() {
               <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
                 {t('waiter.step2Dishes')}
               </h2>
-              <div className="w-48">
+              <div className="w-full sm:w-48">
                 <Input
                   placeholder={t('waiter.searchPlaceholder')}
                   value={search}
@@ -278,6 +280,26 @@ export default function WaiterPage() {
               </div>
             )}
           </Card>
+
+          {/* Mobil savat tugmasi — telefonni pastki chetidagi lenta; savat bo'sh bo'lmasa ko'rinadi. */}
+          {cart.length > 0 && (
+            <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 p-3 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] backdrop-blur lg:hidden dark:border-slate-800 dark:bg-slate-950/95">
+              <div className="flex items-center gap-3">
+                <span className="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200">
+                  <ShoppingCart className="h-4 w-4 text-indigo-600" />
+                  {cartCount} · {formatSom(total)}
+                </span>
+                <Button
+                  className="flex-1"
+                  disabled={!tableId}
+                  isLoading={createMutation.isPending}
+                  onClick={() => createMutation.mutate()}
+                >
+                  {tableId ? t('waiter.submitOrder') : t('waiter.selectTableFirst')}
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* Faol buyurtmalar */}
           <Card>
@@ -447,6 +469,9 @@ export default function WaiterPage() {
             }))}
         />
       </Modal>
+
+      {/* Mobil pastki lenta sahifa oxirini yopib qo'ymasligi uchun bo'sh joy */}
+      <div className={cart.length > 0 ? 'h-16 lg:hidden' : ''} />
     </div>
   )
 }

@@ -142,7 +142,7 @@ export default function OrdersPage() {
 
       <Card className="mb-4">
         <div className="flex flex-wrap items-end gap-3">
-          <div className="w-44">
+          <div className="w-full sm:w-44">
             <Select
               label={t('status')}
               placeholder={t('all')}
@@ -154,7 +154,7 @@ export default function OrdersPage() {
               options={ORDER_STATUS_LIST.map((s) => ({ value: s, label: t(`orderStatus.${s}`, ORDER_STATUS_LABELS[s]) }))}
             />
           </div>
-          <div className="w-44">
+          <div className="w-full sm:w-44">
             <Select
               label={t('cashier.cashierAndPay')}
               placeholder={t('all')}
@@ -231,7 +231,7 @@ export default function OrdersPage() {
             disabled={page >= pagination.totalPages}
             onClick={() => setPage((p) => p + 1)}
           >
-            {t('confirm')}
+            {t('next', { defaultValue: 'Keyingi' })}
           </Button>
         </div>
       )}

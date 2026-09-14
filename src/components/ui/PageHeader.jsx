@@ -7,7 +7,8 @@ export default function PageHeader({ title, subtitle, actions }) {
         </h1>
         {subtitle && <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">{subtitle}</p>}
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {/* Amallar telefonda ham bosiladigan bo'lsin — kichik ekranda yangi qatorga tushadi */}
+      {actions && <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">{actions}</div>}
     </div>
   )
 }

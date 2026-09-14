@@ -1,4 +1,4 @@
-import { FiCalendar, FiClock, FiMinus, FiPlus, FiUsers } from 'react-icons/fi'
+import { FiAlertTriangle, FiCalendar, FiClock, FiMinus, FiPlus, FiRefreshCw, FiUsers } from 'react-icons/fi'
 import TableSeat from './TableSeat'
 import { buildTimeSlots, toDateInputValue } from '../lib/time'
 
@@ -11,6 +11,8 @@ export default function HallStep({
   onGuestsChange,
   tables,
   isLoading,
+  error,
+  onRetry,
   selectedTable,
   onSelectTable,
   onNext,
@@ -91,13 +93,43 @@ export default function HallStep({
       </div>
 
       <div className="rounded-2xl border border-[#4a1616] bg-[#1a0809] p-4 shadow-inner sm:p-6">
+        {/* Loading — zal plani o'rnida skelet */}
         {isLoading ? (
-          <div className="flex h-64 items-center justify-center text-sm text-[#8a7373]">
-            Zal plani yuklanmoqda...
+          <div className="flex flex-wrap items-start justify-center gap-2 sm:justify-start">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <TableSeatSkeleton key={i} />
+            ))}
+          </div>
+        ) : error ? (
+          /* Error — qayta urinish tugmasi bilan */
+          <div className="flex h-64 flex-col items-center justify-center gap-3 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-900/20">
+              <FiAlertTriangle className="h-7 w-7 text-red-400" />
+            </div>
+            <p className="max-w-xs text-sm text-[#9a8080]">
+              {error || "Zal planini yuklab bo'lmadi. Internet aloqasini tekshiring."}
+            </p>
+            {onRetry && (
+              <button
+                type="button"
+                onClick={onRetry}
+                className="mt-1 flex items-center gap-2 rounded-lg bg-[#C89B5E] px-5 py-2.5 text-sm font-semibold text-[#2a0e10] transition hover:bg-[#D9A968]"
+              >
+                <FiRefreshCw className="h-4 w-4" />
+                Qayta urinish
+              </button>
+            )}
           </div>
         ) : tables.length === 0 ? (
-          <div className="flex h-64 items-center justify-center text-sm text-[#8a7373]">
-            Hozircha stollar mavjud emas
+          /* Empty — hozircha stollar mavjud emas */
+          <div className="flex h-64 flex-col items-center justify-center gap-2 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2a1315] text-2xl">
+              🪑
+            </div>
+            <p className="text-base font-bold text-[#E6DCDC]">Stollar topilmadi</p>
+            <p className="max-w-xs text-sm text-[#9a8080]">
+              Bu vaqt uchun hozircha stollar mavjud emas. Boshqa sana yoki vaqtni tanlab ko'ring.
+            </p>
           </div>
         ) : (
           <div className="flex flex-col gap-6">
@@ -135,6 +167,16 @@ export default function HallStep({
           Davom etish
         </button>
       </div>
+    </div>
+  )
+}
+
+// Zal plani yuklanayotganda bitta stol o'rnidagi skelet
+function TableSeatSkeleton() {
+  return (
+    <div className="m-4 flex flex-col items-center gap-2">
+      <div className="h-20 w-20 animate-pulse rounded-full bg-[#2a1315]" />
+      <div className="h-2.5 w-14 animate-pulse rounded bg-[#2a1315]" />
     </div>
   )
 }

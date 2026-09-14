@@ -1,10 +1,12 @@
-import { FiMinus, FiPlus, FiShoppingCart } from 'react-icons/fi'
+import { FiAlertTriangle, FiMinus, FiPlus, FiRefreshCw, FiShoppingCart } from 'react-icons/fi'
 import { resolveImageUrl, formatSum } from '../api'
 
 export default function MenuStep({
   categories,
   products,
   isLoading,
+  error,
+  onRetry,
   activeCategory,
   onCategoryChange,
   cart,
@@ -55,13 +57,57 @@ export default function MenuStep({
         ))}
       </div>
 
+      {/* Loading — taom kartalari o'rnida skeletlar */}
       {isLoading ? (
-        <div className="flex h-48 items-center justify-center text-sm text-[#8a7373]">
-          Menyu yuklanmoqda...
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div
+              key={i}
+              className="flex flex-col overflow-hidden rounded-xl border border-[#3a1a1c] bg-[#1c0a0b]"
+            >
+              <div className="h-28 animate-pulse bg-[#2a1315]" />
+              <div className="flex flex-1 flex-col gap-2 p-3">
+                <div className="h-3.5 w-3/4 animate-pulse rounded bg-[#2a1315]" />
+                <div className="h-3.5 w-1/2 animate-pulse rounded bg-[#2a1315]" />
+                <div className="mt-auto h-7 animate-pulse rounded-lg bg-[#2a1315]" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : error ? (
+        /* Error — qayta urinish tugmasi bilan */
+        <div className="flex h-64 flex-col items-center justify-center gap-3 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-900/20">
+            <FiAlertTriangle className="h-7 w-7 text-red-400" />
+          </div>
+          <p className="max-w-xs text-sm text-[#9a8080]">
+            {error || "Menyuni yuklab bo'lmadi. Internet aloqasini tekshiring."}
+          </p>
+          {onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="mt-1 flex items-center gap-2 rounded-lg bg-[#C89B5E] px-5 py-2.5 text-sm font-semibold text-[#2a0e10] transition hover:bg-[#D9A968]"
+            >
+              <FiRefreshCw className="h-4 w-4" />
+              Qayta urinish
+            </button>
+          )}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="flex h-48 items-center justify-center text-sm text-[#8a7373]">
-          Bu bo'limda mahsulot topilmadi
+        /* Empty — umuman bo'sh yoki faqat shu kategoriya bo'sh */
+        <div className="flex h-64 flex-col items-center justify-center gap-2 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2a1315] text-2xl">
+            🍽️
+          </div>
+          <p className="text-base font-bold text-[#E6DCDC]">
+            {activeCategory ? "Bu bo'limda mahsulot topilmadi" : 'Menyu hozircha boʻsh'}
+          </p>
+          <p className="max-w-xs text-sm text-[#9a8080]">
+            {activeCategory
+              ? "Boshqa kategoriya tanlab ko'ring yoki \"Barchasi\"ni oching."
+              : 'Restoran menyusi tez orada qo‘shiladi.'}
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
