@@ -41,6 +41,7 @@ import {
   Skeleton,
 } from '../../../components/ui'
 import { socket } from '../../../services/socket'
+import { playNotificationSound } from '../../../utils/sound'
 
 const METHOD_ICONS = {
   [PAYMENT_METHODS.CASH]: Banknote,
