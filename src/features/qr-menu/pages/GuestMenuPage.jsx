@@ -118,7 +118,11 @@ export default function GuestMenuPage() {
     if (!qrTableId || tablesLoading || hasAppliedQrTable.current) return
 
     hasAppliedQrTable.current = true
-    const qrTable = tables.find((table) => String(table._id ?? table.id) === qrTableId)
+    const qrTable = tables.find(
+      (table) =>
+        String(table._id ?? table.id) === qrTableId ||
+        String(table.number) === qrTableId
+    )
     if (qrTable && !qrTable.isReserved) {
       setSelectedTable(qrTable)
       return
