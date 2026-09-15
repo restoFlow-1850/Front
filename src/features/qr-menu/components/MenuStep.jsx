@@ -17,7 +17,7 @@ export default function MenuStep({
   onNext,
 }) {
   const filtered = activeCategory
-    ? products.filter((p) => p.category?._id === activeCategory)
+    ? products.filter((p) => (p.category?._id ?? p.category?.id ?? p.category) === activeCategory)
     : products
 
   return (
@@ -41,20 +41,23 @@ export default function MenuStep({
         >
           Barchasi
         </button>
-        {categories.map((cat) => (
-          <button
-            key={cat._id}
-            type="button"
-            onClick={() => onCategoryChange(cat._id)}
-            className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition ${
-              activeCategory === cat._id
-                ? 'bg-[#C89B5E] text-[#2a0e10]'
-                : 'bg-[#2a1315] text-[#cbbcbc] hover:bg-[#3a1a1c]'
-            }`}
-          >
-            {cat.name}
-          </button>
-        ))}
+        {categories.map((cat) => {
+          const catId = cat._id ?? cat.id
+          return (
+            <button
+              key={catId}
+              type="button"
+              onClick={() => onCategoryChange(catId)}
+              className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition ${
+                activeCategory === catId
+                  ? 'bg-[#C89B5E] text-[#2a0e10]'
+                  : 'bg-[#2a1315] text-[#cbbcbc] hover:bg-[#3a1a1c]'
+              }`}
+            >
+              {cat.name}
+            </button>
+          )
+        })}
       </div>
 
       {/* Loading — taom kartalari o'rnida skeletlar */}
@@ -112,11 +115,12 @@ export default function MenuStep({
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {filtered.map((product) => {
-            const qty = cart[product._id]?.quantity || 0
+            const pId = product._id ?? product.id
+            const qty = cart[pId]?.quantity || 0
             const img = resolveImageUrl(product.image)
             return (
               <div
-                key={product._id}
+                key={pId}
                 className="flex flex-col overflow-hidden rounded-xl border border-[#3a1a1c] bg-[#1c0a0b] shadow-sm"
               >
                 <div className="flex h-28 items-center justify-center bg-[#2a1315]">

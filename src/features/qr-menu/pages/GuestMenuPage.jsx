@@ -181,11 +181,12 @@ export default function GuestMenuPage() {
 
   const handleQtyChange = useCallback((product, qty) => {
     setCart((prev) => {
+      const pId = product._id ?? product.id
       const next = { ...prev }
       if (qty <= 0) {
-        delete next[product._id]
+        delete next[pId]
       } else {
-        next[product._id] = { product, quantity: qty }
+        next[pId] = { product, quantity: qty }
       }
       return next
     })
@@ -220,7 +221,7 @@ export default function GuestMenuPage() {
         date: isoDateTime,
         guests,
         notes: notes.trim() || undefined,
-        items: cartItems.map(({ product, quantity }) => ({ product: product._id, quantity })),
+        items: cartItems.map(({ product, quantity }) => ({ product: product._id ?? product.id, quantity })),
       })
       const payload = res.data?.data ?? res.data
       setReservation(payload.reservation)
