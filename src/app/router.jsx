@@ -5,7 +5,7 @@
 // quriladi — shuning uchun "menyuda ko'rinadi, lekin ochilmaydi" turidagi
 // nomuvofiqlik printsipial ravishda yuzaga kelmaydi.
 import { lazy } from 'react'
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 
 import PrivateRoute from '../routes/PrivateRoute'
 import PublicRoute from '../routes/PublicRoute'
@@ -95,11 +95,8 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // Public landing (bosh sahifa / manzil) va mijozlar sahifalari — token
-  // talab qilinmaydi. '/' har doim landing: login qilmagan mehmon ham
-  // restoranlarni ko'rib, mehmon menyusiga o'ta oladi.
-  { path: '/', element: <LandingPage /> },
-  { path: '/clients', element: <ClientsPage /> },
+  // '/' -> redirect to /login
+  { path: '/', element: <Navigate to="/login" replace /> },
 
   // QR menyu — mehmon uchun, login talab qilinmaydi.
   { path: '/guest', element: <GuestMenuPage /> },

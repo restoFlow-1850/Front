@@ -31,8 +31,7 @@ import {
   Skeleton,
   StatCard,
 } from '../../../components/ui'
-import { exportToCSV, exportToExcel } from '../../../utils/exportToExcel'
-import { exportToPDF as exportPDFUtil } from '../../../utils/exportUtils'
+import { exportToCSV, exportToExcel, exportToPDF as exportPDFUtil } from '../../../utils/exportUtils'
 import api from '../../../services/axios'
 import { socket } from '../../../services/socket'
 

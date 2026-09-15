@@ -22,7 +22,7 @@ import { updateOrderStatus } from '../../orders/api'
 import ReceiptPrintModal from '../components/ReceiptPrintModal'
 import PaymentsHistory from '../components/PaymentsHistory'
 import ShiftPanel from '../components/ShiftPanel'
-import { settingsApi } from '../../settings/api'
+
 import { unwrap, unwrapList, apiErrorMessage, formatSom, formatTime } from '../../../lib/api'
 import {
   ORDER_STATUS,
@@ -41,6 +41,7 @@ import {
   Skeleton,
 } from '../../../components/ui'
 import { socket } from '../../../services/socket'
+import { playNotificationSound } from '../../../utils/sound'
 
 const METHOD_ICONS = {
   [PAYMENT_METHODS.CASH]: Banknote,
@@ -76,11 +77,7 @@ export default function Cashier() {
     refetchInterval: 30_000,
   })
 
-  const settingsQuery = useQuery({
-    queryKey: ['settings'],
-    queryFn: settingsApi.get,
-    staleTime: 5 * 60_000,
-  })
+
 
   const shift = shiftQuery.data
   const hasOpenShift = shift && shift.status === 'open'
@@ -206,6 +203,7 @@ export default function Cashier() {
   }, [remaining, splitCount])
 
   const handlePay = () => {
+    if (paymentMutation.isPending) return
     const parsed = customAmount ? Number(customAmount) : null
     if (parsed !== null && (!Number.isFinite(parsed) || parsed <= 0)) {
       toast.error(t('cashier.invalidAmount', { defaultValue: "Summa 0 dan katta bo'lishi kerak" }))
@@ -515,7 +513,7 @@ export default function Cashier() {
                 {/* Qadam 4: To'lovni tasdiqlash */}
                 <Button
                   className="w-full"
-                  disabled={remaining <= 0}
+                  disabled={remaining <= 0 || paymentMutation.isPending}
                   isLoading={paymentMutation.isPending}
                   onClick={handlePay}
                 >

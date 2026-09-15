@@ -1,5 +1,3 @@
-import ExcelJS from 'exceljs'
-
 /**
  * Excel formatida (.xlsx) hisobot va ma'lumotlarni yuklab olish
  * @param {Object} params
@@ -9,6 +7,7 @@ import ExcelJS from 'exceljs'
  * @param {string} params.filename - fayl nomi
  */
 export async function exportToExcel({ stats = {}, topProducts = [], dailySales = [], filename = 'RestoFlow_Hisobot.xlsx' }) {
+  const ExcelJS = (await import('exceljs')).default
   const workbook = new ExcelJS.Workbook()
   workbook.creator = 'RestoFlow App'
   workbook.created = new Date()
