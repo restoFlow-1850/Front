@@ -1,9 +1,10 @@
 // Stollar — holat bo'yicha ko'rinish; admin/menejer uchun to'liq CRUD, ofitsiant uchun buyurtma berish.
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { socket } from '../../../services/socket'
 import {
   AlertTriangle,
   Crown,
@@ -68,6 +69,18 @@ export default function TablesPage() {
   })
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['tables'] })
+
+  useEffect(() => {
+    const handleTableUpdated = () => {
+      invalidate()
+    }
+    socket.on('table:status_updated', handleTableUpdated)
+    socket.on('table:waiter_called', handleTableUpdated)
+    return () => {
+      socket.off('table:status_updated', handleTableUpdated)
+      socket.off('table:waiter_called', handleTableUpdated)
+    }
+  }, [queryClient])
 
   const saveMutation = useMutation({
     mutationFn: () => {

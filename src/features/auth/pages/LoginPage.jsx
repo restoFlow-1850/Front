@@ -88,11 +88,26 @@ export default function LoginPage() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(schema),
     defaultValues: { email: '', password: '' },
   })
+
+  const DEMO_ACCOUNTS = [
+    { role: 'Admin', email: 'admin@demo.uz', label: '👑 Admin' },
+    { role: 'Manager', email: 'manager@demo.uz', label: '💼 Menejer' },
+    { role: 'Waiter', email: 'waiter@demo.uz', label: '🍽️ Ofitsiant' },
+    { role: 'Cashier', email: 'cashier@demo.uz', label: '💳 Kassir' },
+    { role: 'Cook', email: 'cook@demo.uz', label: '👨‍🍳 Oshpaz' },
+  ]
+
+  const selectDemoAccount = (email) => {
+    setValue('email', email, { shouldValidate: true })
+    setValue('password', 'password123', { shouldValidate: true })
+    setError(null)
+  }
 
   const onSubmit = async (values) => {
     setError(null)
@@ -244,6 +259,27 @@ export default function LoginPage() {
               <p className="mt-2 text-sm text-[#6B7280] dark:text-gray-400">
                 {t('auth.welcomeSub', { defaultValue: "Hisobingizga kiring va ishni davom ettiring." })}
               </p>
+            </div>
+
+            {/* Demo Accounts Quick-Select for Prod Testing */}
+            <div className="mb-6 rounded-2xl bg-orange-50/70 dark:bg-gray-800/80 border border-orange-200/60 dark:border-gray-700 p-3.5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-[#F97316]">
+                  {t('auth.demoAccounts', { defaultValue: "Demo hisoblar (1-klikda kirish)" })}:
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {DEMO_ACCOUNTS.map((acc) => (
+                  <button
+                    key={acc.role}
+                    type="button"
+                    onClick={() => selectDemoAccount(acc.email)}
+                    className="rounded-lg bg-white dark:bg-gray-700 px-2.5 py-1 text-xs font-medium text-gray-700 dark:text-gray-200 shadow-xs border border-gray-200 dark:border-gray-600 hover:border-[#F97316] hover:text-[#F97316] active:scale-95 transition-all cursor-pointer"
+                  >
+                    {acc.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Form */}
