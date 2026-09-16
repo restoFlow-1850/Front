@@ -228,7 +228,9 @@ export default function RootPanel() {
   }
 
   // ─── MAIN PANEL ────────────────────────────────────────────────────────
-  const wipeableKeys = ['orders', 'orderitems', 'reservations', 'auditlogs', 'notifications', 'otps', 'attendance']
+  // Backend har kolleksiya uchun wipeable flag'ini yuboradi — bu yerda
+  // hardcoded ro'yxat emas, API dan olinadi.
+  const wipeableKeys = new Set(collections.filter((c) => c.wipeable).map((c) => c.key))
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
@@ -292,7 +294,7 @@ export default function RootPanel() {
               />
               <button onClick={openCreate} className={btnDanger}>+ Yangi yozuv</button>
               <button onClick={() => loadItems(activeKey)} className={btnGhost}>⟳ Yangilash</button>
-              {wipeableKeys.includes(activeKey) && (
+              {wipeableKeys.has(activeKey) && (
                 <button onClick={() => handleWipe(activeKey)} className="rounded-md border border-red-800 bg-red-950 px-3 py-1.5 text-sm text-red-300 hover:bg-red-900">
                   ⚠️ Tozalash (barchasini o&apos;chirish)
                 </button>
@@ -351,7 +353,8 @@ export default function RootPanel() {
 
         {!activeKey && (
           <p className="rounded-lg border border-gray-800 bg-gray-900 p-6 text-center text-sm text-gray-500">
-            Yuqoridagi kolleksiyalardan birini tanlang — restoranlar, xodimlar, audit loglari.
+            Yuqoridagi kolleksiyalardan birini tanlang — restoranlar, taomlar, xodimlar,
+            buyurtmalar, to&apos;lovlar, bronlar va boshqalar. Hammasini boshqarish mumkin.
           </p>
         )}
 
@@ -359,9 +362,9 @@ export default function RootPanel() {
         <section className="mt-8 rounded-lg border border-red-900/50 bg-red-950/30 p-4">
           <h3 className="text-sm font-semibold text-red-300">⚠️ Danger Zone</h3>
           <p className="mt-1 text-xs text-red-200/70">
-            &quot;Tozalash&quot; tugmasi tanlangan kolleksiyani to&apos;liq bo&apos;shatadi (buyurtmalar, bronlar, audit va h.k.).
-            Restoranlar va xodimlar xavfsizlik uchun tozalashdan himoyalangan — ularni alohida o&apos;chirish mumkin.
-            Har bir amal audit logga yoziladi.
+            &quot;Tozalash&quot; tanlangan kolleksiyadagi HAMMA yozuvni o&apos;chiradi. Root sifatida
+            siz istalgan kolleksiyani tozalash huquqiga egasiz (restoranlar, taomlar,
+            buyurtmalar — hammasi). Har bir amal audit logga yoziladi.
           </p>
         </section>
       </div>
