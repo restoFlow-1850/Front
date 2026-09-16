@@ -125,73 +125,47 @@ export default function TablesPage() {
     onError: (error) => toast.error(apiErrorMessage(error, t('orders.deleteFailed', { defaultValue: "O'chirib bo'lmadi" }))),
   })
 
-  // Seed default 22 standard tables + 22 VIP tables
+  // Seed/repair: har zonada 22 ta stol — raqamlar 1..22, sig'imlar va lokatsiyalar standartga qaytariladi.
+  // Zona bo'yicha ishlaydi: asosiy zal va VIP alohida, shuning uchun boshqa zonani buzmaydi.
   const seedMutation = useMutation({
     mutationFn: async () => {
-      const presets = [
-        { number: 1, capacity: 2, location: 'Asosiy zal' },
-        { number: 2, capacity: 2, location: 'Asosiy zal' },
-        { number: 3, capacity: 2, location: 'Asosiy zal' },
-        { number: 4, capacity: 2, location: 'Asosiy zal' },
-        { number: 5, capacity: 4, location: 'Asosiy zal' },
-        { number: 6, capacity: 4, location: 'Asosiy zal' },
-        { number: 7, capacity: 4, location: 'Asosiy zal' },
-        { number: 8, capacity: 4, location: 'Asosiy zal' },
-        { number: 9, capacity: 4, location: 'Asosiy zal' },
-        { number: 10, capacity: 4, location: 'Asosiy zal' },
-        { number: 11, capacity: 4, location: 'Asosiy zal' },
-        { number: 12, capacity: 4, location: 'Asosiy zal' },
-        { number: 13, capacity: 6, location: 'Asosiy zal' },
-        { number: 14, capacity: 6, location: 'Asosiy zal' },
-        { number: 15, capacity: 6, location: 'Asosiy zal' },
-        { number: 16, capacity: 6, location: 'Asosiy zal' },
-        { number: 17, capacity: 6, location: 'Asosiy zal' },
-        { number: 18, capacity: 6, location: 'Asosiy zal' },
-        { number: 19, capacity: 6, location: 'Asosiy zal' },
-        { number: 20, capacity: 10, location: 'Asosiy zal' },
-        { number: 21, capacity: 10, location: 'Asosiy zal' },
-        { number: 22, capacity: 10, location: 'Asosiy zal' },
-        { number: 1, capacity: 2, location: 'VIP xona (VIP 1)' },
-        { number: 2, capacity: 2, location: 'VIP xona (VIP 2)' },
-        { number: 3, capacity: 2, location: 'VIP xona (VIP 3)' },
-        { number: 4, capacity: 2, location: 'VIP xona (VIP 4)' },
-        { number: 5, capacity: 4, location: 'VIP xona (VIP 5)' },
-        { number: 6, capacity: 4, location: 'VIP xona (VIP 6)' },
-        { number: 7, capacity: 4, location: 'VIP xona (VIP 7)' },
-        { number: 8, capacity: 4, location: 'VIP xona (VIP 8)' },
-        { number: 9, capacity: 4, location: 'VIP xona (VIP 9)' },
-        { number: 10, capacity: 4, location: 'VIP xona (VIP 10)' },
-        { number: 11, capacity: 4, location: 'VIP xona (VIP 11)' },
-        { number: 12, capacity: 4, location: 'VIP xona (VIP 12)' },
-        { number: 13, capacity: 6, location: 'VIP xona (VIP 13)' },
-        { number: 14, capacity: 6, location: 'VIP xona (VIP 14)' },
-        { number: 15, capacity: 6, location: 'VIP xona (VIP 15)' },
-        { number: 16, capacity: 6, location: 'VIP xona (VIP 16)' },
-        { number: 17, capacity: 6, location: 'VIP xona (VIP 17)' },
-        { number: 18, capacity: 6, location: 'VIP xona (VIP 18)' },
-        { number: 19, capacity: 6, location: 'VIP xona (VIP 19)' },
-        { number: 20, capacity: 10, location: 'VIP xona (VIP 20)' },
-        { number: 21, capacity: 10, location: 'VIP xona (VIP 21)' },
-        { number: 22, capacity: 10, location: 'VIP xona (VIP 22)' },
+      const capacityFor = (n) => (n <= 4 ? 2 : n <= 12 ? 4 : n <= 19 ? 6 : 10)
+      const zones = [
+        {
+          location: (n) => 'Asosiy zal',
+          tables: allTables.filter((t) => !isVipTable(t)),
+        },
+        {
+          location: (n) => `VIP xona (VIP ${n})`,
+          tables: allTables.filter((t) => isVipTable(t)),
+        },
       ]
 
-      const existingMap = new Map((tablesQuery.data ?? []).map((t) => [t.number, t]))
-      for (const p of presets) {
-        const existing = existingMap.get(p.number)
-        if (existing) {
-          await updateTable(existing._id, { capacity: p.capacity, location: p.location })
-        } else {
-          await createTable({
-            number: p.number,
-            capacity: p.capacity,
-            location: p.location,
-            status: TABLE_STATUS.FREE,
-          })
+      for (const zone of zones) {
+        // Zonadagi stollarni raqam bo'yicha tartiblash — pozitsiya i bo'yicha yangi raqam i+1.
+        const sorted = [...zone.tables].sort((a, b) => (a.number ?? 0) - (b.number ?? 0))
+        for (let i = 1; i <= 22; i++) {
+          const table = sorted[i - 1]
+          const location = zone.location(i)
+          if (table) {
+            const needsUpdate =
+              table.number !== i || table.capacity !== capacityFor(i) || table.location !== location
+            if (needsUpdate) {
+              await updateTable(table._id, { number: i, capacity: capacityFor(i), location })
+            }
+          } else {
+            await createTable({
+              number: i,
+              capacity: capacityFor(i),
+              location,
+              status: TABLE_STATUS.FREE,
+            })
+          }
         }
       }
     },
     onSuccess: () => {
-      toast.success("44 ta stol shakllantirildi")
+      toast.success("44 ta stol shakllantirildi (har zonada 1-22)")
       invalidate()
     },
     onError: (error) => toast.error(apiErrorMessage(error, "Stollarni shakllantirib bo'lmadi")),
