@@ -13,6 +13,7 @@ import {
   rootLogin, rootLogout, rootMe,
   getRootStats, getRootCollections, getRootCollection,
   createRootDocument, updateRootDocument, deleteRootDocument, wipeRootCollection,
+  resetUserPassword,
 } from '../api'
 
 const inputCls = 'w-full rounded-md border border-gray-600 bg-gray-900 px-3 py-2 text-sm text-gray-100 placeholder-gray-500 outline-none focus:border-red-500'
@@ -46,6 +47,9 @@ export default function RootPanel() {
   const [editorJson, setEditorJson] = useState('')
   const [editorError, setEditorError] = useState('')
   const [saving, setSaving] = useState(false)
+
+  // password reset result (ko'rsatilgach yashiriladi)
+  const [passwordResult, setPasswordResult] = useState(null)
 
   const handleError = useCallback((e) => {
     const msg = e?.response?.data?.message || e?.message || 'Xatolik yuz berdi'
@@ -164,6 +168,22 @@ export default function RootPanel() {
       flash('🗑 O\'chirildi')
       loadItems(activeKey)
       loadStats()
+    } catch (e) { handleError(e) }
+  }
+
+  async function handleResetPassword(doc) {
+    const label = doc.name || doc.email
+    const custom = window.prompt(
+      `🔑 Yangi parol: ${label}\n\n` +
+      'Bo\'sh qoldirsangiz — avtomatik xavfsiz parol generatsiya qilinadi.\n' +
+      'Yoki o\'zingiz xohlagan parolni yozing (kamida 6 belgi):'
+    )
+    if (custom === null) return // bekor qildi
+    if (custom && custom.length < 6) { flash('❌ Parol kamida 6 belgi'); return }
+    try {
+      const res = await resetUserPassword(doc._id, custom || null)
+      setPasswordResult({ user: res, password: res.newPassword })
+      loadItems(activeKey)
     } catch (e) { handleError(e) }
   }
 
@@ -332,6 +352,9 @@ export default function RootPanel() {
                         <td className="px-3 py-2">
                           <div className="flex gap-2">
                             <button onClick={() => openEdit(doc)} className="rounded border border-gray-600 px-2 py-1 text-xs hover:bg-gray-800">✏️ Tahrirlash</button>
+                            {activeKey === 'users' && (
+                              <button onClick={() => handleResetPassword(doc)} className="rounded border border-amber-600 bg-amber-950 px-2 py-1 text-xs text-amber-300 hover:bg-amber-900" title="Yangi parol berish (eski parol o'rniga)">🔑</button>
+                            )}
                             <button onClick={() => handleDelete(doc)} className="rounded border border-red-700 bg-red-950 px-2 py-1 text-xs text-red-300 hover:bg-red-900">🗑</button>
                           </div>
                         </td>
@@ -368,6 +391,36 @@ export default function RootPanel() {
           </p>
         </section>
       </div>
+
+      {/* Password result modal — yangi parol faqat bir marta ko'rinadi */}
+      {passwordResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setPasswordResult(null)}>
+          <div className="w-full max-w-md rounded-xl border border-amber-700 bg-gray-900 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-amber-300">🔑 Parol almashtirildi</h3>
+            <p className="mt-1 text-xs text-gray-400">
+              {passwordResult.user.name} ({passwordResult.user.email}) uchun yangi parol:
+            </p>
+            <div className="mt-3 rounded-md border border-amber-700 bg-amber-950/40 p-4 text-center">
+              <p className="select-all font-mono text-2xl font-bold text-amber-200">{passwordResult.password}</p>
+            </div>
+            <p className="mt-3 text-xs text-red-400">
+              ⚠️ Bu parol endi BOSHQA KO'RSATILMAYDI — hozir saqlab oling yoki ishchiga yuboring.
+              Eski parol o'chirildi, uning sessiyalari ham tugatildi.
+            </p>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => { navigator.clipboard?.writeText(passwordResult.password); flash('📋 Parol nusxalandi') }}
+                className={btnGhost}
+              >
+                📋 Nusxalash
+              </button>
+              <button onClick={() => setPasswordResult(null)} className={btnDanger}>
+                Saqlab oldim
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* JSON Editor modal */}
       {editorOpen && (

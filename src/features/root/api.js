@@ -92,6 +92,12 @@ export async function deleteRootDocument(key, id) {
   return res.data?.data
 }
 
+export async function resetUserPassword(id, password = null) {
+  const body = password ? { password } : {}
+  const res = await rootApi.post(`/root/collections/users/${id}/reset-password`, body)
+  return res.data?.data
+}
+
 export async function wipeRootCollection(key) {
   const res = await rootApi.post(`/root/collections/${key}/wipe`)
   return res.data?.data
