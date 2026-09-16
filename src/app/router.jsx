@@ -103,8 +103,9 @@ export const router = createBrowserRouter([
   { path: '/guest', element: <GuestMenuPage /> },
 
   // ROOT (superadmin) panel — sidebar'da ko'rinmaydi, faqat URL orqali.
-  // O'z alohide auth'iga ega (RootPanel ichida login ekrani bor).
-  { path: '/root-panel', element: <RootPanel /> },
+  // Maxfiy URL: /k9x — tasodifiy ko'rinadigan token, hech narsani oshkor qilmaydi.
+  // O'z alohide auth'iga ega (login ekrani ichida).
+  { path: '/k9x', element: <RootPanel /> },
 
   {
     element: <PrivateRoute />,

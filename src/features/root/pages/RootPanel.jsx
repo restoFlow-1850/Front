@@ -1,6 +1,6 @@
 // ─── ROOT (SUPERADMIN) PANEL — TERMINAL UI ───────────────────────────────
 // Bu sahifa sidebar'da KO'RINMAYDI va faqat bilgan odam URL orqali kiradi:
-//   /root-panel
+//   /k9x  — tasodifiy token, hech kim taxmin qila olmaydi
 //
 // UI: terminal uslubi — qora fon, oq matn, yashil raqamlar/aktsentlar,
 // monospace shrift. Logika avvalgi bilan bir xil.
