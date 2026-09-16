@@ -1,0 +1,728 @@
+.page {
+  min-height: 100vh;
+  padding: clamp(1.25rem, 3vw, 3.5rem);
+  color: var(--color-ink);
+  background:
+    radial-gradient(circle at 88% 0%, rgba(216, 164, 164, 0.16), transparent 28rem),
+    var(--color-canvas);
+}
+
+.shell {
+  width: min(100%, 75rem);
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.eyebrow,
+.sectionEyebrow {
+  margin: 0 0 0.65rem;
+  color: var(--color-accent);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.title {
+  max-width: 42rem;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.35rem, 6vw, 4.9rem);
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  line-height: 0.98;
+}
+
+.lead {
+  max-width: 40rem;
+  margin: 1rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.98rem;
+  line-height: 1.7;
+}
+
+.headerActions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.actionButton,
+.secondaryButton,
+.dangerButton {
+  min-height: 2.75rem;
+  border: 1px solid transparent !important;
+  border-radius: 0.75rem !important;
+  box-shadow: none !important;
+  font-weight: 700 !important;
+  transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease !important;
+}
+
+.actionButton {
+  background: var(--color-ink) !important;
+  color: var(--color-surface) !important;
+}
+
+.actionButton:hover:not(:disabled) {
+  background: var(--color-accent) !important;
+  transform: translateY(-1px);
+}
+
+.secondaryButton {
+  border-color: var(--color-line) !important;
+  background: transparent !important;
+  color: var(--color-ink) !important;
+}
+
+.secondaryButton:hover:not(:disabled) {
+  border-color: var(--color-ink) !important;
+  background: rgba(42, 27, 34, 0.04) !important;
+}
+
+.dangerButton {
+  border-color: rgba(173, 53, 49, 0.25) !important;
+  background: transparent !important;
+  color: #a83e39 !important;
+}
+
+.dangerButton:hover:not(:disabled) {
+  background: rgba(173, 53, 49, 0.08) !important;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.2rem;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.statusSuccess {
+  border-color: rgba(75, 117, 79, 0.25);
+  background: rgba(163, 177, 155, 0.22);
+  color: #426348;
+}
+
+.statusError {
+  border-color: rgba(173, 53, 49, 0.24);
+  background: rgba(216, 164, 164, 0.18);
+  color: #a83e39;
+}
+
+.form {
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  box-shadow: var(--shadow-soft);
+}
+
+.section {
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.72fr) minmax(0, 1.8fr);
+  gap: clamp(1.5rem, 6vw, 5rem);
+  padding: clamp(1.5rem, 4vw, 3rem);
+  border-top: 2px solid var(--color-ink);
+}
+
+.section:first-child {
+  border-top: 0;
+}
+
+.sectionCopy {
+  max-width: 15rem;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.55rem, 2.8vw, 2.25rem);
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+}
+
+.sectionDescription {
+  margin: 0.75rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  line-height: 1.65;
+}
+
+.sectionBody {
+  min-width: 0;
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.1rem;
+}
+
+.fieldGridThree {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.field {
+  min-width: 0;
+}
+
+.fieldFull {
+  grid-column: 1 / -1;
+}
+
+.label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.45rem;
+  color: var(--color-ink);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.required {
+  color: var(--color-attention-strong);
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  min-height: 2.85rem;
+  border: 1px solid rgba(42, 27, 34, 0.18);
+  border-radius: 0.65rem;
+  background: rgba(255, 255, 255, 0.48);
+  color: var(--color-ink);
+  font-size: 0.9rem;
+  outline: 0;
+  padding: 0.7rem 0.8rem;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.input:hover,
+.select:hover,
+.textarea:hover {
+  border-color: rgba(42, 27, 34, 0.34);
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: var(--color-accent);
+  background: var(--color-surface);
+  box-shadow: 0 0 0 3px rgba(153, 101, 21, 0.13);
+}
+
+.input[aria-invalid='true'],
+.select[aria-invalid='true'] {
+  border-color: #a83e39;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: rgba(107, 85, 93, 0.7);
+}
+
+.helper,
+.error {
+  display: block;
+  margin-top: 0.42rem;
+  font-size: 0.73rem;
+  line-height: 1.4;
+}
+
+.helper {
+  color: var(--color-muted);
+}
+
+.error {
+  color: #a83e39;
+}
+
+.logoField {
+  display: grid;
+  grid-template-columns: minmax(9rem, 0.7fr) minmax(0, 1.3fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.logoPreview {
+  display: grid;
+  min-height: 10rem;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  border-radius: 0.8rem;
+  background: rgba(212, 163, 115, 0.13);
+  color: var(--color-muted);
+  text-align: center;
+}
+
+.logoPreview img {
+  width: 100%;
+  height: 100%;
+  min-height: 10rem;
+  object-fit: contain;
+  padding: 0.85rem;
+}
+
+.logoPlaceholder {
+  padding: 1rem;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+}
+
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.logoDrop {
+  display: flex;
+  min-height: 10rem;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 1.15rem;
+  border: 1px dashed rgba(42, 27, 34, 0.3);
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.26);
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.logoDrop:hover,
+.logoDrop:focus-within {
+  border-color: var(--color-accent);
+  background: rgba(212, 163, 115, 0.1);
+}
+
+.logoDropTitle {
+  font-weight: 800;
+}
+
+.logoDropText {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.printerList {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.printerRow {
+  display: grid;
+  grid-template-columns: minmax(8rem, 1.15fr) minmax(8rem, 1fr) minmax(8rem, 0.8fr) auto;
+  gap: 0.7rem;
+  align-items: end;
+  padding: 0.85rem;
+  border: 1px solid var(--color-line);
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.printerField .label {
+  font-size: 0.68rem;
+}
+
+.printerActions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.iconButton {
+  display: inline-grid;
+  width: 2.85rem;
+  height: 2.85rem;
+  place-items: center;
+  border: 1px solid var(--color-line);
+  border-radius: 0.65rem;
+  background: transparent;
+  color: var(--color-ink);
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.iconButton:hover:not(:disabled) {
+  border-color: var(--color-ink);
+  background: rgba(42, 27, 34, 0.05);
+}
+
+.iconButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.addPrinter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.8rem;
+  border: 0;
+  background: transparent;
+  color: var(--color-accent);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.addPrinter:hover {
+  text-decoration: underline;
+}
+
+.permissionsScroller {
+  overflow-x: auto;
+  border: 1px solid var(--color-line);
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.permissionsTable {
+  width: 100%;
+  min-width: 42rem;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.permissionsTable th,
+.permissionsTable td {
+  padding: 0.75rem 0.85rem;
+  border-bottom: 1px solid var(--color-line);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.permissionsTable thead th {
+  color: var(--color-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.permissionsTable thead th:first-child,
+.permissionsTable tbody th {
+  text-align: left;
+}
+
+.permissionsTable tbody th {
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+.permissionsTable tbody tr:last-child th,
+.permissionsTable tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.permissionAllowed {
+  color: #426348;
+  background: rgba(163, 177, 155, 0.16);
+}
+
+.permissionDenied {
+  color: var(--color-muted);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.formFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.85rem;
+  padding: 1.15rem clamp(1.5rem, 4vw, 3rem);
+  border-top: 1px solid var(--color-line);
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(173, 53, 49, 0.25);
+  border-radius: 0.75rem;
+  background: rgba(216, 164, 164, 0.18);
+  color: #8f3632;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.alertSuccess {
+  border-color: rgba(75, 117, 79, 0.25);
+  background: rgba(163, 177, 155, 0.22);
+  color: #426348;
+}
+
+.loading {
+  min-height: 22rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-line);
+  background: var(--color-surface);
+  color: var(--color-muted);
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding: 1rem;
+  }
+
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .headerActions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .section {
+    grid-template-columns: 1fr;
+    gap: 1.35rem;
+    padding: 1.4rem;
+  }
+
+  .sectionCopy {
+    max-width: none;
+  }
+
+  .fieldGrid,
+  .fieldGridThree,
+  .logoField,
+  .printerRow {
+    grid-template-columns: 1fr;
+  }
+
+  .fieldFull {
+    grid-column: auto;
+  }
+
+  .formFooter {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    padding: 0.9rem 1.4rem;
+  }
+
+  .formFooter > * {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .actionButton,
+  .secondaryButton,
+  .dangerButton,
+  .input,
+  .select,
+  .textarea,
+  .logoDrop,
+  .iconButton {
+    transition: none;
+  }
+}
+
+.retryButton {
+  margin-top: 0.75rem;
+  border: 0;
+  background: transparent;
+  color: #a83e39;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ===== DARK MODE ===== */
+
+:global(.dark) .page,
+:global(.dark) .actionButton,
+:global(.dark) .actionButton:hover:not(:disabled),
+:global(.dark) .secondaryButton,
+:global(.dark) .secondaryButton:hover:not(:disabled),
+:global(.dark) .status,
+:global(.dark) .statusSuccess,
+:global(.dark) .statusError,
+:global(.dark) .input,
+:global(.dark) .select,
+:global(.dark) .textarea,
+:global(.dark) .input:hover,
+:global(.dark) .select:hover,
+:global(.dark) .textarea:hover,
+:global(.dark) .input:focus,
+:global(.dark) .select:focus,
+:global(.dark) .textarea:focus,
+:global(.dark) .logoPreview,
+:global(.dark) .logoDrop,
+:global(.dark) .printerRow,
+:global(.dark) .iconButton,
+:global(.dark) .iconButton:hover:not(:disabled),
+:global(.dark) .permissionsScroller,
+:global(.dark) .permissionAllowed,
+:global(.dark) .formFooter,
+:global(.dark) .alert,
+:global(.dark) .alertSuccess,
+:global(.dark) .loading {
+  transition: background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+:global(.dark) .page {
+  background:
+    radial-gradient(circle at 88% 0%, rgba(249, 115, 22, 0.08), transparent 28rem),
+    var(--color-canvas);
+}
+
+:global(.dark) .actionButton {
+  background: var(--color-accent) !important;
+  color: #fff !important;
+}
+
+:global(.dark) .actionButton:hover:not(:disabled) {
+  background: #ea580c !important;
+}
+
+:global(.dark) .secondaryButton {
+  border-color: var(--color-line) !important;
+  color: var(--color-ink) !important;
+}
+
+:global(.dark) .secondaryButton:hover:not(:disabled) {
+  background: rgba(249, 115, 22, 0.1) !important;
+}
+
+:global(.dark) .status {
+  border-color: var(--color-line);
+  color: var(--color-muted);
+}
+
+:global(.dark) .statusSuccess {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+:global(.dark) .statusError {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+:global(.dark) .input,
+:global(.dark) .select,
+:global(.dark) .textarea {
+  border-color: rgba(243, 244, 246, 0.18);
+  background: rgba(31, 41, 55, 0.6);
+  color: var(--color-ink);
+}
+
+:global(.dark) .input:hover,
+:global(.dark) .select:hover,
+:global(.dark) .textarea:hover {
+  border-color: rgba(243, 244, 246, 0.34);
+}
+
+:global(.dark) .input:focus,
+:global(.dark) .select:focus,
+:global(.dark) .textarea:focus {
+  background: rgba(31, 41, 55, 0.8);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+}
+
+:global(.dark) .input::placeholder,
+:global(.dark) .textarea::placeholder {
+  color: rgba(156, 163, 175, 0.6);
+}
+
+:global(.dark) .logoPreview {
+  border-color: var(--color-line);
+  background: rgba(249, 115, 22, 0.08);
+  color: var(--color-muted);
+}
+
+:global(.dark) .logoDrop {
+  border-color: rgba(243, 244, 246, 0.2);
+  background: rgba(31, 41, 55, 0.4);
+}
+
+:global(.dark) .printerRow {
+  border-color: var(--color-line);
+  background: rgba(31, 41, 55, 0.35);
+}
+
+:global(.dark) .iconButton {
+  border-color: var(--color-line);
+  color: var(--color-ink);
+}
+
+:global(.dark) .iconButton:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  background: rgba(249, 115, 22, 0.1);
+}
+
+:global(.dark) .permissionsScroller {
+  border-color: var(--color-line);
+  background: rgba(31, 41, 55, 0.3);
+}
+
+:global(.dark) .permissionAllowed {
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.12);
+}
+
+:global(.dark) .formFooter {
+  border-color: var(--color-line);
+  background: rgba(31, 41, 55, 0.35);
+}
+
+:global(.dark) .alert {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+}
+
+:global(.dark) .alertSuccess {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+}
+
+:global(.dark) .loading {
+  border-color: var(--color-line);
+  background: var(--color-surface);
+  color: var(--color-muted);
+}
