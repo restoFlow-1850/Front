@@ -291,9 +291,10 @@ export default function AppLayout() {
         isOpen={mapModalOpen}
         onClose={() => setMapModalOpen(false)}
         title={t('dashboard.branchesMap', { defaultValue: 'Restoranlar xaritasi' })}
-        className="w-[80vw] max-w-[1100px] h-[82vh] max-h-none min-w-[320px] min-h-[420px]"
+        className="w-[96vw] max-w-none h-[94vh] max-h-none min-w-[320px] min-h-[420px]"
+        bodyClassName="p-0 overflow-hidden flex flex-col"
       >
-        <Suspense fallback={<div className="h-full animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800" />}>
+        <Suspense fallback={<div className="h-full w-full animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800" />}>
           <RestaurantMapCard />
         </Suspense>
       </Modal>

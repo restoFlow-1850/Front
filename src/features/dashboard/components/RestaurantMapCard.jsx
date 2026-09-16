@@ -280,7 +280,7 @@ export default function RestaurantMapCard() {
   }
 
   return (
-    <Card className="mb-6 border-slate-200 shadow-sm dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden">
+    <Card className="mb-6 border-slate-200 shadow-sm dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden flex h-full min-h-0 flex-col">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-slate-100 dark:border-slate-800">
         <div className="flex items-center gap-3">
@@ -312,10 +312,10 @@ export default function RestaurantMapCard() {
       </div>
 
       {/* Map Display */}
-      <div className="mt-4 relative">
+      <div className="mt-4 relative flex-1 min-h-[320px]">
         <div
           ref={mapContainerRef}
-          className="h-[50vh] min-h-[320px] w-full rounded-xl border border-slate-200 dark:border-slate-800 z-10 shadow-inner"
+          className="absolute inset-0 w-full rounded-xl border border-slate-200 dark:border-slate-800 z-10 shadow-inner"
         />
 
         {/* Selected Branch Floating Badge overlay */}
