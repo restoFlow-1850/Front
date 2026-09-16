@@ -33,8 +33,13 @@ rootApi.interceptors.request.use((config) => {
 })
 
 // ─── AUTH ────────────────────────────────────────────────────────────────
-export async function rootLogin(email, password) {
-  const res = await rootApi.post('/root/login', { email, password })
+export async function rootLogin(identifier, password) {
+  // identifier — email YOKI telefon (+998...)
+  const isPhone = /^\+?[\d\s()-]{7,}$/.test(identifier.trim()) && !identifier.includes('@')
+  const body = isPhone
+    ? { phone: identifier.trim(), password }
+    : { email: identifier.trim().toLowerCase(), password }
+  const res = await rootApi.post('/root/login', body)
   setRootToken(res.data?.data?.token)
   return res.data?.data
 }

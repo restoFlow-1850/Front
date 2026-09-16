@@ -23,8 +23,8 @@ export default function RootPanel() {
   const [user, setUser] = useState(null)
   const [checking, setChecking] = useState(true)
 
-  // login form
-  const [email, setEmail] = useState('')
+  // login form — email YOKI telefon
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [loginError, setLoginError] = useState('')
   const [loggingIn, setLoggingIn] = useState(false)
@@ -93,7 +93,7 @@ export default function RootPanel() {
     setLoggingIn(true)
     setLoginError('')
     try {
-      const me = await rootLogin(email.trim(), password)
+      const me = await rootLogin(identifier.trim(), password)
       setUser(me)
       setPassword('')
     } catch (err) {
@@ -199,11 +199,11 @@ export default function RootPanel() {
           </div>
 
           <input
-            type="email"
+            type="text"
             className={inputCls}
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email yoki telefon"
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
             autoComplete="username"
             required
           />
