@@ -254,7 +254,6 @@ export default function RootPanel() {
 
               <div className="text-xs text-gray-500">
                 <Prompt path="auth"><span className="text-white">sudo login --root</span></Prompt>
-                <p className="mt-1 text-gray-600">Faqat vakolatli shaxs uchun. Barcha urinishlar qayd etiladi.</p>
               </div>
 
               <div>
