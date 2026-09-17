@@ -364,15 +364,17 @@ export default function GuestMenuPage() {
         )}
       </main>
 
-      {/* Floating Fikr-mulohaza Button */}
-      <button
-        type="button"
-        onClick={() => setIsFeedbackOpen(true)}
-        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-gradient-to-r from-[#F97316] to-[#EA580C] px-4 py-3 text-sm font-bold text-white shadow-xl shadow-orange-500/30 hover:scale-105 active:scale-95 transition-transform"
-      >
-        <MessageSquareHeart className="h-5 w-5" />
-        <span className="hidden sm:inline">Fikr bildirish</span>
-      </button>
+      {/* Floating Fikr-mulohaza Button — faqat buyurtma yakunlangan success bosqichida ko'rinadi */}
+      {step === 'success' && (
+        <button
+          type="button"
+          onClick={() => setIsFeedbackOpen(true)}
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-gradient-to-r from-[#F97316] to-[#EA580C] px-4 py-3 text-sm font-bold text-white shadow-xl shadow-orange-500/30 hover:scale-105 active:scale-95 transition-transform"
+        >
+          <MessageSquareHeart className="h-5 w-5" />
+          <span className="hidden sm:inline">Fikr bildirish</span>
+        </button>
+      )}
 
       <FeedbackModal
         isOpen={isFeedbackOpen}
