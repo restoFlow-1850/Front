@@ -107,79 +107,144 @@ export default function ZReportModal({ isOpen, onClose, shiftId }) {
             </div>
           </div>
 
-          {/* Balans */}
-          <div className="rounded-lg border border-slate-200 p-4 dark:border-slate-700">
-            <h4 className="mb-3 font-semibold text-slate-900 dark:text-white">
-              Balans
-            </h4>
-            <div className="space-y-2">
-              <ReportRow label="Boshlang'ich balans" value={formatSom(report.openingBalance)} />
-              <ReportRow label="Yakuniy balans (kassada)" value={formatSom(report.closingBalance)} />
-              <ReportRow
-                label="Kutilgan tushum"
-                value={formatSom(report.expectedIncome)}
-                highlight
-              />
-              <ReportRow
-                label="Haqiqiy tushum"
-                value={formatSom(report.totalIncome)}
-                highlight
-              />
-              {report.difference !== 0 && (
-                <ReportRow
-                  label="Farq (kamomad/zapot)"
-                  value={formatSom(report.difference)}
-                  danger={report.difference < 0}
-                />
-              )}
-            </div>
-          </div>
-
-          {/* Buyurtmalar statistikasi */}
-          <div className="rounded-lg border border-slate-200 p-4 dark:border-slate-700">
-            <h4 className="mb-3 font-semibold text-slate-900 dark:text-white">
-              Buyurtmalar
-            </h4>
-            <div className="grid grid-cols-3 gap-3 text-center">
-              <StatBox label="Jami" value={report.totalOrders ?? 0} />
-              <StatBox label="To'langan" value={report.paidOrders ?? 0} success />
-              <StatBox label="To'lanmagan" value={report.unpaidOrders ?? 0} danger />
-            </div>
-            <div className="mt-3 grid grid-cols-2 gap-3 text-center">
-              <StatBox label="Bekor qilingan" value={report.cancelledOrders ?? 0} danger />
-              <StatBox label="Umumiy summa" value={formatSom(report.totalOrderAmount)} />
-            </div>
-          </div>
-
-          {/* To'lov usullari bo'yicha */}
-          {report.paymentsByMethod && Object.keys(report.paymentsByMethod).length > 0 && (
-            <div className="rounded-lg border border-slate-200 p-4 dark:border-slate-700">
-              <h4 className="mb-3 font-semibold text-slate-900 dark:text-white">
-                To'lov usullari bo'yicha
+          {/* Moliyaviy Summalar Jadvali (Z-Report Summary Table) */}
+          <div className="rounded-lg border border-slate-200 overflow-hidden dark:border-slate-700">
+            <div className="bg-slate-100 px-4 py-2.5 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+              <h4 className="font-semibold text-slate-900 dark:text-white text-xs uppercase tracking-wider">
+                Z-Report Moliyaviy Summalar Jadvali (Taomlar | Xizmat | Chek | To'lov | Balans)
               </h4>
-              <div className="space-y-2">
-                {Object.entries(report.paymentsByMethod).map(([method, amount]) => {
-                  const Icon = METHOD_ICONS[method] || Banknote
-                  return (
-                    <div
-                      key={method}
-                      className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Icon className="h-4 w-4 text-slate-500" />
-                        <span className="text-slate-700 dark:text-slate-300">
-                          {PAYMENT_METHOD_LABELS[method] ?? method}
-                        </span>
-                      </div>
-                      <span className="font-semibold text-slate-900 dark:text-white">
-                        {formatSom(amount)}
-                      </span>
-                    </div>
-                  )
-                })}
-              </div>
+              <span className="text-[11px] text-slate-500 font-medium">Smena #{report.shiftNumber ?? shiftId?.slice(-6)}</span>
             </div>
-          )}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50/50 dark:border-slate-700 dark:bg-slate-800/50 text-slate-500 font-medium">
+                    <th className="px-4 py-2">Moliyaviy ko'rsatkich</th>
+                    <th className="px-4 py-2">Tafsilot / Turi</th>
+                    <th className="px-4 py-2 text-right">Summa</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {/* 1. Taomlar summasi */}
+                  <tr>
+                    <td className="px-4 py-2 text-slate-700 dark:text-slate-300 font-medium">Taomlar summasi</td>
+                    <td className="px-4 py-2 text-slate-500">Sotilgan taomlar subtotal</td>
+                    <td className="px-4 py-2 text-right font-semibold text-slate-900 dark:text-white">
+                      {formatSom(
+                        report.items?.reduce(
+                          (sum, item) => sum + (item.total ?? (item.price ?? 0) * (item.quantity ?? 1)),
+                          0
+                        ) ?? (report.totalOrderAmount ?? 0)
+                      )}
+                    </td>
+                  </tr>
+                  {/* 2. Xizmat haqi */}
+                  <tr>
+                    <td className="px-4 py-2 text-slate-700 dark:text-slate-300 font-medium">Xizmat haqi</td>
+                    <td className="px-4 py-2 text-slate-500">Xizmat ko'rsatish foizi / haqi</td>
+                    <td className="px-4 py-2 text-right font-semibold text-slate-900 dark:text-white">
+                      {formatSom(
+                        report.serviceFee ??
+                          (report.totalOrderAmount && report.items?.length
+                            ? Math.max(
+                                0,
+                                report.totalOrderAmount -
+                                  report.items.reduce(
+                                    (sum, item) => sum + (item.total ?? (item.price ?? 0) * (item.quantity ?? 1)),
+                                    0
+                                  )
+                              )
+                            : 0)
+                      )}
+                    </td>
+                  </tr>
+                  {/* 3. Chek summasi (Jami buyurtmalar) */}
+                  <tr className="bg-slate-50/70 dark:bg-slate-800/70 font-semibold">
+                    <td className="px-4 py-2 text-slate-900 dark:text-white">Chek summasi (Jami)</td>
+                    <td className="px-4 py-2 text-slate-500">Barcha yopilgan cheklar summasi</td>
+                    <td className="px-4 py-2 text-right text-slate-900 dark:text-white">
+                      {formatSom(report.totalOrderAmount ?? 0)}
+                    </td>
+                  </tr>
+                  {/* 4. To'langan summa (To'lov usullari bo'yicha) */}
+                  <tr>
+                    <td className="px-4 py-2 text-slate-700 dark:text-slate-300">Naqd pul to'lovi</td>
+                    <td className="px-4 py-2 text-slate-500">Naqd (Cash)</td>
+                    <td className="px-4 py-2 text-right font-semibold text-slate-900 dark:text-white">
+                      {formatSom(report.paymentsByMethod?.naqd ?? 0)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-2 text-slate-700 dark:text-slate-300">Plastik karta to'lovi</td>
+                    <td className="px-4 py-2 text-slate-500">Karta (Card)</td>
+                    <td className="px-4 py-2 text-right font-semibold text-slate-900 dark:text-white">
+                      {formatSom(report.paymentsByMethod?.karta ?? 0)}
+                    </td>
+                  </tr>
+                  {Boolean(report.paymentsByMethod?.click) && (
+                    <tr>
+                      <td className="px-4 py-2 text-slate-700 dark:text-slate-300">Click to'lovi</td>
+                      <td className="px-4 py-2 text-slate-500">Click Online</td>
+                      <td className="px-4 py-2 text-right font-semibold text-slate-900 dark:text-white">
+                        {formatSom(report.paymentsByMethod.click)}
+                      </td>
+                    </tr>
+                  )}
+                  {Boolean(report.paymentsByMethod?.payme) && (
+                    <tr>
+                      <td className="px-4 py-2 text-slate-700 dark:text-slate-300">Payme to'lovi</td>
+                      <td className="px-4 py-2 text-slate-500">Payme Online</td>
+                      <td className="px-4 py-2 text-right font-semibold text-slate-900 dark:text-white">
+                        {formatSom(report.paymentsByMethod.payme)}
+                      </td>
+                    </tr>
+                  )}
+                  <tr className="bg-indigo-50/50 dark:bg-indigo-950/20 font-semibold">
+                    <td className="px-4 py-2 text-indigo-900 dark:text-indigo-300">Jami To'langan Summa</td>
+                    <td className="px-4 py-2 text-indigo-600 dark:text-indigo-400">Haqiqiy tushum yig'indisi</td>
+                    <td className="px-4 py-2 text-right text-indigo-700 dark:text-indigo-300">
+                      {formatSom(report.totalIncome ?? 0)}
+                    </td>
+                  </tr>
+                  {/* 5. Z-Report Moliyaviy Kassa Balansi */}
+                  <tr>
+                    <td className="px-4 py-2 text-slate-700 dark:text-slate-300">Boshlang'ich kassa balansi</td>
+                    <td className="px-4 py-2 text-slate-500">Smena boshida kassada bo'lgan naqd</td>
+                    <td className="px-4 py-2 text-right font-semibold text-slate-900 dark:text-white">
+                      {formatSom(report.openingBalance ?? 0)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-2 text-slate-700 dark:text-slate-300">Kutilgan kassa balansi</td>
+                    <td className="px-4 py-2 text-slate-500">Boshlang'ich + Naqd pul tushumi</td>
+                    <td className="px-4 py-2 text-right font-semibold text-slate-900 dark:text-white">
+                      {formatSom(report.expectedIncome ?? 0)}
+                    </td>
+                  </tr>
+                  <tr className="bg-slate-100 dark:bg-slate-800 font-bold">
+                    <td className="px-4 py-2 text-slate-900 dark:text-white">Yakuniy kassa balansi</td>
+                    <td className="px-4 py-2 text-slate-500">Kassani sanashda topilgan naqd</td>
+                    <td className="px-4 py-2 text-right text-slate-900 dark:text-white">
+                      {formatSom(report.closingBalance ?? 0)}
+                    </td>
+                  </tr>
+                  {report.difference !== 0 && (
+                    <tr
+                      className={
+                        report.difference < 0
+                          ? 'bg-rose-50 dark:bg-rose-950/30 font-bold text-rose-700 dark:text-rose-400'
+                          : 'bg-emerald-50 dark:bg-emerald-950/30 font-bold text-emerald-700 dark:text-emerald-400'
+                      }
+                    >
+                      <td className="px-4 py-2">Farq (kamomad/zapot)</td>
+                      <td className="px-4 py-2">Yakuniy naqd - Kutilgan naqd</td>
+                      <td className="px-4 py-2 text-right">{formatSom(report.difference)}</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
           {/* Chek elementlari */}
           {report.items?.length > 0 && (
