@@ -97,20 +97,20 @@ Bu demo'ning eng muhim ishi. Boshqa hamma narsa shunga bog'liq.
 Fayoz 16 kundan beri jim, demo esa ertaga — shuning uchun landing senga o'tdi.
 Stollar bo'yicha ishing tugadi (`Abdugani` branch main'ga kirgan), demak vaqting bor.
 
-- [ ] **🔴 `src/features/landing/` yarat va `/` marshrutiga qo'y.** Login talab qilinmaydi.
+- [x] **🔴 `src/features/landing/` yarat va `/` marshrutiga qo'y.** Login talab qilinmaydi.
       `router.jsx` da hozir `{ index: true, element: <RoleHomeRedirect /> }` — uni
       `PrivateRoute` ichida qoldirib, `/` ni public qil (`/guest` bilan bir xil darajada, 104-qator namuna).
       Tizimga kirgan xodim `/` ga tushsa — o'z paneliga yo'naltirilsin (hozirgi mantiq saqlansin).
-- [ ] **Ma'lumotni backenddan ol, hardcode qilma.** `GET /api/landing` va `GET /api/clients` —
+- [x] **Ma'lumotni backenddan ol, hardcode qilma.** `GET /api/landing` va `GET /api/clients` —
       **ikkalasi ham tokensiz ochiq**, tayyor turibdi. Restoran nomi, tavsifi, telefon, manzil,
       ish vaqti, reyting, logo, hero rasm — hammasi shu javobda bor.
-- [ ] Sahifada bo'lishi kerak: restoran nomi + hero rasm, qisqa tavsif, ish vaqti va manzil,
+- [x] Sahifada bo'lishi kerak: restoran nomi + hero rasm, qisqa tavsif, ish vaqti va manzil,
       menyudan 6–8 ta namuna (`GET /products?limit=8&isAvailable=true` — ochiq),
       va katta **«Joy band qilish»** tugmasi → `/guest` ga olib boradi.
-- [ ] **Noldan yozma:** `features/qr-menu` dagi bron oqimi ishlaydi va backendga ulangan.
+- [x] **Noldan yozma:** `features/qr-menu` dagi bron oqimi ishlaydi va backendga ulangan.
       Landing faqat unga kirish eshigi bo'lsin.
-- [ ] Matnlarni `t()` orqali yoz — i18n to'liq ishlaydi, uz/ru/en kalitlarini `locales/*/common.json` ga qo'sh.
-- [ ] Telefonda ochib ko'r — demo'da link telefondan ochiladi.
+- [x] Matnlarni `t()` orqali yoz — i18n to'liq ishlaydi, uz/ru/en kalitlarini `locales/*/common.json` ga qo'sh.
+- [x] Telefonda ochib ko'r — demo'da link telefondan ochiladi.
 
 ---
 
