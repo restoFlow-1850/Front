@@ -103,8 +103,8 @@ export const router = createBrowserRouter([
   { path: '/guest', element: <GuestMenuPage /> },
 
   // ROOT (superadmin) panel — sidebar'da ko'rinmaydi, faqat URL orqali.
-  // O'z alohide auth'iga ega (RootPanel ichida login ekrani bor).
-  { path: '/root-panel', element: <RootPanel /> },
+  // URL: /sap (Super Admin Panel). O'z alohide auth'iga ega (login ekrani ichida).
+  { path: '/sap', element: <RootPanel /> },
 
   {
     element: <PrivateRoute />,
