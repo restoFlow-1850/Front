@@ -53,16 +53,6 @@ export function useKitchenOrders() {
 
   const announceNewOrder = useCallback(
     (order) => {
-      const id = order?._id ?? order?.id ?? order?.orderId
-      if (id) {
-        if (announcedIdsRef.current.has(id)) return
-        announcedIdsRef.current.add(id)
-        if (announcedIdsRef.current.size > ANNOUNCED_IDS_MAX) {
-          const [oldest] = announcedIdsRef.current
-          announcedIdsRef.current.delete(oldest)
-        }
-      }
-
       if (!soundEnabledRef.current) return
       const table = order?.table?.number ?? order?.table ?? '?'
       const message = t('kitchen.audio.newOrderAlert', { table })
@@ -76,10 +66,22 @@ export function useKitchenOrders() {
   const WAITER_CALLS_MAX = 8
 
   useEffect(() => {
+    // Backend bir buyurtmani bir nechta nom bilan yuboradi (order:created + kitchen:new_order).
+    // ID bo'yicha dedup: audio, unseenCount va invalidate faqat bir marta ishlaydi.
     const handleNewOrder = (payload) => {
+      const order = extractOrder(payload)
+      const orderId = order?._id ?? order?.id ?? order?.orderId
+      if (orderId) {
+        if (announcedIdsRef.current.has(orderId)) return
+        announcedIdsRef.current.add(orderId)
+        if (announcedIdsRef.current.size > ANNOUNCED_IDS_MAX) {
+          const [oldest] = announcedIdsRef.current
+          announcedIdsRef.current.delete(oldest)
+        }
+      }
       invalidateOrders()
       setUnseenCount((prev) => prev + 1)
-      announceNewOrder(extractOrder(payload))
+      announceNewOrder(order)
     }
     const handleStatusUpdate = () => invalidateOrders()
     const handleTableUpdate = () => invalidateOrders()
@@ -127,30 +129,25 @@ export function useKitchenOrders() {
       triggerWaiterCallAlert(tableNumber, message, i18n.language)
     }
 
-    socket.on('order:new', handleNewOrder)
+    // Kanonik eventlar (EVENTS.md). Dublikat aliaslar olib tashlandi:
+    // order:new (order:created ning aliasi), order:status_updated, order:itemUpdated,
+    // order:itemStatusChanged — hujjatda yo'q yoki boshqa nomning takrori.
     socket.on('order:created', handleNewOrder)
     socket.on('kitchen:new_order', handleNewOrder)
-    socket.on('order:status_updated', handleStatusUpdate)
     socket.on('order:status_changed', handleStatusUpdate)
-    socket.on('order:statusChanged', handleStatusUpdate)
+    socket.on('order:statusChanged', handleStatusUpdate) // backend birga yuboradigan alias
     socket.on('table:status_updated', handleTableUpdate)
-    socket.on('table:waiter_called', handleWaiterCalled)
+    socket.on('table:waiter_called', handleWaiterCalled) // EVENTS.md'da yo'q, lekin backend yuboradi
     socket.on('order:item_updated', handleItemUpdate)
-    socket.on('order:itemUpdated', handleItemUpdate)
-    socket.on('order:itemStatusChanged', handleItemUpdate)
 
     return () => {
-      socket.off('order:new', handleNewOrder)
       socket.off('order:created', handleNewOrder)
       socket.off('kitchen:new_order', handleNewOrder)
-      socket.off('order:status_updated', handleStatusUpdate)
       socket.off('order:status_changed', handleStatusUpdate)
       socket.off('order:statusChanged', handleStatusUpdate)
       socket.off('table:status_updated', handleTableUpdate)
       socket.off('table:waiter_called', handleWaiterCalled)
       socket.off('order:item_updated', handleItemUpdate)
-      socket.off('order:itemUpdated', handleItemUpdate)
-      socket.off('order:itemStatusChanged', handleItemUpdate)
     }
   }, [invalidateOrders, announceNewOrder, queryClient, t, i18n.language])
 
