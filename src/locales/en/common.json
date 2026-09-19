@@ -490,9 +490,98 @@
     "cart": "Cart",
     "totalAmount": "Total Amount",
     "placeOrder": "Place Order",
-    "orderSuccess": "Your order was sent to the kitchen!",
-    "reserveTable": "Reserve a table"
+
+    "orderSuccess": "Your order was sent to the kitchen!"
   },
-  "view": "View",
-  "next": "Next"
+
+  "landing": {
+    "nav": {
+      "clients": "Clients",
+      "login": "Login",
+      "start": "Get Started"
+    },
+    "hero": {
+      "titlePart1": "Manage your restaurant ",
+      "titleHighlight": "smartly",
+      "titlePart2": "",
+      "subtitle": "Orders, tables, kitchen, and cashier — all in one platform. Real-time management, fast and easy.",
+      "startFree": "Start Free →",
+      "restaurants": "Restaurants"
+    },
+    "features": {
+      "ordersTitle": "Orders",
+      "ordersDesc": "Waiters receive orders quickly, kitchen views them in real-time.",
+      "tablesTitle": "Table Map",
+      "tablesDesc": "View table status on the map — occupied, free, reserved.",
+      "dashboardTitle": "Dashboard & Cashier",
+      "dashboardDesc": "Statistics, charts, payments, and receipt printing — automatic."
+    },
+    "dishes": {
+      "title": "Sample Dishes",
+      "subtitle": "Selected delicious dishes from our partner restaurant menus",
+      "currency": "UZS",
+      "viewMenu": "View Menu",
+      "items": {
+        "1": {
+          "name": "Tashkent Plov",
+          "category": "National Cuisine",
+          "description": "Royal plov made with devzira rice, tender beef, yellow carrots, and quail eggs."
+        },
+        "2": {
+          "name": "Tandoor Samsa",
+          "category": "Pastry",
+          "description": "Juicy beef samsa baked in a traditional clay tandoor oven with flaky pastry."
+        },
+        "3": {
+          "name": "Traditional Manti",
+          "category": "National Cuisine",
+          "description": "Steamed dumplings filled with finely chopped beef and onions in thin dough."
+        },
+        "4": {
+          "name": "Margherita Pizza",
+          "category": "Italian Cuisine",
+          "description": "Classic pizza topped with fresh mozzarella cheese, homemade tomato sauce, and basil."
+        },
+        "5": {
+          "name": "Luleh Kebab",
+          "category": "Kebab & Grill",
+          "description": "Tender and flavorful minced beef kebab grilled over natural charcoal."
+        },
+        "6": {
+          "name": "California Rolls",
+          "category": "Japanese Cuisine",
+          "description": "Japanese sushi rolls with crab meat, fresh avocado, cucumber, and tobiko roe."
+        },
+        "7": {
+          "name": "Uyghur Lagman",
+          "category": "Noodle Dishes",
+          "description": "Hand-pulled fresh noodles served with a rich savory beef and vegetable topping."
+        },
+        "8": {
+          "name": "Chicken Caesar Salad",
+          "category": "Salads",
+          "description": "Fresh iceberg lettuce salad with grilled chicken breast, parmesan, and Caesar dressing."
+        }
+      }
+    },
+    "restaurants": {
+      "title": "Our Restaurants",
+      "subtitle": "Browse menus and reserve tables online",
+      "viewMenu": "View Menu",
+      "emptyTitle": "No restaurants found",
+      "emptyDesc": "No restaurants in the list yet. Coming soon!",
+      "errorTitle": "An error occurred",
+      "errorDesc": "Failed to load restaurants. Please check your internet connection.",
+      "retry": "Retry"
+    },
+    "cta": {
+      "title": "Start Managing Your Restaurant Today",
+      "subtitle": "Sign up for free and start your 14-day trial period.",
+      "startFree": "Start Free →"
+    },
+    "footer": {
+      "rights": "All rights reserved."
+    }
+  }
 }
+
