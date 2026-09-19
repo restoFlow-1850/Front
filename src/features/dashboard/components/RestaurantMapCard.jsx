@@ -312,7 +312,7 @@ export default function RestaurantMapCard() {
       </div>
 
       {/* Map Display */}
-      <div className="mt-4 relative flex-1 min-h-[320px]">
+      <div className="mt-4 relative flex-1 min-h-[420px]">
         <div
           ref={mapContainerRef}
           className="absolute inset-0 w-full rounded-xl border border-slate-200 dark:border-slate-800 z-10 shadow-inner"
