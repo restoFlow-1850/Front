@@ -14,6 +14,58 @@ import {
 import { toast } from 'react-toastify'
 import { formatSom } from '../../../lib/api'
 
+function parseExcelPrice(val) {
+  if (val === null || val === undefined) return 0
+  if (typeof val === 'number') return isNaN(val) ? 0 : val
+  if (typeof val === 'object') {
+    if (typeof val.result === 'number') return val.result
+    if (val.result !== undefined) val = val.result
+    else if (val.text !== undefined) val = val.text
+    else if (val.richText) val = val.richText.map((t) => t.text).join('')
+  }
+  let str = String(val).trim()
+  if (!str) return 0
+
+  if (/^\d+$/.test(str)) {
+    return parseInt(str, 10)
+  }
+
+  str = str.replace(/\s+/g, '')
+  str = str.replace(/[^0-9.,]/g, '')
+  if (!str) return 0
+
+  if (str.includes('.') && str.includes(',')) {
+    if (str.lastIndexOf('.') > str.lastIndexOf(',')) {
+      str = str.replace(/,/g, '')
+    } else {
+      str = str.replace(/\./g, '').replace(',', '.')
+    }
+  } else if (str.includes('.')) {
+    const parts = str.split('.')
+    if (parts.length > 2) {
+      str = str.replace(/\./g, '')
+    } else if (parts.length === 2) {
+      if (parts[1].length === 3) {
+        str = str.replace('.', '')
+      }
+    }
+  } else if (str.includes(',')) {
+    const parts = str.split(',')
+    if (parts.length > 2) {
+      str = str.replace(/,/g, '')
+    } else if (parts.length === 2) {
+      if (parts[1].length === 3) {
+        str = str.replace(',', '')
+      } else {
+        str = str.replace(',', '.')
+      }
+    }
+  }
+
+  const num = parseFloat(str)
+  return isNaN(num) ? 0 : num
+}
+
 export default function ExcelImportModal({
   isOpen,
   onClose,
@@ -119,6 +171,12 @@ export default function ExcelImportModal({
     const file = e.target.files?.[0]
     if (!file) return
 
+    if (!file.name.toLowerCase().endsWith('.xlsx')) {
+      toast.error("Faqat .xlsx formatidagi Excel fayllari qabul qilinadi")
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+
     setFileName(file.name)
     setIsParsing(true)
 
@@ -189,12 +247,12 @@ export default function ExcelImportModal({
         // Parse data row
         const rawNom = stringValues[headerIndices.nom] || stringValues[1] || ''
         const rawKat = stringValues[headerIndices.kategoriya] || stringValues[2] || ''
-        const rawPrice = stringValues[headerIndices.narx] || stringValues[3] || ''
+        const rawPriceVal = values[headerIndices.narx] ?? values[3] ?? stringValues[headerIndices.narx]
         const rawDesc = stringValues[headerIndices.tavsif] || stringValues[4] || ''
 
-        if (!rawNom && !rawPrice && !rawKat) return // Skip empty rows
+        if (!rawNom && !rawPriceVal && !rawKat) return // Skip empty rows
 
-        const parsedPrice = parseFloat(rawPrice.replace(/[^0-9.]/g, '')) || 0
+        const parsedPrice = parseExcelPrice(rawPriceVal)
         const isValid = Boolean(rawNom.trim()) && parsedPrice > 0
 
         let error = ''
@@ -252,32 +310,33 @@ export default function ExcelImportModal({
 
       try {
         let categoryId = ''
-        const catNameLower = (row.kategoriya || 'Boshqa').toLowerCase()
+        const targetCatName = (row.kategoriya || 'Boshqa').trim()
+        const catNameLower = targetCatName.toLowerCase()
 
         if (categoryMap[catNameLower]) {
           categoryId = categoryMap[catNameLower]
         } else {
-          // Category doesn't exist — create it!
+          // Kategoriya yaratilishi kerak
           try {
             const catRes = await createCategory({
-              name: row.kategoriya || 'Boshqa',
+              name: targetCatName,
               icon: 'UtensilsCrossed',
             })
             const newCat = catRes?.data?.data || catRes?.data || catRes
             if (newCat?._id) {
               categoryId = newCat._id
               categoryMap[catNameLower] = newCat._id
+            } else {
+              throw new Error("Kategoriya yaratishda ID olinmadi")
             }
-          } catch {
-            // Fallback to first existing category if available
-            if (categories.length > 0) {
-              categoryId = categories[0]._id
-            }
+          } catch (catErr) {
+            console.error(`Kategoriya yaratishda xatolik ("${targetCatName}"):`, catErr)
+            throw new Error(`Kategoriya yaratib bo'lmadi ("${targetCatName}")`)
           }
         }
 
-        if (!categoryId && categories.length > 0) {
-          categoryId = categories[0]._id
+        if (!categoryId) {
+          throw new Error(`Kategoriya topilmadi yoki yaratib bo'lmadi ("${targetCatName}")`)
         }
 
         const formData = new FormData()
@@ -377,14 +436,14 @@ export default function ExcelImportModal({
                   <span>2. Excel faylni tanlang</span>
                 </div>
                 <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                  {fileName ? `Tanlangan: ${fileName}` : ".xlsx yoki .xls formatidagi faylni yuklang"}
+                  {fileName ? `Tanlangan: ${fileName}` : "Faqat .xlsx formatidagi Excel faylini yuklang"}
                 </p>
               </div>
 
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".xlsx, .xls, .csv"
+                accept=".xlsx"
                 onChange={handleFileChange}
                 className="hidden"
                 id="excel-file-input"
