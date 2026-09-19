@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next'
 import {
   Search,
   Plus,
-  Filter,
   Pencil,
   Trash2,
   CheckCircle2,
@@ -19,6 +18,7 @@ import {
   AlertTriangle,
   FolderPlus,
   RefreshCw,
+  FileSpreadsheet,
 } from 'lucide-react'
 import { toast } from 'react-toastify'
 
@@ -36,6 +36,7 @@ import {
 import CategoryModal, { ICONS } from '../components/CategoryModal'
 import ProductModal from '../components/ProductModal'
 import ProductPreviewModal from '../components/ProductPreviewModal'
+import ExcelImportModal from '../components/ExcelImportModal'
 import { ROLES } from '../../../constants/roles'
 import { unwrapList, apiErrorMessage, formatSom } from '../../../lib/api'
 import { Modal, Button } from '../../../components/ui'
@@ -67,6 +68,7 @@ export default function MenuPage() {
   const [deleteProductTarget, setDeleteProductTarget] = useState(null)
 
   const [previewProduct, setPreviewProduct] = useState(null)
+  const [isExcelModalOpen, setIsExcelModalOpen] = useState(false)
 
   // Fetch Categories
   const categoriesQuery = useQuery({
@@ -219,6 +221,14 @@ export default function MenuPage() {
 
           {canManage && (
             <>
+              <Button
+                variant="secondary"
+                onClick={() => setIsExcelModalOpen(true)}
+              >
+                <FileSpreadsheet className="mr-1.5 h-4 w-4 text-emerald-500" />
+                Excel'dan yuklash
+              </Button>
+
               <Button
                 variant="secondary"
                 onClick={() => {
@@ -683,6 +693,19 @@ export default function MenuPage() {
           </p>
         </div>
       </Modal>
+
+      {/* Excel Import Modal */}
+      <ExcelImportModal
+        isOpen={isExcelModalOpen}
+        onClose={() => setIsExcelModalOpen(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['categories'] })
+          queryClient.invalidateQueries({ queryKey: ['products'] })
+        }}
+        categories={categories}
+        createCategory={createCategory}
+        createProduct={createProduct}
+      />
     </div>
   )
 }

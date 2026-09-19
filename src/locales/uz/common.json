@@ -490,9 +490,98 @@
     "cart": "Savat",
     "totalAmount": "Umumiy summa",
     "placeOrder": "Buyurtma berish",
-    "orderSuccess": "Buyurtmangiz oshxonaga yuborildi!",
-    "reserveTable": "Stol bron qilish"
+
+    "orderSuccess": "Buyurtmangiz oshxonaga yuborildi!"
   },
-  "view": "Ko'rish",
-  "next": "Keyingi"
+
+  "landing": {
+    "nav": {
+      "clients": "Mijozlar",
+      "login": "Kirish",
+      "start": "Boshlash"
+    },
+    "hero": {
+      "titlePart1": "Restoraningizni ",
+      "titleHighlight": "smart",
+      "titlePart2": " boshqaring",
+      "subtitle": "Buyurtmalar, stollar, oshxona va kassa — barchasi bir platformada. Real-vaqtda boshqaruv, tezkor va oson.",
+      "startFree": "Bepul boshlash →",
+      "restaurants": "Restoranlar"
+    },
+    "features": {
+      "ordersTitle": "Buyurtmalar",
+      "ordersDesc": "Ofitsiantlar tezkor ravishda buyurtma oladi, oshxona real-vaqtda ko'radi.",
+      "tablesTitle": "Stollar xaritasi",
+      "tablesDesc": "Stol holatini xaritada ko'ring — band, bo'sh, bron qilingan.",
+      "dashboardTitle": "Dashboard & Kassa",
+      "dashboardDesc": "Statistika, grafiklar, to'lov va chek chiqarish — avtomatik."
+    },
+    "dishes": {
+      "title": "Namuna taomlar",
+      "subtitle": "Restoranlarimiz menyusidan saralangan mazzali taomlar",
+      "currency": "so'm",
+      "viewMenu": "Menyuni ko'rish",
+      "items": {
+        "1": {
+          "name": "Toshkent Palovi",
+          "category": "Milliy taomlar",
+          "description": "Devzira guruch, sersuv mol go'shti, sariq sabzi va bedana tuxumlari bilan tayyorlangan shohona palov."
+        },
+        "2": {
+          "name": "Tandir Somsa",
+          "category": "Pishiriqlar",
+          "description": "Qat-qat xamirda tandirda pishirilgan mazzali va sersuv mol go'shtli somsa."
+        },
+        "3": {
+          "name": "An'anaviy Manti",
+          "category": "Milliy taomlar",
+          "description": "Yupqa xamir, to'g'ralgan mol go'shti va piyoz bilan bug'da pishirilgan manti."
+        },
+        "4": {
+          "name": "Margherita Pitssa",
+          "category": "Italiya oshxonasi",
+          "description": "Yangi motsarella pishlog'i, uy pomidor sousi va rayhon barglari qo'shilgan klassik pitssa."
+        },
+        "5": {
+          "name": "Qiyma Shashlik",
+          "category": "Kabab & Grill",
+          "description": "Tabiiy ko'mir cho'g'ida pishirilgan yumshoq va xushbo'y go'sht shashligi."
+        },
+        "6": {
+          "name": "California Rolls",
+          "category": "Yaponiya oshxonasi",
+          "description": "Krab go'shti, sersuv avokado, bodring va tobiko ikrasi bilan yapon roliklari."
+        },
+        "7": {
+          "name": "Uyg'ur Lag'moni",
+          "category": "Xamir taomlar",
+          "description": "Qo'lda cho'zilgan yangi xamir va mazzali go'shtli-sabzavotli say."
+        },
+        "8": {
+          "name": "Tovuqli Sezar Salati",
+          "category": "Salatlar",
+          "description": "Qovurilgan tovuq gril, yangi aysberg barglari, parmesan pishlog'i va Sezar sousi."
+        }
+      }
+    },
+    "restaurants": {
+      "title": "Restoranlarimiz",
+      "subtitle": "Menyuni ko'ring va stolni onlayn bron qiling",
+      "viewMenu": "Menyuni ko'rish",
+      "emptyTitle": "Restoranlar topilmadi",
+      "emptyDesc": "Hozircha ro'yxatda restoranlar mavjud emas. Tez orada qo'shiladi!",
+      "errorTitle": "Xatolik yuz berdi",
+      "errorDesc": "Restoranlarni yuklab bo'lmadi. Internet aloqasini tekshiring.",
+      "retry": "Qayta urinish"
+    },
+    "cta": {
+      "title": "Restorani hozir boshlang",
+      "subtitle": "Bepul ro'yxatdan o'ting va 14 kunlik sinov muddatini boshlang.",
+      "startFree": "Bepul boshlash →"
+    },
+    "footer": {
+      "rights": "Barcha huquqlar himoyalangan."
+    }
+  }
 }
+

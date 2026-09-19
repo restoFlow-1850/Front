@@ -52,7 +52,7 @@ export default function ConfirmStep({
             <ul className="flex flex-col gap-1.5">
               {cartItems.map(({ product, quantity }) => (
                 <li
-                  key={product._id}
+                  key={product._id ?? product.id}
                   className="flex items-center justify-between text-sm text-[#cbbcbc]"
                 >
                   <span>
