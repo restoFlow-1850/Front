@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
     setSuccessMsg('')
     try {
       await authApi.forgotPassword(values)
-      setSuccessMsg(t('dashboard.telegramSent'))
+      setSuccessMsg(t('auth.resetLinkSent'))
     } catch (err) {
       setError(err.response?.data?.message || t('kitchen.loadFailed'))
     }
