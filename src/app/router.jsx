@@ -23,6 +23,7 @@ const OTPPage = lazy(() => import('../features/auth/pages/OTP'))
 const GuestMenuPage = lazy(() => import('../features/qr-menu/pages/GuestMenuPage'))
 const LandingPage = lazy(() => import('../features/landing/pages/LandingPage'))
 const ClientsPage = lazy(() => import('../features/landing/pages/ClientsPage'))
+const RootPanel = lazy(() => import('../features/root/pages/RootPanel'))
 
 // ─── Himoyalangan sahifalar ─────────────────────────────────────
 const DashboardPage = lazy(() => import('../features/dashboard/pages/Dashboard'))
@@ -100,6 +101,10 @@ export const router = createBrowserRouter([
 
   // QR menyu — mehmon uchun, login talab qilinmaydi.
   { path: '/guest', element: <GuestMenuPage /> },
+
+  // ROOT (superadmin) panel — sidebar'da ko'rinmaydi, faqat URL orqali.
+  // URL: /sap (Super Admin Panel). O'z alohide auth'iga ega (login ekrani ichida).
+  { path: '/sap', element: <RootPanel /> },
 
   {
     element: <PrivateRoute />,
