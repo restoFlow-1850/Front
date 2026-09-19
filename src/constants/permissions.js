@@ -12,15 +12,14 @@ export const PERMISSION_LABELS = {
     'orders:create': 'Buyurtma yaratish',
     'kitchen:update': 'Oshxonani boshqarish',
     'cashier:process': 'To\'lovni qabul qilish',
-    'payments:view': 'To\'lovlar yozuvlarini ko\'rish',
 }
 
 export const PERMISSIONS = {
     [ROLES.ADMIN]: ['*'], // hammasi mumkin
-    [ROLES.MANAGER]: ['employees:view', 'employees:edit', 'settings:view', 'settings:edit', 'reports:view', 'tables:view', 'orders:view', 'payments:view'],
-    [ROLES.WAITER]: ['tables:view', 'orders:create', 'orders:view', 'payments:view'],
-    [ROLES.COOK]: ['orders:view', 'kitchen:update', 'payments:view'],
-    [ROLES.CASHIER]: ['orders:view', 'cashier:process', 'payments:view'],
+    [ROLES.MANAGER]: ['employees:view', 'employees:edit', 'settings:view', 'settings:edit', 'reports:view', 'tables:view', 'orders:view'],
+    [ROLES.WAITER]: ['tables:view', 'orders:create', 'orders:view'],
+    [ROLES.COOK]: ['orders:view', 'kitchen:update'],
+    [ROLES.CASHIER]: ['orders:view', 'cashier:process'],
 }
 
 export function can(userRole, permission) {
