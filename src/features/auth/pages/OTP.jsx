@@ -72,7 +72,7 @@ export default function OTPPage() {
     try {
       await authApi.sendOtp({ email: targetEmail, phone: targetPhone })
       setTimer(60)
-      toast.success(t('dashboard.telegramSent'))
+      toast.success(t('auth.otpResent'))
     } catch (err) {
       toast.error(getAuthErrorMessage(err, t('kitchen.loadFailed')))
     }
@@ -88,7 +88,7 @@ export default function OTPPage() {
     setIsSubmitting(true)
     try {
       await authApi.verifyOtp({ email: targetEmail, phone: targetPhone, code })
-      toast.success(t('dashboard.telegramSent'))
+      toast.success(t('auth.otpVerified'))
       navigate('/login', { replace: true })
     } catch (err) {
       toast.error(getAuthErrorMessage(err, t('kitchen.loadFailed')))

@@ -7,7 +7,23 @@
   "save": "Save",
   "cancel": "Cancel",
   "search": "Search",
-  "employees": "Employees",
+  "employees": {
+    "title": "Employees",
+    "subtitle": "Staff, time tracking and activity logs",
+    "addEmployee": "Add Employee",
+    "editEmployee": "Edit Employee",
+    "attendance": "Attendance",
+    "auditLogs": "Audit Logs",
+    "clockIn": "Clock In",
+    "clockOut": "Clock Out",
+    "workHours": "Hours Worked",
+    "active": "Active",
+    "inactive": "Inactive",
+    "auditLog": "Audit log",
+    "name": "Name",
+    "role": "Role",
+    "created": "Employee added"
+  },
   "active": "Active",
   "inactive": "Inactive",
   "language": "Language",
@@ -47,7 +63,6 @@
   "mainSections": "Main Sections",
   "restaurantManagement": "Restaurant Management",
   "user": "User",
-
   "nav": {
     "dashboard": "Dashboard",
     "orders": "Orders",
@@ -60,9 +75,9 @@
     "employees": "Employees",
     "settings": "Settings",
     "notifications": "Notifications",
-    "profile": "Profile"
+    "profile": "Profile",
+    "logout": "Log out"
   },
-
   "roles": {
     "admin": "Admin",
     "manager": "Manager",
@@ -71,7 +86,6 @@
     "cook": "Cook",
     "chef": "Cook"
   },
-
   "orderStatus": {
     "yangi": "New",
     "oshxonada": "In Kitchen",
@@ -80,21 +94,18 @@
     "yopilgan": "Closed",
     "bekor_qilingan": "Cancelled"
   },
-
   "tableStatus": {
     "available": "Available",
     "occupied": "Occupied",
     "reserved": "Reserved",
     "cleaning": "Cleaning"
   },
-
   "paymentMethods": {
     "naqd": "Cash",
     "karta": "Card",
     "click": "Click",
     "payme": "Payme"
   },
-
   "reservationStatus": {
     "pending": "Pending",
     "confirmed": "Confirmed",
@@ -103,7 +114,6 @@
     "cancelled": "Cancelled",
     "no_show": "No Show"
   },
-
   "auth": {
     "loginTitle": "Sign In",
     "loginSubtitle": "Enter your credentials",
@@ -125,9 +135,35 @@
     "registerHere": "Register here",
     "loginHere": "Sign in",
     "saveProfile": "Save Profile",
-    "profileUpdated": "Profile updated successfully"
+    "profileUpdated": "Profile updated successfully",
+    "changePassword": "Change password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "resetLinkSent": "If this email is registered, a reset link has been sent",
+    "otpResent": "Verification code sent again",
+    "otpVerified": "Successfully verified",
+    "fastSetup": "Set up in 2 minutes",
+    "heroCardDesc": "Track orders in real time, add tables and collaborate effectively with your team.",
+    "heroCardTitle": "Efficient management",
+    "heroSubtitle": "Orders, table system, kitchen management and reports on one platform with a professional, easy-to-use interface.",
+    "heroTitlePart1": "Managing your restaurant ",
+    "heroTitlePart2": "made easy",
+    "loginBtn": "Sign in",
+    "newUserBadge": "New user",
+    "passwordChanged": "Password updated. Please sign in again.",
+    "registerHeroHeading": "Create a new account and ",
+    "registerHeroHeadingHighlight": "start managing",
+    "registerHeroSub": "Automate table management, order flow and staff control.",
+    "registerSub": "Enter your details and join the system.",
+    "rememberMe": "Remember me",
+    "systemBadge": "One system for your restaurant chain",
+    "trialPeriod": "14-day free trial",
+    "welcomeHeader": "Welcome back, we're glad to see you!",
+    "welcomeSub": "Sign in to your account and continue working."
   },
-
   "dashboard": {
     "title": "Dashboard",
     "subtitle": "Today's and overall restaurant statistics",
@@ -158,9 +194,19 @@
     "time": "Time",
     "noOrders": "No orders",
     "noData": "No data",
-    "chartHint": "Statistics will appear after orders are closed."
+    "chartHint": "Statistics will appear after orders are closed.",
+    "csvError": "Error downloading the CSV report",
+    "csvExported": "CSV downloaded",
+    "csvSuccess": "CSV report downloaded",
+    "excelError": "Error downloading the Excel report",
+    "excelSuccess": "Excel report downloaded",
+    "pdfError": "Error downloading the PDF report",
+    "pdfSuccess": "PDF report downloaded",
+    "sendTelegramError": "Failed to send to Telegram",
+    "sendTelegramSuccess": "Report sent to the Telegram bot successfully! 📲",
+    "telegramExport": "Send to Telegram",
+    "telegramSent": "Report sent to the Telegram bot"
   },
-
   "cashier": {
     "title": "Cashier",
     "subtitle": "Payment processing, split bill and payment history",
@@ -196,9 +242,10 @@
     "paymentSuccess": "Payment accepted successfully!",
     "paymentFailed": "Payment failed",
     "orderCancelled": "Order cancelled",
-    "cancelFailed": "Failed to cancel order"
+    "cancelFailed": "Failed to cancel order",
+    "amountExceeds": "Amount cannot exceed the remaining balance",
+    "invalidAmount": "Amount must be greater than 0"
   },
-
   "shift": {
     "shiftOpen": "Shift Open",
     "shiftClosed": "Shift Closed",
@@ -217,9 +264,10 @@
     "shiftOpenSuccess": "Shift opened successfully!",
     "shiftCloseSuccess": "Shift closed successfully!",
     "shiftOpenFailed": "Failed to open shift",
-    "shiftCloseFailed": "Failed to close shift"
+    "shiftCloseFailed": "Failed to close shift",
+    "invalidBalance": "Opening balance cannot be negative",
+    "shiftNotOpenDesc": "The cash shift is not open. Open a shift first."
   },
-
   "waiter": {
     "title": "Waiter Panel",
     "subtitle": "Select a table and create an order",
@@ -247,7 +295,6 @@
     "transferSuccess": "Order transferred to new table",
     "transferFailed": "Failed to transfer table"
   },
-
   "kitchen": {
     "title": "Kitchen",
     "subtitle": "Order preparation workflow",
@@ -287,7 +334,6 @@
       "testAlertMessage": "Testing kitchen sound alert. System ready!"
     }
   },
-
   "orders": {
     "title": "Orders",
     "subtitle": "All restaurant orders and status management",
@@ -299,9 +345,16 @@
     "orderItems": "Order Items",
     "qty": "Qty",
     "price": "Price",
-    "subtotal": "Subtotal"
+    "subtotal": "Subtotal",
+    "allCleared": "All reservations deleted",
+    "clearFailed": "Could not delete reservations",
+    "decreaseQty": "Decrease",
+    "deleteFailed": "Could not delete",
+    "deleted": "Table deleted",
+    "increaseQty": "Increase",
+    "productPlaceholder": "Select a product",
+    "removeItem": "Remove item"
   },
-
   "tables": {
     "title": "Tables",
     "subtitle": "Floor plan, table statuses and reservations",
@@ -316,9 +369,10 @@
     "occupy": "Occupy Table",
     "freeTable": "Free Table",
     "tableOccupied": "Table occupied",
-    "tableFreed": "Table freed"
+    "tableFreed": "Table freed",
+    "onlyFreeSelected": "Only free tables can be selected",
+    "selectFreeTable": "Select a free table"
   },
-
   "menu": {
     "title": "Restaurant Menu",
     "subtitle": "Manage categories and menu items",
@@ -335,9 +389,15 @@
     "available": "Available",
     "unavailable": "Unavailable",
     "category": "Category",
-    "image": "Image"
+    "image": "Image",
+    "addDish": "Add dish",
+    "outOfStock": "Out of stock",
+    "categoryAdded": "Category added successfully",
+    "categoryDeleted": "Category deleted",
+    "categoryUpdated": "Category updated",
+    "dishAdded": "Dish added successfully",
+    "dishUpdated": "Dish updated"
   },
-
   "reservations": {
     "title": "Reservations",
     "subtitle": "Manage table bookings",
@@ -351,21 +411,18 @@
     "cancelReservation": "Cancel Reservation",
     "checkin": "Guest Arrived",
     "checkinSuccess": "Guest arrived (Check-in successful)",
-    "checkinFailed": "Check-in failed"
+    "checkinFailed": "Check-in failed",
+    "dateAndTime": "Date and time",
+    "editReservation": "Edit reservation",
+    "endDate": "End date",
+    "guests": "Number of guests",
+    "noReservations": "No reservations",
+    "phone": "Phone",
+    "startDate": "Start date",
+    "confirmed": "Reservation confirmed",
+    "created": "Reservation created",
+    "updated": "Reservation updated"
   },
-
-  "employees": {
-    "title": "Employees",
-    "subtitle": "Staff, time tracking and activity logs",
-    "addEmployee": "Add Employee",
-    "editEmployee": "Edit Employee",
-    "attendance": "Attendance",
-    "auditLogs": "Audit Logs",
-    "clockIn": "Clock In",
-    "clockOut": "Clock Out",
-    "workHours": "Hours Worked"
-  },
-
   "reports": {
     "title": "Reports & Analytics",
     "subtitle": "Financial metrics and performance statistics",
@@ -377,9 +434,13 @@
     "customPeriod": "Custom Period",
     "salesReport": "Sales Report",
     "popularDishes": "Popular Dishes",
-    "peakHours": "Peak Hours"
+    "peakHours": "Peak Hours",
+    "custom": "Selected date",
+    "dateRange": "Period",
+    "revenue": "Revenue",
+    "sold": "Quantity sold",
+    "totalOrders": "Warehouse stock"
   },
-
   "settings": {
     "title": "Settings",
     "subtitle": "Restaurant and system configuration",
@@ -391,17 +452,35 @@
     "receiptFooter": "Receipt Footer",
     "soundAlerts": "Sound Alerts",
     "saveSettings": "Save Settings",
-    "settingsSaved": "Settings saved successfully!"
+    "settingsSaved": "Settings saved successfully!",
+    "addPrinter": "Add printer",
+    "financial": "Financial settings",
+    "financialDesc": "Values used to calculate order totals, service fee and tax.",
+    "general": "Your restaurant's identity",
+    "generalDesc": "Core details used on the menu, receipts and guest-facing pages.",
+    "logoDropText": "PNG, JPG or SVG. The preview updates as soon as you pick a file.",
+    "logoDropTitle": "Upload a logo file",
+    "logoHelper": "Or pick an image file using the field below.",
+    "permissions": "Roles and permissions",
+    "permissionsDesc": "Review which sections each role can view and manage.",
+    "printers": "Printers",
+    "printersDesc": "Set the name, host and purpose to connect receipt and kitchen printers.",
+    "serviceFee": "Service fee",
+    "tax": "Tax",
+    "unsavedChanges": "You have unsaved changes."
   },
-
   "notifications": {
     "title": "Notifications",
     "subtitle": "System events and alerts",
     "markAllRead": "Mark all as read",
     "noNotifications": "No notifications",
-    "unreadOnly": "Unread only"
+    "unreadOnly": "Unread only",
+    "clear": "Clear",
+    "emptyDesc": "New notifications will appear here.",
+    "emptyTitle": "No notifications",
+    "new": "New",
+    "unread": "Unread"
   },
-
   "qrMenu": {
     "title": "Online Menu",
     "selectLanguage": "Select language / Tilni tanlang / Выберите язык",
@@ -411,9 +490,11 @@
     "cart": "Cart",
     "totalAmount": "Total Amount",
     "placeOrder": "Place Order",
-    "orderSuccess": "Your order was sent to the kitchen!"
+    "orderSuccess": "Your order was sent to the kitchen!",
+    "reserveTable": "Reserve a table"
   },
-
+  "view": "View",
+  "next": "Next",
   "landing": {
     "nav": {
       "clients": "Clients",
@@ -441,6 +522,7 @@
       "subtitle": "Selected delicious dishes from our partner restaurant menus",
       "currency": "UZS",
       "viewMenu": "View Menu",
+      "defaultCategory": "Dishes",
       "items": {
         "1": {
           "name": "Tashkent Plov",

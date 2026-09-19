@@ -7,7 +7,23 @@
   "save": "Saqlash",
   "cancel": "Bekor qilish",
   "search": "Qidirish",
-  "employees": "Xodimlar",
+  "employees": {
+    "title": "Xodimlar",
+    "subtitle": "Xodimlar, ish vaqti hisobi va harakatlar tarixi",
+    "addEmployee": "Xodim qo'shish",
+    "editEmployee": "Xodimni tahrirlash",
+    "attendance": "Davomat",
+    "auditLogs": "Harakatlar tarixi",
+    "clockIn": "Kelish",
+    "clockOut": "Ketish",
+    "workHours": "Ishlangan soat",
+    "active": "Faol",
+    "inactive": "Nofaol",
+    "auditLog": "Audit jurnali",
+    "name": "Ism",
+    "role": "Vazifasi",
+    "created": "Xodim qo'shildi"
+  },
   "active": "Faol",
   "inactive": "Faol emas",
   "language": "Til",
@@ -47,7 +63,6 @@
   "mainSections": "Asosiy bo'limlar",
   "restaurantManagement": "Restoran boshqaruvi",
   "user": "Foydalanuvchi",
-
   "nav": {
     "dashboard": "Boshqaruv paneli",
     "orders": "Buyurtmalar",
@@ -60,9 +75,9 @@
     "employees": "Xodimlar",
     "settings": "Sozlamalar",
     "notifications": "Bildirishnomalar",
-    "profile": "Profil"
+    "profile": "Profil",
+    "logout": "Chiqish"
   },
-
   "roles": {
     "admin": "Admin",
     "manager": "Menejer",
@@ -71,7 +86,6 @@
     "cook": "Oshpaz",
     "chef": "Oshpaz"
   },
-
   "orderStatus": {
     "yangi": "Yangi",
     "oshxonada": "Oshxonada",
@@ -80,21 +94,18 @@
     "yopilgan": "Yopilgan",
     "bekor_qilingan": "Bekor qilingan"
   },
-
   "tableStatus": {
     "available": "Bo'sh",
     "occupied": "Band",
     "reserved": "Bron qilingan",
     "cleaning": "Tozalanmoqda"
   },
-
   "paymentMethods": {
     "naqd": "Naqd",
     "karta": "Karta",
     "click": "Click",
     "payme": "Payme"
   },
-
   "reservationStatus": {
     "pending": "Kutilmoqda",
     "confirmed": "Tasdiqlangan",
@@ -103,7 +114,6 @@
     "cancelled": "Bekor qilingan",
     "no_show": "Kelmadi"
   },
-
   "auth": {
     "loginTitle": "Tizimga kirish",
     "loginSubtitle": "Hisob ma'lumotlaringizni kiriting",
@@ -125,9 +135,35 @@
     "registerHere": "Ro'yxatdan o'ting",
     "loginHere": "Kirish",
     "saveProfile": "Profilni saqlash",
-    "profileUpdated": "Profil muvaffaqiyatli yangilandi"
+    "profileUpdated": "Profil muvaffaqiyatli yangilandi",
+    "changePassword": "Parolni o'zgartirish",
+    "currentPassword": "Joriy parol",
+    "newPassword": "Yangi parol",
+    "email": "Email",
+    "password": "Parol",
+    "forgotPassword": "Parolni unutdingizmi?",
+    "resetLinkSent": "Agar bu email ro'yxatdan o'tgan bo'lsa, tiklash havolasi yuborildi",
+    "otpResent": "Tasdiqlash kodi qayta yuborildi",
+    "otpVerified": "Muvaffaqiyatli tasdiqlandi",
+    "fastSetup": "2 daqiqada tezkor sozlash",
+    "heroCardDesc": "Real-vaqtda buyurtmalarni kuzating, stollar kiriting va jamoangiz bilan samarali hamkorlik qiling.",
+    "heroCardTitle": "Samarali boshqaruv",
+    "heroSubtitle": "Buyurtmalar, stol tizimi, oshxona boshqaruvi va hisobotlarni bir platformada professional va qulay interfeys bilan.",
+    "heroTitlePart1": "Restoraningizni boshqarishni ",
+    "heroTitlePart2": "osonlashtiramiz",
+    "loginBtn": "Kirish",
+    "newUserBadge": "Yangi foydalanuvchi",
+    "passwordChanged": "Parol yangilandi. Iltimos, qaytadan kiring.",
+    "registerHeroHeading": "Yangi hisob yarating va ",
+    "registerHeroHeadingHighlight": "boshqaruvni boshlang",
+    "registerHeroSub": "Stollar boshqaruvi, buyurtmalar oqimi va xodimlar nazoratini avtomatlashtiring.",
+    "registerSub": "Ma'lumotlaringizni kiriting va tizimga a'zo bo'ling.",
+    "rememberMe": "Meni eslab qolish",
+    "systemBadge": "Restoran tarmog'ingiz uchun bitta tizim",
+    "trialPeriod": "14 kun bepul sinov muddati",
+    "welcomeHeader": "Xush kelibsiz qaytganingizdan xursandmiz!",
+    "welcomeSub": "Hisobingizga kiring va ishni davom ettiring."
   },
-
   "dashboard": {
     "title": "Boshqaruv paneli",
     "subtitle": "Restoranning bugungi va umumiy ko'rsatkichlari",
@@ -158,9 +194,19 @@
     "time": "Vaqt",
     "noOrders": "Buyurtma yo'q",
     "noData": "Ma'lumot yo'q",
-    "chartHint": "Yopilgan buyurtmalar bo'lgach statistika shu yerda ko'rinadi."
+    "chartHint": "Yopilgan buyurtmalar bo'lgach statistika shu yerda ko'rinadi.",
+    "csvError": "CSV hisobotni yuklashda xatolik yuz berdi",
+    "csvExported": "CSV yuklab olindi",
+    "csvSuccess": "CSV hisobot yuklab olindi",
+    "excelError": "Excel hisobotni yuklashda xatolik yuz berdi",
+    "excelSuccess": "Excel hisobot yuklab olindi",
+    "pdfError": "PDF hisobotni yuklashda xatolik yuz berdi",
+    "pdfSuccess": "PDF hisobot yuklab olindi",
+    "sendTelegramError": "Telegram'ga yuborishda xatolik yuz berdi",
+    "sendTelegramSuccess": "Hisobot Telegram botga muvaffaqiyatli yuborildi! 📲",
+    "telegramExport": "Telegram'ga yuborish",
+    "telegramSent": "Hisobot Telegram botga yuborildi"
   },
-
   "cashier": {
     "title": "Kassa",
     "subtitle": "To'lovlarni qabul qilish, hisobni bo'lish va to'lovlar tarixi",
@@ -196,9 +242,10 @@
     "paymentSuccess": "To'lov muvaffaqiyatli qabul qilindi!",
     "paymentFailed": "To'lov amalga oshmadi",
     "orderCancelled": "Buyurtma bekor qilindi",
-    "cancelFailed": "Buyurtmani bekor qilib bo'lmadi"
+    "cancelFailed": "Buyurtmani bekor qilib bo'lmadi",
+    "amountExceeds": "Summa qolgan balansdan katta bo'lishi mumkin emas",
+    "invalidAmount": "Summa 0 dan katta bo'lishi kerak"
   },
-
   "shift": {
     "shiftOpen": "Smena ochiq",
     "shiftClosed": "Smena ochilmagan",
@@ -217,9 +264,10 @@
     "shiftOpenSuccess": "Smena muvaffaqiyatli ochildi!",
     "shiftCloseSuccess": "Smena muvaffaqiyatli yopildi!",
     "shiftOpenFailed": "Smenani ochib bo'lmadi",
-    "shiftCloseFailed": "Smenani yopib bo'lmadi"
+    "shiftCloseFailed": "Smenani yopib bo'lmadi",
+    "invalidBalance": "Boshlang'ich balans manfiy bo'lishi mumkin emas",
+    "shiftNotOpenDesc": "Kassa smenasi ochilmagan. Avval smenani oching."
   },
-
   "waiter": {
     "title": "Ofitsiant paneli",
     "subtitle": "Stol tanlang va buyurtma rasmiylashtiring",
@@ -247,7 +295,6 @@
     "transferSuccess": "Buyurtma boshqa stolga ko'chirildi",
     "transferFailed": "Stolni ko'chirib bo'lmadi"
   },
-
   "kitchen": {
     "title": "Oshxona",
     "subtitle": "Buyurtmalarni tayyorlash jarayoni",
@@ -287,7 +334,6 @@
       "testAlertMessage": "Oshxona ovozli signali tekshirilmoqda. Tizim tayyor!"
     }
   },
-
   "orders": {
     "title": "Buyurtmalar",
     "subtitle": "Restorandagi barcha buyurtmalar va holatlarni boshqarish",
@@ -299,9 +345,16 @@
     "orderItems": "Tarkib",
     "qty": "Soni",
     "price": "Narxi",
-    "subtotal": "Summa"
+    "subtotal": "Summa",
+    "allCleared": "Barcha bronlar o'chirildi",
+    "clearFailed": "Bronlarni o'chirib bo'lmadi",
+    "decreaseQty": "Kamaytirish",
+    "deleteFailed": "O'chirib bo'lmadi",
+    "deleted": "Stol o'chirildi",
+    "increaseQty": "Ko'paytirish",
+    "productPlaceholder": "Mahsulotni tanlang",
+    "removeItem": "Olib tashlash"
   },
-
   "tables": {
     "title": "Stollar",
     "subtitle": "Zal xaritasi, stollar holati va bron qilish",
@@ -316,9 +369,10 @@
     "occupy": "Stolni band qilish",
     "freeTable": "Bo'shatish",
     "tableOccupied": "Stol band qilindi",
-    "tableFreed": "Stol bo'shatildi"
+    "tableFreed": "Stol bo'shatildi",
+    "onlyFreeSelected": "Faqat bo'sh stollarni tanlash mumkin",
+    "selectFreeTable": "Bo'sh stolni tanlang"
   },
-
   "menu": {
     "title": "Restoran menyusi",
     "subtitle": "Kategoriyalar va taomlarni boshqarish",
@@ -335,9 +389,15 @@
     "available": "Mavjud",
     "unavailable": "Mavjud emas",
     "category": "Kategoriya",
-    "image": "Rasm"
+    "image": "Rasm",
+    "addDish": "Taom qo'shish",
+    "outOfStock": "Tugagan",
+    "categoryAdded": "Kategoriya muvaffaqiyatli qo'shildi",
+    "categoryDeleted": "Kategoriya o'chirildi",
+    "categoryUpdated": "Kategoriya yangilandi",
+    "dishAdded": "Taom muvaffaqiyatli qo'shildi",
+    "dishUpdated": "Taom yangilandi"
   },
-
   "reservations": {
     "title": "Bronlar",
     "subtitle": "Stol bronlarini boshqarish",
@@ -351,21 +411,18 @@
     "cancelReservation": "Bronni bekor qilish",
     "checkin": "Mehmon keldi",
     "checkinSuccess": "Mehmon keldi (Check-in muvaffaqiyatli)",
-    "checkinFailed": "Check-in amalga oshmadi"
+    "checkinFailed": "Check-in amalga oshmadi",
+    "dateAndTime": "Sana va vaqt",
+    "editReservation": "Bronni tahrirlash",
+    "endDate": "Tugash sanasi",
+    "guests": "Mehmonlar soni",
+    "noReservations": "Bronlar yo'q",
+    "phone": "Telefon",
+    "startDate": "Boshlanish sanasi",
+    "confirmed": "Bron tasdiqlandi",
+    "created": "Bron yaratildi",
+    "updated": "Bron yangilandi"
   },
-
-  "employees": {
-    "title": "Xodimlar",
-    "subtitle": "Xodimlar, ish vaqti hisobi va harakatlar tarixi",
-    "addEmployee": "Xodim qo'shish",
-    "editEmployee": "Xodimni tahrirlash",
-    "attendance": "Davomat",
-    "auditLogs": "Harakatlar tarixi",
-    "clockIn": "Kelish",
-    "clockOut": "Ketish",
-    "workHours": "Ishlangan soat"
-  },
-
   "reports": {
     "title": "Hisobotlar va Analitika",
     "subtitle": "Moliyaviy ko'rsatkichlar va statistika",
@@ -377,9 +434,13 @@
     "customPeriod": "Boshqa davr",
     "salesReport": "Sotuvlar hisoboti",
     "popularDishes": "Ommabop taomlar",
-    "peakHours": "Tig'iz vaqtlar"
+    "peakHours": "Tig'iz vaqtlar",
+    "custom": "Tanlangan sana",
+    "dateRange": "Davr",
+    "revenue": "Tushum",
+    "sold": "Sotilgan miqdor",
+    "totalOrders": "Ombor zaxirasi"
   },
-
   "settings": {
     "title": "Sozlamalar",
     "subtitle": "Restoran va tizim parametrlari",
@@ -391,17 +452,35 @@
     "receiptFooter": "Chek pastki qismi",
     "soundAlerts": "Ovozli signallar",
     "saveSettings": "Sozlamalarni saqlash",
-    "settingsSaved": "Sozlamalar saqlandi!"
+    "settingsSaved": "Sozlamalar saqlandi!",
+    "addPrinter": "Printer qo‘shish",
+    "financial": "Hisob-kitob tili",
+    "financialDesc": "Buyurtma summasi, xizmat haqi va soliq hisoblash uchun ishlatiladigan qiymatlar.",
+    "general": "Restoraningiz ovozi",
+    "generalDesc": "Menyu, chek va mijozlar ko‘radigan joylarda ishlatiladigan asosiy ma’lumotlar.",
+    "logoDropText": "PNG, JPG yoki SVG. Fayl tanlanganda preview shu zahoti yangilanadi.",
+    "logoDropTitle": "Logo faylini yuklang",
+    "logoHelper": "Yoki quyidagi maydondan rasm faylini tanlang.",
+    "permissions": "Rollar va ruxsatlar",
+    "permissionsDesc": "Har bir rol qaysi bo‘limlarni ko‘rishi va boshqarishi mumkinligini tekshiring.",
+    "printers": "Printerlar",
+    "printersDesc": "Chek va oshxona printerlarini ulash uchun nom, host va vazifani belgilang.",
+    "serviceFee": "Xizmat haqi",
+    "tax": "Soliq",
+    "unsavedChanges": "Saqlanmagan o‘zgarishlar bor."
   },
-
   "notifications": {
     "title": "Bildirishnomalar",
     "subtitle": "Tizim voqealari va xabarlar",
     "markAllRead": "Barchasini o'qilgan deb belgilash",
     "noNotifications": "Bildirishnomalar yo'q",
-    "unreadOnly": "Faqat o'qilmaganlar"
+    "unreadOnly": "Faqat o'qilmaganlar",
+    "clear": "Tozalash",
+    "emptyDesc": "Yangi bildirishnomalar shu yerda paydo bo'ladi.",
+    "emptyTitle": "Bildirishnomalar yo'q",
+    "new": "Yangi",
+    "unread": "O'qilmagan"
   },
-
   "qrMenu": {
     "title": "Onlayn Menyu",
     "selectLanguage": "Tilni tanlang / Select language / Выберите язык",
@@ -411,9 +490,11 @@
     "cart": "Savat",
     "totalAmount": "Umumiy summa",
     "placeOrder": "Buyurtma berish",
-    "orderSuccess": "Buyurtmangiz oshxonaga yuborildi!"
+    "orderSuccess": "Buyurtmangiz oshxonaga yuborildi!",
+    "reserveTable": "Stol bron qilish"
   },
-
+  "view": "Ko'rish",
+  "next": "Keyingi",
   "landing": {
     "nav": {
       "clients": "Mijozlar",
@@ -441,6 +522,7 @@
       "subtitle": "Restoranlarimiz menyusidan saralangan mazzali taomlar",
       "currency": "so'm",
       "viewMenu": "Menyuni ko'rish",
+      "defaultCategory": "Taomlar",
       "items": {
         "1": {
           "name": "Toshkent Palovi",

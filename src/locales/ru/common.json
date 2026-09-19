@@ -7,7 +7,23 @@
   "save": "Сохранить",
   "cancel": "Отмена",
   "search": "Поиск",
-  "employees": "Сотрудники",
+  "employees": {
+    "title": "Сотрудники",
+    "subtitle": "Персонал, учет времени и логи действий",
+    "addEmployee": "Добавить сотрудника",
+    "editEmployee": "Редактировать сотрудника",
+    "attendance": "Посещаемость",
+    "auditLogs": "Логи действий",
+    "clockIn": "Приход",
+    "clockOut": "Уход",
+    "workHours": "Отработано часов",
+    "active": "Активен",
+    "inactive": "Неактивен",
+    "auditLog": "Журнал аудита",
+    "name": "Имя",
+    "role": "Должность",
+    "created": "Сотрудник добавлен"
+  },
   "active": "Активен",
   "inactive": "Неактивен",
   "language": "Язык",
@@ -47,7 +63,6 @@
   "mainSections": "Основные разделы",
   "restaurantManagement": "Управление рестораном",
   "user": "Пользователь",
-
   "nav": {
     "dashboard": "Панель управления",
     "orders": "Заказы",
@@ -60,9 +75,9 @@
     "employees": "Сотрудники",
     "settings": "Настройки",
     "notifications": "Уведомления",
-    "profile": "Профиль"
+    "profile": "Профиль",
+    "logout": "Выйти"
   },
-
   "roles": {
     "admin": "Админ",
     "manager": "Менеджер",
@@ -71,7 +86,6 @@
     "cook": "Повар",
     "chef": "Повар"
   },
-
   "orderStatus": {
     "yangi": "Новый",
     "oshxonada": "На кухне",
@@ -80,21 +94,18 @@
     "yopilgan": "Закрыт",
     "bekor_qilingan": "Отменен"
   },
-
   "tableStatus": {
     "available": "Свободен",
     "occupied": "Занят",
     "reserved": "Забронирован",
     "cleaning": "Уборка"
   },
-
   "paymentMethods": {
     "naqd": "Наличные",
     "karta": "Карта",
     "click": "Click",
     "payme": "Payme"
   },
-
   "reservationStatus": {
     "pending": "Ожидает",
     "confirmed": "Подтвержден",
@@ -103,7 +114,6 @@
     "cancelled": "Отменен",
     "no_show": "Не пришли"
   },
-
   "auth": {
     "loginTitle": "Вход в систему",
     "loginSubtitle": "Введите свои учетные данные",
@@ -125,9 +135,35 @@
     "registerHere": "Зарегистрируйтесь",
     "loginHere": "Войдите",
     "saveProfile": "Сохранить профиль",
-    "profileUpdated": "Профиль успешно обновлен"
+    "profileUpdated": "Профиль успешно обновлен",
+    "changePassword": "Изменить пароль",
+    "currentPassword": "Текущий пароль",
+    "newPassword": "Новый пароль",
+    "email": "Email",
+    "password": "Пароль",
+    "forgotPassword": "Забыли пароль?",
+    "resetLinkSent": "Если этот email зарегистрирован, ссылка для восстановления отправлена",
+    "otpResent": "Код подтверждения отправлен повторно",
+    "otpVerified": "Успешно подтверждено",
+    "fastSetup": "Быстрая настройка за 2 минуты",
+    "heroCardDesc": "Отслеживайте заказы в реальном времени, добавляйте столы и эффективно работайте с командой.",
+    "heroCardTitle": "Эффективное управление",
+    "heroSubtitle": "Заказы, система столов, управление кухней и отчёты на одной платформе с удобным профессиональным интерфейсом.",
+    "heroTitlePart1": "Управлять рестораном ",
+    "heroTitlePart2": "станет проще",
+    "loginBtn": "Войти",
+    "newUserBadge": "Новый пользователь",
+    "passwordChanged": "Пароль обновлён. Пожалуйста, войдите снова.",
+    "registerHeroHeading": "Создайте аккаунт и ",
+    "registerHeroHeadingHighlight": "начните управлять",
+    "registerHeroSub": "Автоматизируйте управление столами, поток заказов и контроль сотрудников.",
+    "registerSub": "Введите свои данные и присоединяйтесь к системе.",
+    "rememberMe": "Запомнить меня",
+    "systemBadge": "Единая система для вашей сети ресторанов",
+    "trialPeriod": "14 дней бесплатного пробного периода",
+    "welcomeHeader": "Рады видеть вас снова!",
+    "welcomeSub": "Войдите в аккаунт и продолжайте работу."
   },
-
   "dashboard": {
     "title": "Панель управления",
     "subtitle": "Сегодняшние и общие показатели ресторана",
@@ -158,9 +194,19 @@
     "time": "Время",
     "noOrders": "Заказов нет",
     "noData": "Нет данных",
-    "chartHint": "Статистика появится после закрытия заказов."
+    "chartHint": "Статистика появится после закрытия заказов.",
+    "csvError": "Ошибка при загрузке CSV-отчёта",
+    "csvExported": "CSV загружен",
+    "csvSuccess": "CSV-отчёт загружен",
+    "excelError": "Ошибка при загрузке Excel-отчёта",
+    "excelSuccess": "Excel-отчёт загружен",
+    "pdfError": "Ошибка при загрузке PDF-отчёта",
+    "pdfSuccess": "PDF-отчёт загружен",
+    "sendTelegramError": "Ошибка отправки в Telegram",
+    "sendTelegramSuccess": "Отчёт успешно отправлен в Telegram-бот! 📲",
+    "telegramExport": "Отправить в Telegram",
+    "telegramSent": "Отчёт отправлен в Telegram-бот"
   },
-
   "cashier": {
     "title": "Касса",
     "subtitle": "Прием оплаты, разделение счета и история платежей",
@@ -196,9 +242,10 @@
     "paymentSuccess": "Оплата успешно принята!",
     "paymentFailed": "Не удалось провести оплату",
     "orderCancelled": "Заказ отменен",
-    "cancelFailed": "Не удалось отменить заказ"
+    "cancelFailed": "Не удалось отменить заказ",
+    "amountExceeds": "Сумма не может превышать остаток",
+    "invalidAmount": "Сумма должна быть больше 0"
   },
-
   "shift": {
     "shiftOpen": "Смена открыта",
     "shiftClosed": "Смена закрыта",
@@ -217,9 +264,10 @@
     "shiftOpenSuccess": "Смена успешно открыта!",
     "shiftCloseSuccess": "Смена успешно закрыта!",
     "shiftOpenFailed": "Не удалось открыть смену",
-    "shiftCloseFailed": "Не удалось закрыть смену"
+    "shiftCloseFailed": "Не удалось закрыть смену",
+    "invalidBalance": "Начальный баланс не может быть отрицательным",
+    "shiftNotOpenDesc": "Кассовая смена не открыта. Сначала откройте смену."
   },
-
   "waiter": {
     "title": "Панель официанта",
     "subtitle": "Выберите стол и оформите заказ",
@@ -247,7 +295,6 @@
     "transferSuccess": "Заказ перенесен на другой стол",
     "transferFailed": "Не удалось перенести стол"
   },
-
   "kitchen": {
     "title": "Кухня",
     "subtitle": "Процесс приготовления заказов",
@@ -287,7 +334,6 @@
       "testAlertMessage": "Проверка звукового оповещения кухни. Система готова!"
     }
   },
-
   "orders": {
     "title": "Заказы",
     "subtitle": "Все заказы ресторана и управление статусами",
@@ -299,9 +345,16 @@
     "orderItems": "Состав заказа",
     "qty": "Кол-во",
     "price": "Цена",
-    "subtotal": "Сумма"
+    "subtotal": "Сумма",
+    "allCleared": "Все брони удалены",
+    "clearFailed": "Не удалось удалить брони",
+    "decreaseQty": "Уменьшить",
+    "deleteFailed": "Не удалось удалить",
+    "deleted": "Стол удалён",
+    "increaseQty": "Увеличить",
+    "productPlaceholder": "Выберите товар",
+    "removeItem": "Убрать позицию"
   },
-
   "tables": {
     "title": "Столы",
     "subtitle": "Схема зала, статусы столов и бронирование",
@@ -316,9 +369,10 @@
     "occupy": "Занять стол",
     "freeTable": "Освободить",
     "tableOccupied": "Стол занят",
-    "tableFreed": "Стол освобожден"
+    "tableFreed": "Стол освобожден",
+    "onlyFreeSelected": "Можно выбрать только свободные столы",
+    "selectFreeTable": "Выберите свободный стол"
   },
-
   "menu": {
     "title": "Меню ресторана",
     "subtitle": "Управление категориями и блюдами",
@@ -335,9 +389,15 @@
     "available": "Доступно",
     "unavailable": "Недоступно",
     "category": "Категория",
-    "image": "Изображение"
+    "image": "Изображение",
+    "addDish": "Добавить блюдо",
+    "outOfStock": "Нет в наличии",
+    "categoryAdded": "Категория успешно добавлена",
+    "categoryDeleted": "Категория удалена",
+    "categoryUpdated": "Категория обновлена",
+    "dishAdded": "Блюдо успешно добавлено",
+    "dishUpdated": "Блюдо обновлено"
   },
-
   "reservations": {
     "title": "Бронирования",
     "subtitle": "Управление бронью столов",
@@ -351,21 +411,18 @@
     "cancelReservation": "Отменить бронь",
     "checkin": "Гость пришел",
     "checkinSuccess": "Гость пришел (Check-in успешен)",
-    "checkinFailed": "Ошибка при Check-in"
+    "checkinFailed": "Ошибка при Check-in",
+    "dateAndTime": "Дата и время",
+    "editReservation": "Редактировать бронь",
+    "endDate": "Дата окончания",
+    "guests": "Количество гостей",
+    "noReservations": "Броней нет",
+    "phone": "Телефон",
+    "startDate": "Дата начала",
+    "confirmed": "Бронь подтверждена",
+    "created": "Бронь создана",
+    "updated": "Бронь обновлена"
   },
-
-  "employees": {
-    "title": "Сотрудники",
-    "subtitle": "Персонал, учет времени и логи действий",
-    "addEmployee": "Добавить сотрудника",
-    "editEmployee": "Редактировать сотрудника",
-    "attendance": "Посещаемость",
-    "auditLogs": "Логи действий",
-    "clockIn": "Приход",
-    "clockOut": "Уход",
-    "workHours": "Отработано часов"
-  },
-
   "reports": {
     "title": "Отчеты и Аналитика",
     "subtitle": "Финансовые показатели и статистика",
@@ -377,9 +434,13 @@
     "customPeriod": "Произвольный период",
     "salesReport": "Отчет по продажам",
     "popularDishes": "Популярные блюда",
-    "peakHours": "Часы пик"
+    "peakHours": "Часы пик",
+    "custom": "Выбранная дата",
+    "dateRange": "Период",
+    "revenue": "Выручка",
+    "sold": "Продано",
+    "totalOrders": "Складские запасы"
   },
-
   "settings": {
     "title": "Настройки",
     "subtitle": "Параметры ресторана и системы",
@@ -391,17 +452,35 @@
     "receiptFooter": "Футер чека",
     "soundAlerts": "Звуковые оповещения",
     "saveSettings": "Сохранить настройки",
-    "settingsSaved": "Настройки успешно сохранены!"
+    "settingsSaved": "Настройки успешно сохранены!",
+    "addPrinter": "Добавить принтер",
+    "financial": "Финансовые параметры",
+    "financialDesc": "Значения для расчёта суммы заказа, сервисного сбора и налога.",
+    "general": "Лицо вашего ресторана",
+    "generalDesc": "Основные данные для меню, чеков и всего, что видят гости.",
+    "logoDropText": "PNG, JPG или SVG. Предпросмотр обновится сразу после выбора файла.",
+    "logoDropTitle": "Загрузите файл логотипа",
+    "logoHelper": "Или выберите файл изображения в поле ниже.",
+    "permissions": "Роли и разрешения",
+    "permissionsDesc": "Проверьте, какие разделы может просматривать и настраивать каждая роль.",
+    "printers": "Принтеры",
+    "printersDesc": "Укажите название, хост и назначение для подключения чековых и кухонных принтеров.",
+    "serviceFee": "Сервисный сбор",
+    "tax": "Налог",
+    "unsavedChanges": "Есть несохранённые изменения."
   },
-
   "notifications": {
     "title": "Уведомления",
     "subtitle": "Системные события и оповещения",
     "markAllRead": "Отметить все как прочитанные",
     "noNotifications": "Уведомлений нет",
-    "unreadOnly": "Только непрочитанные"
+    "unreadOnly": "Только непрочитанные",
+    "clear": "Очистить",
+    "emptyDesc": "Новые уведомления появятся здесь.",
+    "emptyTitle": "Нет уведомлений",
+    "new": "Новое",
+    "unread": "Непрочитанные"
   },
-
   "qrMenu": {
     "title": "Онлайн Меню",
     "selectLanguage": "Выберите язык / Tilni tanlang / Select language",
@@ -411,9 +490,11 @@
     "cart": "Корзина",
     "totalAmount": "Итоговая сумма",
     "placeOrder": "Оформить заказ",
-    "orderSuccess": "Заказ успешно отправлен на кухню!"
+    "orderSuccess": "Заказ успешно отправлен на кухню!",
+    "reserveTable": "Забронировать стол"
   },
-
+  "view": "Просмотр",
+  "next": "Далее",
   "landing": {
     "nav": {
       "clients": "Клиенты",
@@ -441,6 +522,7 @@
       "subtitle": "Избранные вкусные блюда из меню наших ресторанов",
       "currency": "сум",
       "viewMenu": "Посмотреть меню",
+      "defaultCategory": "Блюда",
       "items": {
         "1": {
           "name": "Ташкентский Плов",

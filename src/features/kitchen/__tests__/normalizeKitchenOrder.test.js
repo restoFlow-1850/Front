@@ -1,10 +1,9 @@
-import test from 'node:test'
-import assert from 'node:assert/strict'
+import { test, expect } from 'vitest'
 import { normalizeKitchenOrder } from '../api.js'
 
 test('1. null yoki undefined berilganda null qaytarishi kerak', () => {
-  assert.equal(normalizeKitchenOrder(null), null)
-  assert.equal(normalizeKitchenOrder(undefined), null)
+  expect(normalizeKitchenOrder(null)).toBe(null)
+  expect(normalizeKitchenOrder(undefined)).toBe(null)
 })
 
 test('2. Backend formatidagi obyektni (items, table.number, waiter.name, isReady) to\'g\'ri normallashtirishi kerak', () => {
@@ -25,24 +24,24 @@ test('2. Backend formatidagi obyektni (items, table.number, waiter.name, isReady
 
   const result = normalizeKitchenOrder(rawOrder)
 
-  assert.equal(result.id, '64f1a2b3c4d5e6f7a8b9c0d1')
-  assert.equal(result.number, 'ORD-1042')
-  assert.equal(result.table, '5')
-  assert.equal(result.waiter, 'Aziza')
-  assert.equal(result.status, 'yangi')
-  assert.equal(result.notes, 'Piyozsiz')
-  assert.equal(result.items.length, 3)
+  expect(result.id).toBe('64f1a2b3c4d5e6f7a8b9c0d1')
+  expect(result.number).toBe('ORD-1042')
+  expect(result.table).toBe('5')
+  expect(result.waiter).toBe('Aziza')
+  expect(result.status).toBe('yangi')
+  expect(result.notes).toBe('Piyozsiz')
+  expect(result.items.length).toBe(3)
 
-  assert.equal(result.items[0].product, "Lag'mon")
-  assert.equal(result.items[0].isReady, true)
-  assert.equal(result.items[0].note, "Achchiq bo'lmasin")
+  expect(result.items[0].product).toBe("Lag'mon")
+  expect(result.items[0].isReady).toBe(true)
+  expect(result.items[0].note).toBe("Achchiq bo'lmasin")
 
-  assert.equal(result.items[1].product, 'Choy')
-  assert.equal(result.items[1].isReady, true)
-  assert.equal(result.items[1].note, "Ko'k choy")
+  expect(result.items[1].product).toBe('Choy')
+  expect(result.items[1].isReady).toBe(true)
+  expect(result.items[1].note).toBe("Ko'k choy")
 
-  assert.equal(result.items[2].product, 'Osh')
-  assert.equal(result.items[2].isReady, false)
+  expect(result.items[2].product).toBe('Osh')
+  expect(result.items[2].isReady).toBe(false)
 })
 
 test('3. items, table yoki waiter bo\'sh yoki yetishmayotganda xavfsiz defolt qiymatlarni qaytarishi kerak', () => {
@@ -52,10 +51,10 @@ test('3. items, table yoki waiter bo\'sh yoki yetishmayotganda xavfsiz defolt qi
 
   const result = normalizeKitchenOrder(minimalOrder)
 
-  assert.equal(result.id, 'ord_9999')
-  assert.equal(result.number, 'ORD-9999')
-  assert.equal(result.table, '—')
-  assert.equal(result.waiter, '—')
-  assert.equal(result.notes, '')
-  assert.deepEqual(result.items, [])
+  expect(result.id).toBe('ord_9999')
+  expect(result.number).toBe('ORD-9999')
+  expect(result.table).toBe('—')
+  expect(result.waiter).toBe('—')
+  expect(result.notes).toBe('')
+  expect(result.items).toEqual([])
 })

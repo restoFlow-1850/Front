@@ -183,7 +183,7 @@ export default function RegisterPage() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5">
               <div>
                 <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300" htmlFor="name">
-                  {t('employees.name')}
+                  {t('auth.fullName')}
                 </label>
                 <div className="relative">
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -201,7 +201,7 @@ export default function RegisterPage() {
 
               <div>
                 <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300" htmlFor="register-email">
-                  {t('auth.email')}
+                  {t('email')}
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -219,7 +219,7 @@ export default function RegisterPage() {
 
               <div>
                 <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300" htmlFor="register-password">
-                  {t('auth.password')}
+                  {t('password')}
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -245,7 +245,7 @@ export default function RegisterPage() {
 
               <div>
                 <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300" htmlFor="confirm-password">
-                  {t('auth.password')}
+                  {t('auth.confirmPassword')}
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -283,7 +283,7 @@ export default function RegisterPage() {
                     {t('loading')}
                   </span>
                 ) : (
-                  <span>{t('auth.registerBtn')}</span>
+                  <span>{t('auth.registerTitle')}</span>
                 )}
               </button>
             </form>
