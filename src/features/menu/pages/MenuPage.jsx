@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next'
 import {
   Search,
   Plus,
-  Filter,
   Pencil,
   Trash2,
   CheckCircle2,
