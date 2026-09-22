@@ -491,10 +491,8 @@
     "cart": "Savat",
     "totalAmount": "Umumiy summa",
     "placeOrder": "Buyurtma berish",
-
     "orderSuccess": "Buyurtmangiz oshxonaga yuborildi!"
   },
-
   "landing": {
     "nav": {
       "clients": "Mijozlar",
@@ -563,7 +561,8 @@
           "category": "Salatlar",
           "description": "Qovurilgan tovuq gril, yangi aysberg barglari, parmesan pishlog'i va Sezar sousi."
         }
-      }
+      },
+      "defaultCategory": "Taomlar"
     },
     "restaurants": {
       "title": "Restoranlarimiz",
@@ -585,4 +584,3 @@
     }
   }
 }
-

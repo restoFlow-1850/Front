@@ -491,10 +491,8 @@
     "cart": "Cart",
     "totalAmount": "Total Amount",
     "placeOrder": "Place Order",
-
     "orderSuccess": "Your order was sent to the kitchen!"
   },
-
   "landing": {
     "nav": {
       "clients": "Clients",
@@ -563,7 +561,8 @@
           "category": "Salads",
           "description": "Fresh iceberg lettuce salad with grilled chicken breast, parmesan, and Caesar dressing."
         }
-      }
+      },
+      "defaultCategory": "Dishes"
     },
     "restaurants": {
       "title": "Our Restaurants",
@@ -585,4 +584,3 @@
     }
   }
 }
-
