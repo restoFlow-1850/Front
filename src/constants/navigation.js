@@ -16,6 +16,7 @@ import {
   ScrollText,
   SlidersHorizontal,
   MessageSquareHeart,
+  MapPinned,
 } from 'lucide-react'
 
 import { ROLES, ROLE_HOME } from './roles.js'
@@ -42,6 +43,14 @@ export const NAV_ITEMS = [
     label: 'Buyurtmalar',
     icon: ClipboardList,
     roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.WAITER, ROLES.CASHIER],
+    inSidebar: true,
+  },
+  {
+    key: 'map',
+    path: '/map',
+    label: 'Filiallar xaritasi',
+    icon: MapPinned,
+    roles: [ROLES.ADMIN],
     inSidebar: true,
   },
   {

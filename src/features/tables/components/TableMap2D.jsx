@@ -62,8 +62,7 @@ const TableMap2D = ({
     const zoneMap = new Map();
     filtered.forEach((t) => {
       const zone = t.zone || 'Boshqa';
-      if (!zoneMap.has(zone)) zoneMap.set(zone, []);
-      zoneMap.get(zone).push(t);
+      zoneMap.set(zone, zoneMap.has(zone) ? [...zoneMap.get(zone), t] : [t]);
     });
     return Array.from(zoneMap.entries()).map(([name, list]) => ({
       name,
