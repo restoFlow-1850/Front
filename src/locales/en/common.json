@@ -66,6 +66,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "orders": "Orders",
+    "map": "Branches Map",
     "waiter": "Waiter Panel",
     "kitchen": "Kitchen",
     "cashier": "Cashier",
