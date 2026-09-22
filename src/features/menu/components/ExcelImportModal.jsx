@@ -14,7 +14,7 @@ import {
 import { toast } from 'react-toastify'
 import { formatSom } from '../../../lib/api'
 
-function parseExcelPrice(val) {
+export function parseExcelPrice(val) {
   if (val === null || val === undefined) return 0
   if (typeof val === 'number') return isNaN(val) ? 0 : val
   if (typeof val === 'object') {
