@@ -212,6 +212,7 @@
     "subtitle": "To'lovlarni qabul qilish, hisobni bo'lish va to'lovlar tarixi",
     "cashierAndPay": "Kassa & To'lov",
     "paymentsHistory": "To'lovlar tarixi",
+    "partialPaymentLink": "Qisman to'lov",
     "shiftNotOpen": "Smena ochilmagan",
     "shiftNotOpenDesc": "To'lov qabul qilish uchun yuqoridagi \"Smena ochish\" tugmasini bosing.",
     "openShiftBtn": "Smenani ochish",

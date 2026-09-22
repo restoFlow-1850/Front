@@ -147,7 +147,8 @@ export default function Cashier() {
   const receipt = receiptQuery.data
   const remaining = receipt?.remainingBalance ?? 0
   const splitAmount = splitCount > 1 && remaining > 0 ? Math.ceil(remaining / splitCount) : remaining
-  const payAmount = customAmount ? Number(customAmount) : remaining
+  const parsedAmount = Number(customAmount)
+  const payAmount = customAmount && Number.isFinite(parsedAmount) ? parsedAmount : remaining
 
   const handlePay = () => {
     if (paymentMutation.isPending) return
@@ -292,7 +293,34 @@ export default function Cashier() {
               <div className="space-y-1.5 border-t border-slate-200 pt-4 text-sm dark:border-slate-800">
                 <Row label={t('cashier.orderAmount')} value={formatSom(receipt?.order?.totalAmount)} />
                 <Row label={t('cashier.paidAmount')} value={formatSom(receipt?.paidTotal)} />
+                <div className="flex justify-between border-t border-slate-200 pt-2 text-base font-bold text-slate-900 dark:border-slate-800 dark:text-white">
+                  <span>{t('cashier.remainingBalance')}</span>
+                  <span className="text-indigo-600 dark:text-indigo-400">{formatSom(remaining)}</span>
+                </div>
               </div>
+
+              {/* Shu chek bo'yicha tushgan to'lovlar — split bill'da kimdan pul
+                  olinganini ko'rish uchun. Tarix modali barcha to'lovlarni
+                  ko'rsatadi, bu esa faqat shu buyurtmanikini. */}
+              {receipt?.payments?.length > 0 && (
+                <div className="border-t border-slate-200 pt-3 dark:border-slate-800">
+                  <h3 className="mb-2 text-xs font-semibold text-slate-500">
+                    {t('cashier.paymentsHistory')}
+                  </h3>
+                  <div className="space-y-1">
+                    {receipt.payments.map((payment) => (
+                      <div key={payment._id} className="flex justify-between text-xs text-slate-500">
+                        <span>
+                          {t(`paymentMethods.${payment.method}`, PAYMENT_METHOD_LABELS[payment.method] ?? payment.method)}
+                          {' · '}
+                          {payment.receivedBy?.name ?? '—'} · {formatTime(payment.createdAt)}
+                        </span>
+                        <span className="font-semibold">{formatSom(payment.amount)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {Object.values(PAYMENT_METHODS).map((value) => {
@@ -321,7 +349,7 @@ export default function Cashier() {
                   onClick={() => setShowPartialPayment(true)}
                   className="text-xs font-semibold text-indigo-600 hover:underline dark:text-indigo-400"
                 >
-                  {t('cashier.partialPaymentLink', { defaultValue: "Qisman to'lov" })}
+                  {t('cashier.partialPaymentLink')}
                 </button>
               ) : (
                 <div className="space-y-3 rounded-xl bg-slate-50 p-3 dark:bg-slate-800/50">

@@ -212,6 +212,7 @@
     "subtitle": "Прием оплаты, разделение счета и история платежей",
     "cashierAndPay": "Касса и Оплата",
     "paymentsHistory": "История платежей",
+    "partialPaymentLink": "Частичная оплата",
     "shiftNotOpen": "Смена не открыта",
     "shiftNotOpenDesc": "Для приема оплаты сначала откройте смену.",
     "openShiftBtn": "Открыть смену",

@@ -212,6 +212,7 @@
     "subtitle": "Payment processing, split bill and payment history",
     "cashierAndPay": "Cashier & Payment",
     "paymentsHistory": "Payment History",
+    "partialPaymentLink": "Partial payment",
     "shiftNotOpen": "Shift Not Open",
     "shiftNotOpenDesc": "Please open a shift above before processing payments.",
     "openShiftBtn": "Open Shift",
