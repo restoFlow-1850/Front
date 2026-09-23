@@ -131,7 +131,13 @@ export default function Dashboard() {
 
   const dailySales = useMemo(() => dailySalesQuery.data ?? [], [dailySalesQuery.data])
 
-  const occupied = tables.filter((tbl) => tbl.status === TABLE_STATUS.BUSY || tbl.status === TABLE_STATUS.OCCUPIED).length
+  const occupiedLocal = tables.filter((tbl) => tbl.status === TABLE_STATUS.BUSY || tbl.status === TABLE_STATUS.OCCUPIED).length
+  // Stollar holati: asosiy manba — backend hisoblagan qiymatlar
+  // (stats.tablesTotal/tablesBusy, backend PR fix/dashboard-stats).
+  // Lokal ro'yxat faqat fallback: getTables() limit=20 bilan keladi —
+  // undan o'zimiz hisoblasak "1/20" kabi noto'g'ri raqam chiqardi (haqiqatda 44).
+  const tablesTotal = stats.tablesTotal ?? tables.length
+  const tablesBusy = stats.tablesBusy ?? occupiedLocal
   const avgCheck = stats.todayPaymentsCount ? stats.todayRevenue / stats.todayPaymentsCount : 0
 
   // ── ApexCharts: Kunlik sotuvlar grafigi (Area/Line) ──────────────────────
@@ -346,8 +352,8 @@ export default function Dashboard() {
               icon={Utensils}
               tone="amber"
               label={t('dashboard.occupiedTables')}
-              value={`${occupied} / ${tables.length}`}
-              hint={tables.length ? `${Math.round((occupied / tables.length) * 100)}% ${t('dashboard.occupiedPct')}` : '—'}
+              value={`${tablesBusy} / ${tablesTotal}`}
+              hint={tablesTotal ? `${Math.round((tablesBusy / tablesTotal) * 100)}% ${t('dashboard.occupiedPct')}` : '—'}
             />
             <StatCard
               icon={Receipt}
