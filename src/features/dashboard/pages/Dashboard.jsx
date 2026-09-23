@@ -21,7 +21,8 @@ import { getDailySales, getDashboardStats, getReports, getTopProducts } from '..
 import { getOrders } from '../../orders/api'
 import { getTables } from '../../tables/api'
 import { unwrap, unwrapList, apiErrorMessage, formatSom, formatTime } from '../../../lib/api'
-import { ORDER_STATUS_LABELS, ORDER_STATUS_TONE, TABLE_STATUS } from '../../../constants/roles'
+import { ORDER_STATUS_LABELS, ORDER_STATUS_TONE } from '../../../constants/roles'
+import { resolveTableOccupancy } from '../lib/occupancy'
 import {
   Badge,
   Button,
@@ -131,13 +132,16 @@ export default function Dashboard() {
 
   const dailySales = useMemo(() => dailySalesQuery.data ?? [], [dailySalesQuery.data])
 
-  const occupiedLocal = tables.filter((tbl) => tbl.status === TABLE_STATUS.BUSY || tbl.status === TABLE_STATUS.OCCUPIED).length
-  // Stollar holati: asosiy manba — backend hisoblagan qiymatlar
-  // (stats.tablesTotal/tablesBusy, backend PR fix/dashboard-stats).
-  // Lokal ro'yxat faqat fallback: getTables() limit=20 bilan keladi —
-  // undan o'zimiz hisoblasak "1/20" kabi noto'g'ri raqam chiqardi (haqiqatda 44).
-  const tablesTotal = stats.tablesTotal ?? tables.length
-  const tablesBusy = stats.tablesBusy ?? occupiedLocal
+  // Stollar holati: asosiy manba — backend hisoblagan stats.tablesTotal/tablesBusy
+  // (getTables() limit=20 bilan keladi, lokal hisob "1/20" berardi).
+  // Barcha chekka holatlar (NaN, manfiy, busy > total) — lib/occupancy.js da,
+  // u yerda testlar ham bor.
+  const {
+    total: tablesTotal,
+    busy: tablesBusy,
+    hasTotal: tablesHasTotal,
+    percent: tablesOccupancyPct,
+  } = resolveTableOccupancy(stats, tables)
   const avgCheck = stats.todayPaymentsCount ? stats.todayRevenue / stats.todayPaymentsCount : 0
 
   // ── ApexCharts: Kunlik sotuvlar grafigi (Area/Line) ──────────────────────
@@ -352,8 +356,8 @@ export default function Dashboard() {
               icon={Utensils}
               tone="amber"
               label={t('dashboard.occupiedTables')}
-              value={`${tablesBusy} / ${tablesTotal}`}
-              hint={tablesTotal ? `${Math.round((tablesBusy / tablesTotal) * 100)}% ${t('dashboard.occupiedPct')}` : '—'}
+              value={tablesHasTotal ? `${tablesBusy} / ${tablesTotal}` : '—'}
+              hint={tablesHasTotal ? `${tablesOccupancyPct}% ${t('dashboard.occupiedPct')}` : '—'}
             />
             <StatCard
               icon={Receipt}
