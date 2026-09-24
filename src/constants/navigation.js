@@ -16,6 +16,7 @@ import {
   ScrollText,
   SlidersHorizontal,
   MessageSquareHeart,
+  Wand2,
 } from 'lucide-react'
 
 import { ROLES, ROLE_HOME } from './roles.js'
@@ -28,6 +29,14 @@ const STAFF = [ROLES.ADMIN, ROLES.MANAGER]
  * inSidebar — menyuda ko'rinadimi (profil kabi sahifalar ko'rinmaydi).
  */
 export const NAV_ITEMS = [
+  {
+    key: 'quickSetup',
+    path: '/quick-setup',
+    label: '10-Daqiqada Restoran',
+    icon: Wand2,
+    roles: STAFF,
+    inSidebar: true,
+  },
   {
     key: 'dashboard',
     path: '/dashboard',

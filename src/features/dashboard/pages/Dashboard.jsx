@@ -1,5 +1,6 @@
 // Boshqaruv paneli — React.lazy, Dynamic Importlar va Real-time Socket obunalari bilan optimallashtirilgan.
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import {
@@ -14,6 +15,7 @@ import {
   TrendingUp,
   Utensils,
   Send,
+  Wand2,
 } from 'lucide-react'
 import { toast } from 'react-toastify'
 
@@ -39,6 +41,7 @@ import { socket } from '../../../services/socket'
 const Chart = lazy(() => import('react-apexcharts'))
 
 export default function Dashboard() {
+  const navigate = useNavigate()
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [isExporting, setIsExporting] = useState(false)
@@ -256,6 +259,13 @@ export default function Dashboard() {
         subtitle={t('dashboard.subtitle')}
         actions={
           <div className="flex flex-wrap items-center gap-2">
+            <Button
+              onClick={() => navigate('/quick-setup')}
+              className="bg-[#C89B5E] hover:bg-[#b08449] text-[#1e1112] font-semibold text-xs sm:text-sm shadow"
+            >
+              <Wand2 className="mr-1.5 h-4 w-4" />
+              10 Daqiqada Restoran (Sehrgar)
+            </Button>
             <Button
               variant="secondary"
               isLoading={isSendingTelegram}

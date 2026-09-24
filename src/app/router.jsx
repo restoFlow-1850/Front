@@ -26,6 +26,7 @@ const ClientsPage = lazy(() => import('../features/landing/pages/ClientsPage'))
 const RootPanel = lazy(() => import('../features/root/pages/RootPanel'))
 
 // ─── Himoyalangan sahifalar ─────────────────────────────────────
+const QuickSetupPage = lazy(() => import('../features/quick-setup/pages/QuickSetupPage'))
 const DashboardPage = lazy(() => import('../features/dashboard/pages/Dashboard'))
 const OrdersPage = lazy(() => import('../features/orders/pages/OrdersPage'))
 const WaiterPage = lazy(() => import('../features/orders/pages/WaiterPage'))
@@ -47,6 +48,7 @@ const ForbiddenPage = lazy(() => import('../pages/ForbiddenPage'))
 // yozilmasa, buildProtectedRoutes uni jimgina tashlab ketmaydi — dev rejimida
 // konsolga ogohlantirish chiqadi.
 const PAGE_BY_KEY = {
+  quickSetup: <QuickSetupPage />,
   dashboard: <DashboardPage />,
   orders: <OrdersPage />,
   waiter: <WaiterPage />,
