@@ -12,63 +12,12 @@ import {
 } from 'react-icons/fi'
 
 import LanguageSwitcher from '../../../components/common/LanguageSwitcher'
-import { getPublicRestaurants } from '../api'
+import { getPublicProducts, getPublicRestaurants } from '../api'
 import RestaurantCard from '../components/RestaurantCard'
 import RestaurantCardSkeleton from '../components/RestaurantCardSkeleton'
 import EmptyRestaurants from '../components/EmptyRestaurants'
 import ErrorRestaurants from '../components/ErrorRestaurants'
-
-// 6-8 ta namuna taomlar ro'yxati (i18n kalitlari va ma'lumotlari)
-const SAMPLE_DISHES = [
-  {
-    id: '1',
-    price: '45,000',
-    rating: 4.9,
-    image: 'https://images.unsplash.com/photo-1633964913295-ceb43826e7c9?w=600&auto=format&fit=crop&q=80',
-  },
-  {
-    id: '2',
-    price: '15,000',
-    rating: 4.8,
-    image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=600&auto=format&fit=crop&q=80',
-  },
-  {
-    id: '3',
-    price: '35,000',
-    rating: 4.7,
-    image: 'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?w=600&auto=format&fit=crop&q=80',
-  },
-  {
-    id: '4',
-    price: '65,000',
-    rating: 4.9,
-    image: 'https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=600&auto=format&fit=crop&q=80',
-  },
-  {
-    id: '5',
-    price: '28,000',
-    rating: 4.8,
-    image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&auto=format&fit=crop&q=80',
-  },
-  {
-    id: '6',
-    price: '55,000',
-    rating: 4.7,
-    image: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600&auto=format&fit=crop&q=80',
-  },
-  {
-    id: '7',
-    price: '40,000',
-    rating: 4.8,
-    image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600&auto=format&fit=crop&q=80',
-  },
-  {
-    id: '8',
-    price: '42,000',
-    rating: 4.6,
-    image: 'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=600&auto=format&fit=crop&q=80',
-  },
-]
+import { formatSom, unwrapList } from '../../../lib/api'
 
 export default function LandingPage() {
   const { t } = useTranslation()
@@ -76,6 +25,9 @@ export default function LandingPage() {
   const [restaurants, setRestaurants] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+
+  const [dishes, setDishes] = useState([])
+  const [dishesLoading, setDishesLoading] = useState(true)
 
   const fetchRestaurants = useCallback(async () => {
     setLoading(true)
@@ -96,9 +48,23 @@ export default function LandingPage() {
     }
   }, [t])
 
+  const fetchDishes = useCallback(async () => {
+    setDishesLoading(true)
+    try {
+      const res = await getPublicProducts({ limit: 8, isAvailable: true })
+      const list = unwrapList(res, 'products')
+      setDishes(list)
+    } catch {
+      setDishes([])
+    } finally {
+      setDishesLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
     fetchRestaurants()
-  }, [fetchRestaurants])
+    fetchDishes()
+  }, [fetchRestaurants, fetchDishes])
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#2a0e10_0%,#140708_100%)]">
@@ -192,70 +158,110 @@ export default function LandingPage() {
         ))}
       </section>
 
-      {/* ─── Sample Dishes (Namuna taomlar) ────────────────── */}
+      {/* ─── Dishes (Mashhur taomlar) ───────────────────────── */}
       <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-24">
         <div className="mb-8 text-center">
           <h2 className="text-2xl font-extrabold text-white sm:text-3xl">
-            {t('landing.dishes.title')}
+            {t('landing.dishes.title', { defaultValue: "Ommabop taomlar" })}
           </h2>
           <p className="mt-2 text-sm text-[#9a8080]">
-            {t('landing.dishes.subtitle')}
+            {t('landing.dishes.subtitle', { defaultValue: "Restoranimizning eng sara va lazzatli taomlari" })}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {SAMPLE_DISHES.map((dish) => (
-            <div
-              key={dish.id}
-              className="group overflow-hidden rounded-2xl border border-[#4a1616] bg-[#1c0a0b] transition-all hover:border-[#C89B5E]/40 hover:shadow-lg hover:shadow-[#C89B5E]/5 flex flex-col"
-            >
-              {/* Image & Badges */}
-              <div className="relative aspect-[4/3] overflow-hidden bg-[#2a1315]">
-                <img
-                  src={dish.image}
-                  alt={t(`landing.dishes.items.${dish.id}.name`)}
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  loading="lazy"
-                />
-                <div className="absolute right-2.5 top-2.5 flex items-center gap-1 rounded-full bg-[#140708]/80 px-2 py-0.5 backdrop-blur">
-                  <FiStar className="h-3 w-3 fill-[#C89B5E] text-[#C89B5E]" />
-                  <span className="text-xs font-semibold text-[#E6DCDC]">{dish.rating}</span>
-                </div>
-              </div>
-
-              {/* Body */}
-              <div className="p-4 flex flex-col flex-1 justify-between">
-                <div>
-                  <span className="inline-block rounded-full bg-[#C89B5E]/10 px-2.5 py-0.5 text-[11px] font-semibold text-[#C89B5E]">
-                    {t(`landing.dishes.items.${dish.id}.category`)}
-                  </span>
-                  <h3 className="mt-2 text-base font-bold text-[#E6DCDC] group-hover:text-[#D9A968] transition-colors">
-                    {t(`landing.dishes.items.${dish.id}.name`)}
-                  </h3>
-                  <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-[#8a7373]">
-                    {t(`landing.dishes.items.${dish.id}.description`)}
-                  </p>
-                </div>
-
+        {dishesLoading ? (
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="animate-pulse rounded-2xl border border-[#4a1616] bg-[#1c0a0b] p-4">
+                <div className="aspect-[4/3] w-full rounded-xl bg-[#2a1315]" />
+                <div className="mt-4 h-4 w-20 rounded bg-[#2a1315]" />
+                <div className="mt-2 h-5 w-36 rounded bg-[#2a1315]" />
+                <div className="mt-2 h-3 w-full rounded bg-[#2a1315]" />
                 <div className="mt-4 flex items-center justify-between border-t border-[#4a1616]/60 pt-3">
-                  <div>
-                    <span className="text-sm font-extrabold text-[#D9A968]">
-                      {dish.price} {t('landing.dishes.currency')}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => navigate('/guest')}
-                    className="flex items-center gap-1 text-xs font-semibold text-[#cbbcbc] transition hover:text-[#D9A968]"
-                  >
-                    <FiBookOpen className="h-3.5 w-3.5" />
-                    {t('landing.dishes.viewMenu')}
-                  </button>
+                  <div className="h-5 w-24 rounded bg-[#2a1315]" />
+                  <div className="h-4 w-16 rounded bg-[#2a1315]" />
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : dishes.length === 0 ? (
+          <div className="rounded-2xl border border-[#4a1616] bg-[#1c0a0b] py-12 text-center">
+            <p className="text-sm text-[#9a8080]">
+              {t('landing.dishes.empty', { defaultValue: "Hozircha taomlar ro'yxati bo'sh" })}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {dishes.map((dish) => {
+              const dishId = dish._id || dish.id
+              const categoryName = dish.category?.name || (typeof dish.category === 'string' ? dish.category : '') || t('menu.dish', { defaultValue: 'Taom' })
+              return (
+                <div
+                  key={dishId}
+                  className="group overflow-hidden rounded-2xl border border-[#4a1616] bg-[#1c0a0b] transition-all hover:border-[#C89B5E]/40 hover:shadow-lg hover:shadow-[#C89B5E]/5 flex flex-col"
+                >
+                  {/* Image & Optional Real Rating */}
+                  <div className="relative aspect-[4/3] overflow-hidden bg-[#2a1315]">
+                    {dish.image ? (
+                      <img
+                        src={dish.image}
+                        alt={dish.name}
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none'
+                        }}
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#2a1315] to-[#1c0a0b] text-[#C89B5E]/60 text-3xl font-bold">
+                        🍽️
+                      </div>
+                    )}
+                    {Number(dish.rating) > 0 && (
+                      <div className="absolute right-2.5 top-2.5 flex items-center gap-1 rounded-full bg-[#140708]/80 px-2 py-0.5 backdrop-blur">
+                        <FiStar className="h-3 w-3 fill-[#C89B5E] text-[#C89B5E]" />
+                        <span className="text-xs font-semibold text-[#E6DCDC]">{dish.rating}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Body */}
+                  <div className="p-4 flex flex-col flex-1 justify-between">
+                    <div>
+                      <span className="inline-block rounded-full bg-[#C89B5E]/10 px-2.5 py-0.5 text-[11px] font-semibold text-[#C89B5E]">
+                        {categoryName}
+                      </span>
+                      <h3 className="mt-2 text-base font-bold text-[#E6DCDC] group-hover:text-[#D9A968] transition-colors line-clamp-1">
+                        {dish.name}
+                      </h3>
+                      {dish.description && (
+                        <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-[#8a7373]">
+                          {dish.description}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-between border-t border-[#4a1616]/60 pt-3">
+                      <div>
+                        <span className="text-sm font-extrabold text-[#D9A968]">
+                          {formatSom(dish.price)}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => navigate('/guest')}
+                        className="flex items-center gap-1 text-xs font-semibold text-[#cbbcbc] transition hover:text-[#D9A968]"
+                      >
+                        <FiBookOpen className="h-3.5 w-3.5" />
+                        {t('landing.dishes.viewMenu', { defaultValue: "Menyu" })}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </section>
 
       {/* ─── Restaurants ───────────────────────────────────── */}
