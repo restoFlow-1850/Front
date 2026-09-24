@@ -16,6 +16,7 @@ import {
   ScrollText,
   SlidersHorizontal,
   MessageSquareHeart,
+  BarChart3,
 } from 'lucide-react'
 
 import { ROLES, ROLE_HOME } from './roles.js'
@@ -97,6 +98,14 @@ export const NAV_ITEMS = [
     path: '/employees',
     label: 'Xodimlar',
     icon: Users,
+    roles: STAFF,
+    inSidebar: true,
+  },
+  {
+    key: 'reports',
+    path: '/reports',
+    label: 'Hisobotlar va Analitika',
+    icon: BarChart3,
     roles: STAFF,
     inSidebar: true,
   },
