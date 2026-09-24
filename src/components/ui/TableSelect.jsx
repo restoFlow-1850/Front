@@ -36,7 +36,8 @@ export default function TableSelect({ label, value, onChange, options = [], plac
     const sorted = [...options].sort((a, b) => (a.number ?? 0) - (b.number ?? 0))
     for (const opt of sorted) {
       const zone = opt.isVip ? 'VIP xona' : 'Asosiy zal'
-      zones[zone] = zones[zone] ? [...zones[zone], opt] : [opt]
+      if (!zones[zone]) zones[zone] = []
+      zones[zone].push(opt)
     }
     return zones
   }, [options])

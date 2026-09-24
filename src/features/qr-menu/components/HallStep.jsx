@@ -185,7 +185,8 @@ function groupByLocation(tables) {
   const map = new Map()
   for (const table of tables) {
     const zone = table.location?.trim() || 'Asosiy zal'
-    map.set(zone, map.has(zone) ? [...map.get(zone), table] : [table])
+    if (!map.has(zone)) map.set(zone, [])
+    map.get(zone).push(table)
   }
   return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]))
 }

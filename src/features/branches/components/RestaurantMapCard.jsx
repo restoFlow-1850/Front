@@ -1,174 +1,210 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import {
-  MapPin,
-  UtensilsCrossed,
-  Phone,
-  Navigation,
   CheckCircle,
-  Plus,
+  MapPin,
   Search,
   Building,
-  Users
+  Users,
+  UtensilsCrossed,
+  Loader2,
+  X,
 } from 'lucide-react'
-import { Card, Button, Badge, Modal, Input } from '../../../components/ui'
+import { Card, Button, Badge } from '../../../components/ui'
 import { toast } from 'react-toastify'
+import { getRestaurants, updateRestaurant } from '../api'
+import { getTables } from '../../tables/api'
+import { apiErrorMessage, unwrapList } from '../../../lib/api'
+import { TABLE_STATUS } from '../../../constants/roles'
 
-// Restoran filiallari ro'yxati (Boshlang'ich restoranlar)
-const INITIAL_RESTAURANTS = [
-  {
-    id: 1,
-    name: 'RestoFlow Grand Central',
-    address: 'Amir Temur shoh ko\'chasi, 108-uy, Toshkent',
-    city: 'Toshkent',
-    lat: 41.311081,
-    lng: 69.240562,
-    phone: '+998 (71) 200-11-22',
-    status: 'open', // 'open' | 'busy' | 'closed'
-    occupiedTables: 14,
-    totalTables: 18,
-    rating: 4.9,
-  },
-  {
-    id: 2,
-    name: 'RestoFlow Chorsu Tradition',
-    address: 'Alisher Navoiy ko\'chasi, 45-uy, Toshkent',
-    city: 'Toshkent',
-    lat: 41.3235,
-    lng: 69.2360,
-    phone: '+998 (71) 200-33-44',
-    status: 'open',
-    occupiedTables: 9,
-    totalTables: 12,
-    rating: 4.8,
-  },
-  {
-    id: 3,
-    name: 'RestoFlow Chilanzar Express',
-    address: 'Chilonzor 9-mavze, Qatortol ko\'chasi, Toshkent',
-    city: 'Toshkent',
-    lat: 41.2780,
-    lng: 69.2050,
-    phone: '+998 (71) 200-55-66',
-    status: 'open',
-    occupiedTables: 6,
-    totalTables: 10,
-    rating: 4.7,
-  },
-  {
-    id: 4,
-    name: 'RestoFlow Yunusabad Peak',
-    address: 'Yunusobod 14-mavze, Amir Temur ko\'chasi, Toshkent',
-    city: 'Toshkent',
-    lat: 41.3650,
-    lng: 69.2880,
-    phone: '+998 (71) 200-77-88',
-    status: 'busy',
-    occupiedTables: 15,
-    totalTables: 15,
-    rating: 4.95,
-  },
-  {
-    id: 5,
-    name: 'RestoFlow Samarkand Oasis',
-    address: 'Registon ko\'chasi, 12-uy, Samarqand',
-    city: 'Samarqand',
-    lat: 39.6542,
-    lng: 66.9597,
-    phone: '+998 (66) 200-99-00',
-    status: 'open',
-    occupiedTables: 7,
-    totalTables: 14,
-    rating: 4.85,
-  },
-]
+const DEFAULT_CENTER = [41.311081, 69.240562]
+
+const escapeHtml = (value = '') =>
+  String(value).replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  })[c])
 
 export default function RestaurantMapCard() {
+  const { t } = useTranslation()
+
   const mapContainerRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const markersRef = useRef({})
+  const placementMarkerRef = useRef(null)
   const resizeObserverRef = useRef(null)
   const rafIdRef = useRef(null)
+  const locatedCoordsRef = useRef([])
+  const editingRef = useRef(null)
 
-  const [restaurants, setRestaurants] = useState(INITIAL_RESTAURANTS)
-  const [selectedBranch, setSelectedBranch] = useState(INITIAL_RESTAURANTS[0])
+  const [restaurants, setRestaurants] = useState([])
+  const [tables, setTables] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
+  const [selectedId, setSelectedId] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [editingRestaurant, setEditingRestaurant] = useState(null)
+  const [draftCoords, setDraftCoords] = useState(null)
+  const [isSaving, setIsSaving] = useState(false)
 
-  // Yangi filial formasi
-  const [newBranch, setNewBranch] = useState({
-    name: '',
-    address: '',
-    city: 'Toshkent',
-    phone: '',
-    lat: 41.31,
-    lng: 69.25,
-    totalTables: 10,
-  })
+  editingRef.current = editingRestaurant
 
-  const filteredRestaurants = restaurants.filter(
-    (r) =>
-      r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.city.toLowerCase().includes(searchQuery.toLowerCase())
+  const hasCoords = (r) => {
+    const c = r?.coordinates
+    return c != null && c.lat != null && c.lng != null
+  }
+
+  const restaurantId = (r) => r?.id ?? r?._id
+
+  // Har bir filial bo'yicha stol statistikasi (GET /api/tables asosida hisoblanadi).
+  const tableStats = useMemo(() => {
+    const map = new Map()
+    for (const table of tables) {
+      const rid = table?.restaurant
+      if (rid == null) continue
+      const stats = map.get(rid) ?? { total: 0, occupied: 0 }
+      stats.total += 1
+      if (table.status === TABLE_STATUS.BUSY || table.status === TABLE_STATUS.RESERVED) {
+        stats.occupied += 1
+      }
+      map.set(rid, stats)
+    }
+    return map
+  }, [tables])
+
+  const loadData = useCallback(async () => {
+    setLoading(true)
+    setLoadError(null)
+    try {
+      const [restaurantsRes, tablesRes] = await Promise.all([
+        getRestaurants({ limit: 200 }),
+        getTables({ limit: 1000 }),
+      ])
+      const list = unwrapList(restaurantsRes, 'restaurants')
+      setRestaurants(list)
+      setTables(unwrapList(tablesRes, 'tables'))
+      setSelectedId((prev) => {
+        if (prev && list.some((r) => restaurantId(r) === prev)) return prev
+        const firstLocated = list.find(hasCoords)
+        return firstLocated ? restaurantId(firstLocated) : null
+      })
+    } catch (err) {
+      setLoadError(apiErrorMessage(err, t('branchesMap.loadFailed')))
+    } finally {
+      setLoading(false)
+    }
+  }, [t])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  const selectedBranch = useMemo(
+    () => restaurants.find((r) => restaurantId(r) === selectedId) ?? null,
+    [restaurants, selectedId],
   )
 
-  // Map Initialization & Updates
-  useEffect(() => {
-    if (!mapContainerRef.current) return
+  const filteredRestaurants = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return restaurants
+    return restaurants.filter(
+      (r) =>
+        (r.name ?? '').toLowerCase().includes(q) ||
+        (r.address ?? '').toLowerCase().includes(q) ||
+        (r.city ?? '').toLowerCase().includes(q),
+    )
+  }, [restaurants, searchQuery])
 
-    // Clean existing map instance if any
+  // ─── Xarita yaratish (bir marta) ──────────────────────────────────────
+  useEffect(() => {
+    const el = mapContainerRef.current
+    if (!el) return
+
     if (mapInstanceRef.current) {
       mapInstanceRef.current.remove()
       mapInstanceRef.current = null
     }
 
-    // Create Leaflet Map centered on Tashkent
-    const map = L.map(mapContainerRef.current, {
-      center: [selectedBranch?.lat || 41.311081, selectedBranch?.lng || 69.240562],
+    const map = L.map(el, {
+      center: DEFAULT_CENTER,
       zoom: 11,
       zoomControl: true,
     })
 
-    // OpenStreetMap standard tile layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       maxZoom: 18,
-      // Stops the world map from repeating side-by-side across the container
       noWrap: true,
     }).addTo(map)
 
     mapInstanceRef.current = map
 
-    // The map lives inside a modal, so Leaflet initialises while the container is
-    // still 0×0 — that's why it rendered a random zoomed-out patch of ocean instead
-    // of Tashkent. Re-measure and re-center as soon as the box actually has size.
-    const target = [selectedBranch?.lat || 41.311081, selectedBranch?.lng || 69.240562]
+    // Admin joylashuv belgilash uchun xaritaga bosganda koordinata olinadi.
+    map.on('click', (e) => {
+      if (!editingRef.current) return
+      setDraftCoords({
+        lat: Number(e.latlng.lat.toFixed(6)),
+        lng: Number(e.latlng.lng.toFixed(6)),
+      })
+    })
+
     let centered = false
     const recalcSize = () => {
       map.invalidateSize()
-      const { width, height } = mapContainerRef.current?.getBoundingClientRect() ?? {}
+      const { width, height } = el.getBoundingClientRect() ?? {}
       if (!centered && width > 0 && height > 0) {
         centered = true
-        map.setView(target, 13, { animate: false })
+        if (locatedCoordsRef.current.length > 0) {
+          map.fitBounds(L.latLngBounds(locatedCoordsRef.current), { padding: [40, 40] })
+        } else {
+          map.setView(DEFAULT_CENTER, 11, { animate: false })
+        }
       }
     }
     const rafId = requestAnimationFrame(recalcSize)
     const resizeObserver = new ResizeObserver(recalcSize)
-    resizeObserver.observe(mapContainerRef.current)
+    resizeObserver.observe(el)
     resizeObserverRef.current = resizeObserver
     rafIdRef.current = rafId
+
+    return () => {
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current)
+      if (resizeObserverRef.current) {
+        resizeObserverRef.current.disconnect()
+        resizeObserverRef.current = null
+      }
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove()
+        mapInstanceRef.current = null
+      }
+    }
+  }, [])
+
+  // ─── Filial markerlari ────────────────────────────────────────────────
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    if (!map) return
+
+    Object.values(markersRef.current).forEach((m) => m.remove())
     markersRef.current = {}
 
-    // Add markers for all restaurants
-    restaurants.forEach((r) => {
-      const isPeak = r.status === 'busy' || r.occupiedTables >= r.totalTables
+    const located = restaurants.filter(hasCoords)
+    locatedCoordsRef.current = located.map((r) => [r.coordinates.lat, r.coordinates.lng])
+
+    located.forEach((r) => {
+      const stats = tableStats.get(restaurantId(r)) ?? { total: 0, occupied: 0 }
+      const isPeak = stats.total > 0 && stats.occupied >= stats.total
+
       const pinColorClass = isPeak
         ? 'from-rose-500 to-red-600 shadow-rose-500/40'
         : 'from-orange-500 to-amber-600 shadow-orange-500/40'
 
-      const customDivIcon = L.divIcon({
+      const icon = L.divIcon({
         className: 'custom-restaurant-pin',
         html: `
           <div class="relative flex items-center justify-center cursor-pointer group">
@@ -186,98 +222,133 @@ export default function RestaurantMapCard() {
         popupAnchor: [0, -36],
       })
 
+      const statusText = isPeak ? t('branchesMap.peak') : t('branchesMap.open')
+      const tablesLine =
+        stats.total > 0
+          ? `<div style="font-size:11px; color:#334155; font-weight:600; background:#F1F5F9; padding:4px 6px; border-radius:6px; margin-top:4px;">
+              ${t('branchesMap.tablesLabel')}: ${t('branchesMap.tablesOccupied', {
+                occupied: stats.occupied,
+                total: stats.total,
+              })}
+            </div>`
+          : ''
+      const phoneLine = r.phone
+        ? `<div style="font-size:11px; color:#2563EB; margin-top:4px; font-weight:600;">📞 ${escapeHtml(r.phone)}</div>`
+        : ''
+      const ratingLine =
+        r.rating != null
+          ? `<span style="font-weight:600; color:#475569;">⭐ ${Number(r.rating).toFixed(1)}</span>`
+          : ''
+
       const popupContent = `
-        <div style="font-family: inherit; width: 200px; padding: 2px;">
-          <div style="font-weight: 800; font-size: 14px; color: #0F172A; margin-bottom: 2px;">${r.name}</div>
-          <div style="font-size: 11px; color: #64748B; margin-bottom: 6px;">${r.address}</div>
+        <div style="font-family: inherit; width: 210px; padding: 2px;">
+          <div style="font-weight: 800; font-size: 14px; color: #0F172A; margin-bottom: 2px;">${escapeHtml(r.name)}</div>
+          <div style="font-size: 11px; color: #64748B; margin-bottom: 6px;">${escapeHtml(r.address || r.city || '')}</div>
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
-            <span style="font-weight: 700; color: ${isPeak ? '#EF4444' : '#10B981'};">
-              ${isPeak ? '🔥 Peak (Band 100%)' : '🟢 Ochiq'}
-            </span>
-            <span style="font-weight: 600; color: #475569;">⭐ ${r.rating}</span>
+            <span style="font-weight: 700; color: ${isPeak ? '#EF4444' : '#10B981'};">${isPeak ? '🔥' : '🟢'} ${statusText}</span>
+            ${ratingLine}
           </div>
-          <div style="font-size: 11px; color: #334155; font-weight: 600; background: #F1F5F9; padding: 4px 6px; border-radius: 6px;">
-            Stollar: ${r.occupiedTables} / ${r.totalTables} band
-          </div>
-          <div style="font-size: 11px; color: #2563EB; margin-top: 4px; font-weight: 600;">
-            📞 ${r.phone}
-          </div>
+          ${tablesLine}
+          ${phoneLine}
         </div>
       `
 
-      const marker = L.marker([r.lat, r.lng], { icon: customDivIcon })
+      const marker = L.marker([r.coordinates.lat, r.coordinates.lng], { icon })
         .addTo(map)
         .bindPopup(popupContent)
 
-      marker.on('click', () => {
-        setSelectedBranch(r)
-      })
+      marker.on('click', () => setSelectedId(restaurantId(r)))
 
-      markersRef.current[r.id] = marker
+      markersRef.current[restaurantId(r)] = marker
     })
 
-    return () => {
-      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current)
-      if (resizeObserverRef.current) {
-        resizeObserverRef.current.disconnect()
-        resizeObserverRef.current = null
-      }
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove()
-        mapInstanceRef.current = null
-      }
-    }
-  }, [restaurants])
+    map.invalidateSize()
+  }, [restaurants, tableStats, t])
 
-  // Select branch and fly to coordinates
-  const handleSelectBranch = (branch) => {
-    setSelectedBranch(branch)
-    if (mapInstanceRef.current && branch) {
-      mapInstanceRef.current.flyTo([branch.lat, branch.lng], 14, {
-        duration: 1.2,
+  // ─── Tanlangan filialga uchish ────────────────────────────────────────
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    if (!map || !selectedBranch || !hasCoords(selectedBranch)) return
+    map.flyTo([selectedBranch.coordinates.lat, selectedBranch.coordinates.lng], 14, {
+      duration: 0.9,
+    })
+  }, [selectedBranch])
+
+  // ─── Joylashuv belgilash markeri ──────────────────────────────────────
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    if (!map) return
+
+    if (placementMarkerRef.current) {
+      placementMarkerRef.current.remove()
+      placementMarkerRef.current = null
+    }
+
+    if (editingRestaurant && draftCoords) {
+      const icon = L.divIcon({
+        className: 'custom-placement-pin',
+        html: `
+          <div class="relative flex flex-col items-center">
+            <div class="relative flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-gradient-to-tr from-blue-500 to-indigo-600 text-white shadow-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-6-5.333-6-10a6 6 0 0112 0c0 4.667-6 10-6 10z"/>
+                <circle cx="12" cy="11" r="2" fill="currentColor"/>
+              </svg>
+            </div>
+            <span class="mt-1 rounded-md bg-slate-900/90 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-md">
+              ${draftCoords.lat.toFixed(5)}, ${draftCoords.lng.toFixed(5)}
+            </span>
+          </div>
+        `,
+        iconSize: [36, 44],
+        iconAnchor: [18, 36],
+        popupAnchor: [0, -36],
       })
-      const marker = markersRef.current[branch.id]
-      if (marker) {
-        marker.openPopup()
-      }
+      placementMarkerRef.current = L.marker([draftCoords.lat, draftCoords.lng], { icon }).addTo(map)
+    }
+  }, [editingRestaurant, draftCoords])
+
+  // ─── Amallar ──────────────────────────────────────────────────────────
+  const handleSelectBranch = (r) => {
+    setSelectedId(restaurantId(r))
+    if (hasCoords(r)) {
+      const marker = markersRef.current[restaurantId(r)]
+      setTimeout(() => marker?.openPopup(), 350)
     }
   }
 
-  // Add new branch
-  const handleAddBranchSubmit = (e) => {
-    e.preventDefault()
-    if (!newBranch.name || !newBranch.address) {
-      toast.error('Iltimos, filial nomi va manzilini kiriting!')
-      return
+  const startEditLocation = (r) => {
+    setSelectedId(restaurantId(r))
+    setEditingRestaurant(r)
+    setDraftCoords(hasCoords(r) ? { lat: r.coordinates.lat, lng: r.coordinates.lng } : null)
+    if (hasCoords(r) && mapInstanceRef.current) {
+      mapInstanceRef.current.flyTo([r.coordinates.lat, r.coordinates.lng], 15, { duration: 0.9 })
     }
-
-    const created = {
-      id: Date.now(),
-      name: newBranch.name,
-      address: newBranch.address,
-      city: newBranch.city,
-      lat: Number(newBranch.lat) || 41.31,
-      lng: Number(newBranch.lng) || 69.25,
-      phone: newBranch.phone || '+998 (71) 200-00-00',
-      status: 'open',
-      occupiedTables: 0,
-      totalTables: Number(newBranch.totalTables) || 10,
-      rating: 5.0,
-    }
-
-    setRestaurants((prev) => [created, ...prev])
-    setIsAddModalOpen(false)
-    setNewBranch({
-      name: '',
-      address: '',
-      city: 'Toshkent',
-      phone: '',
-      lat: 41.31,
-      lng: 69.25,
-      totalTables: 10,
-    })
-    toast.success('Yangi restoran filiali xaritaga qo\'shildi! 📍')
   }
+
+  const cancelEditLocation = () => {
+    setEditingRestaurant(null)
+    setDraftCoords(null)
+  }
+
+  const handleSaveLocation = async () => {
+    if (!editingRestaurant || !draftCoords) return
+    setIsSaving(true)
+    try {
+      await updateRestaurant(restaurantId(editingRestaurant), { coordinates: draftCoords })
+      toast.success(t('branchesMap.locationSaved'))
+      setEditingRestaurant(null)
+      setDraftCoords(null)
+      await loadData()
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t('branchesMap.locationSaveFailed')))
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const locatedCount = restaurants.filter(hasCoords).length
+  const statsFor = (r) => tableStats.get(restaurantId(r)) ?? { total: 0, occupied: 0 }
 
   return (
     <Card className="mb-6 border-slate-200 shadow-sm dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden flex h-full min-h-0 flex-col">
@@ -290,25 +361,17 @@ export default function RestaurantMapCard() {
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                Restoran Filiallari Xaritasi
+                {t('branchesMap.cardTitle')}
               </h3>
-              <Badge variant="neutral">{restaurants.length} ta Filial</Badge>
+              <Badge variant="neutral">
+                {t('branchesMap.branchCount', { count: restaurants.length })}
+              </Badge>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Barcha filiallar va stollar to'liqlik darajasi
+              {t('branchesMap.cardSubtitle')}
             </p>
           </div>
         </div>
-
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => setIsAddModalOpen(true)}
-          className="text-xs"
-        >
-          <Plus size={14} className="mr-1 text-orange-500" />
-          Filial Qo'shish
-        </Button>
       </div>
 
       {/* Map Display */}
@@ -318,27 +381,119 @@ export default function RestaurantMapCard() {
           className="absolute inset-0 w-full rounded-xl border border-slate-200 dark:border-slate-800 z-10 shadow-inner"
         />
 
-        {/* Selected Branch Floating Badge overlay */}
-        {selectedBranch && (
-          <div className="absolute top-3 left-3 z-20 max-w-[260px] rounded-xl border border-slate-200/80 bg-white/90 p-2.5 shadow-lg backdrop-blur-md dark:border-slate-700/80 dark:bg-slate-900/90">
+        {/* Loading */}
+        {loading && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center rounded-xl bg-white/70 backdrop-blur-sm dark:bg-slate-900/70">
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
+              <Loader2 size={16} className="animate-spin text-orange-500" />
+              {t('loading')}
+            </div>
+          </div>
+        )}
+
+        {/* Error */}
+        {!loading && loadError && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center rounded-xl bg-white/80 backdrop-blur-sm dark:bg-slate-900/80">
+            <div className="flex flex-col items-center gap-3 px-6 text-center">
+              <p className="text-xs font-semibold text-rose-500">{loadError}</p>
+              <Button variant="secondary" className="text-xs" onClick={loadData}>
+                {t('branchesMap.retry')}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Hech bir filialda joylashuv belgilanmagan */}
+        {!loading && !loadError && restaurants.length > 0 && locatedCount === 0 && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center rounded-xl bg-white/70 px-6 backdrop-blur-sm dark:bg-slate-900/70">
+            <p className="max-w-sm text-center text-xs font-medium text-slate-500 dark:text-slate-400">
+              {t('branchesMap.allNeedLocation')}
+            </p>
+          </div>
+        )}
+
+        {/* Selected Branch Floating Badge */}
+        {!loading && selectedBranch && hasCoords(selectedBranch) && !editingRestaurant && (
+          <div className="absolute top-3 left-3 z-20 max-w-[270px] rounded-xl border border-slate-200/80 bg-white/90 p-2.5 shadow-lg backdrop-blur-md dark:border-slate-700/80 dark:bg-slate-900/90">
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
                 {selectedBranch.name}
               </span>
-              <span className="text-[10px] font-bold text-orange-500">
-                ⭐ {selectedBranch.rating}
-              </span>
+              {selectedBranch.rating != null && (
+                <span className="text-[10px] font-bold text-orange-500">
+                  ⭐ {Number(selectedBranch.rating).toFixed(1)}
+                </span>
+              )}
             </div>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
-              {selectedBranch.address}
+              {selectedBranch.address || selectedBranch.city}
             </p>
             <div className="mt-2 flex items-center justify-between text-[11px]">
               <span className="font-semibold text-slate-700 dark:text-slate-300">
-                Stollar: {selectedBranch.occupiedTables}/{selectedBranch.totalTables} band
+                {statsFor(selectedBranch).total > 0
+                  ? t('branchesMap.tablesOccupied', {
+                      occupied: statsFor(selectedBranch).occupied,
+                      total: statsFor(selectedBranch).total,
+                    })
+                  : '—'}
               </span>
-              <span className={`font-bold ${selectedBranch.occupiedTables >= selectedBranch.totalTables ? 'text-rose-500' : 'text-emerald-500'}`}>
-                {selectedBranch.occupiedTables >= selectedBranch.totalTables ? 'Peak 100%' : 'Faol'}
+              <span
+                className={`font-bold ${
+                  statsFor(selectedBranch).total > 0 &&
+                  statsFor(selectedBranch).occupied >= statsFor(selectedBranch).total
+                    ? 'text-rose-500'
+                    : 'text-emerald-500'
+                }`}
+              >
+                {statsFor(selectedBranch).total > 0 &&
+                statsFor(selectedBranch).occupied >= statsFor(selectedBranch).total
+                  ? t('branchesMap.peak')
+                  : t('branchesMap.active')}
               </span>
+            </div>
+          </div>
+        )}
+
+        {/* Joylashuv belgilash paneli */}
+        {editingRestaurant && (
+          <div className="absolute top-3 left-1/2 z-20 w-[calc(100%-24px)] max-w-md -translate-x-1/2 rounded-xl border border-blue-200/80 bg-white/95 p-3 shadow-lg backdrop-blur-md dark:border-blue-900/60 dark:bg-slate-900/95">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                  {editingRestaurant.name}
+                </p>
+                <p className="mt-1 text-[11px] font-medium text-blue-600 dark:text-blue-400">
+                  {t('branchesMap.clickOnMapToChoose')}
+                </p>
+                {draftCoords && (
+                  <p className="mt-1 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                    {t('branchesMap.selectedPoint')}: {draftCoords.lat.toFixed(5)},{' '}
+                    {draftCoords.lng.toFixed(5)}
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={cancelEditLocation}
+                className="shrink-0 rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                aria-label={t('cancel')}
+              >
+                <X size={14} />
+              </button>
+            </div>
+            <div className="mt-3 flex justify-end gap-2">
+              <Button variant="secondary" className="px-3 py-1.5 text-xs" onClick={cancelEditLocation}>
+                {t('cancel')}
+              </Button>
+              <Button
+                variant="primary"
+                className="px-3 py-1.5 text-xs"
+                disabled={!draftCoords || isSaving}
+                isLoading={isSaving}
+                onClick={handleSaveLocation}
+              >
+                {t('branchesMap.saveLocation')}
+              </Button>
             </div>
           </div>
         )}
@@ -352,29 +507,29 @@ export default function RestaurantMapCard() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Filial yoki shahar bo'yicha qidirish..."
+            placeholder={t('branchesMap.searchPlaceholder')}
             className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-xs text-slate-800 placeholder-slate-400 focus:border-orange-500 focus:bg-white focus:outline-none dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-200"
           />
         </div>
 
-        {/* Branch Chips/Cards List */}
         <div className="max-h-48 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 rounded-xl border border-slate-100 dark:border-slate-800 scrollbar-thin">
-          {filteredRestaurants.length === 0 ? (
+          {!loading && filteredRestaurants.length === 0 ? (
             <div className="p-4 text-center text-xs text-slate-400">
-              Filial topilmadi
+              {searchQuery ? t('branchesMap.noBranches') : t('branchesMap.noBranchesYet')}
             </div>
           ) : (
             filteredRestaurants.map((branch) => {
-              const isSelected = selectedBranch?.id === branch.id
-              const isBusy = branch.occupiedTables >= branch.totalTables
+              const isSelected = selectedId != null && selectedId === restaurantId(branch)
+              const stats = statsFor(branch)
+              const isBusy = stats.total > 0 && stats.occupied >= stats.total
 
               return (
                 <div
-                  key={branch.id}
+                  key={restaurantId(branch)}
                   onClick={() => handleSelectBranch(branch)}
-                  className={`flex items-center justify-between p-2.5 cursor-pointer transition ${
+                  className={`flex items-center justify-between gap-2 p-2.5 cursor-pointer transition ${
                     isSelected
-                      ? 'bg-orange-50 dark:bg-orange-950/30 font-semibold'
+                      ? 'bg-orange-50 dark:bg-orange-950/30'
                       : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
                   }`}
                 >
@@ -384,20 +539,56 @@ export default function RestaurantMapCard() {
                       <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
                         {branch.name}
                       </span>
+                      <span
+                        className={`shrink-0 inline-block text-[10px] font-bold ${
+                          isBusy ? 'text-rose-500' : 'text-emerald-500'
+                        }`}
+                      >
+                        {isBusy ? t('branchesMap.busy') : t('branchesMap.open')}
+                      </span>
                     </div>
                     <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                      {branch.address}
+                      {branch.address || branch.city || '—'}
                     </p>
+                    <div className="mt-1 flex items-center gap-2">
+                      {hasCoords(branch) ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                          <CheckCircle size={11} />
+                          {t('branchesMap.locationSet')}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-600 dark:text-amber-400">
+                          <MapPin size={11} />
+                          {t('branchesMap.locationNotSet')}
+                        </span>
+                      )}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="px-1.5 py-0.5 text-[10px]"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          startEditLocation(branch)
+                        }}
+                      >
+                        <MapPin size={11} className="mr-0.5 text-orange-500" />
+                        {hasCoords(branch)
+                          ? t('branchesMap.editLocation')
+                          : t('branchesMap.setLocation')}
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="text-right shrink-0">
                     <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-700 dark:text-slate-300">
                       <Users size={12} className="text-slate-400" />
-                      <span>{branch.occupiedTables}/{branch.totalTables}</span>
+                      {stats.total > 0
+                        ? t('branchesMap.tablesOccupied', {
+                            occupied: stats.occupied,
+                            total: stats.total,
+                          })
+                        : '—'}
                     </div>
-                    <span className={`inline-block text-[10px] font-bold ${isBusy ? 'text-rose-500' : 'text-emerald-500'}`}>
-                      {isBusy ? '100% Band' : 'Ochiq'}
-                    </span>
                   </div>
                 </div>
               )
@@ -405,110 +596,6 @@ export default function RestaurantMapCard() {
           )}
         </div>
       </div>
-
-      {/* Modal to add new Branch */}
-      {isAddModalOpen && (
-        <Modal
-          isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
-          title="Yangi Restoran Filialini Qo'shish"
-        >
-          <form onSubmit={handleAddBranchSubmit} className="space-y-3 text-xs">
-            <div>
-              <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                Filial Nomi *
-              </label>
-              <Input
-                value={newBranch.name}
-                onChange={(e) => setNewBranch({ ...newBranch, name: e.target.value })}
-                placeholder="masalan: RestoFlow Buyuk Ipak Yuli"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                Manzil *
-              </label>
-              <Input
-                value={newBranch.address}
-                onChange={(e) => setNewBranch({ ...newBranch, address: e.target.value })}
-                placeholder="masalan: Mirzo Ulug'bek ko'chasi 15-uy"
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Shahar
-                </label>
-                <Input
-                  value={newBranch.city}
-                  onChange={(e) => setNewBranch({ ...newBranch, city: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Telefon
-                </label>
-                <Input
-                  value={newBranch.phone}
-                  onChange={(e) => setNewBranch({ ...newBranch, phone: e.target.value })}
-                  placeholder="+998 71 200-00-00"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Kenglik (Lat)
-                </label>
-                <Input
-                  type="number"
-                  step="any"
-                  value={newBranch.lat}
-                  onChange={(e) => setNewBranch({ ...newBranch, lat: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Uzunlik (Lng)
-                </label>
-                <Input
-                  type="number"
-                  step="any"
-                  value={newBranch.lng}
-                  onChange={(e) => setNewBranch({ ...newBranch, lng: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Stollar Soni
-                </label>
-                <Input
-                  type="number"
-                  value={newBranch.totalTables}
-                  onChange={(e) => setNewBranch({ ...newBranch, totalTables: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-3">
-              <Button type="button" variant="secondary" onClick={() => setIsAddModalOpen(false)}>
-                Bekor qilish
-              </Button>
-              <Button type="submit" variant="primary">
-                Xaritaga Qo'shish
-              </Button>
-            </div>
-          </form>
-        </Modal>
-      )}
     </Card>
   )
 }
