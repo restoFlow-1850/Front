@@ -66,6 +66,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "orders": "Orders",
+    "map": "Branches Map",
     "waiter": "Waiter Panel",
     "kitchen": "Kitchen",
     "cashier": "Cashier",
@@ -212,6 +213,7 @@
     "subtitle": "Payment processing, split bill and payment history",
     "cashierAndPay": "Cashier & Payment",
     "paymentsHistory": "Payment History",
+    "partialPaymentLink": "Partial payment",
     "shiftNotOpen": "Shift Not Open",
     "shiftNotOpenDesc": "Please open a shift above before processing payments.",
     "openShiftBtn": "Open Shift",
@@ -490,10 +492,8 @@
     "cart": "Cart",
     "totalAmount": "Total Amount",
     "placeOrder": "Place Order",
-
     "orderSuccess": "Your order was sent to the kitchen!"
   },
-
   "landing": {
     "nav": {
       "clients": "Clients",
@@ -562,7 +562,8 @@
           "category": "Salads",
           "description": "Fresh iceberg lettuce salad with grilled chicken breast, parmesan, and Caesar dressing."
         }
-      }
+      },
+      "defaultCategory": "Dishes"
     },
     "restaurants": {
       "title": "Our Restaurants",
@@ -584,4 +585,3 @@
     }
   }
 }
-

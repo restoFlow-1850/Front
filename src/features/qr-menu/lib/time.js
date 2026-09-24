@@ -8,18 +8,14 @@ export function toDateInputValue(date) {
 }
 
 export function buildTimeSlots(dateStr) {
-  const slots = []
   const now = new Date()
   const isToday = dateStr === toDateInputValue(now)
   const minMinutes = isToday ? now.getHours() * 60 + now.getMinutes() + 30 : -1
 
-  for (let h = OPEN_HOUR; h <= CLOSE_HOUR; h++) {
-    for (const m of [0, 30]) {
-      if (h === CLOSE_HOUR && m > 0) continue
-      const totalMinutes = h * 60 + m
-      if (totalMinutes < minMinutes) continue
-      slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`)
-    }
-  }
-  return slots
+  return Array.from({ length: CLOSE_HOUR - OPEN_HOUR + 1 }, (_, i) => i + OPEN_HOUR).flatMap((h) =>
+    [0, 30]
+      .filter((m) => h !== CLOSE_HOUR || m === 0)
+      .filter((m) => h * 60 + m >= minMinutes)
+      .map((m) => `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`),
+  )
 }

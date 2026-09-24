@@ -1,9 +1,9 @@
-// Kassa — GET /api/payments/unpaid-orders, POST /api/payments, Split Bill, ReceiptPrintModal, Socket Real-time & Ovozli Signal
-import { useEffect, useMemo, useState } from 'react'
+// Kassa — GET /api/payments/unpaid-orders, POST /api/payments
+// Minimallashtirilgan: stol → summa → to'lov usuli → TO'LASH. Split va tarix — ixtiyoriy.
+import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import {
-  AlertOctagon,
   Banknote,
   CheckCircle,
   CreditCard,
@@ -13,30 +13,23 @@ import {
   Receipt as ReceiptIcon,
   Smartphone,
   Users,
-  Wallet,
 } from 'lucide-react'
 import { toast } from 'react-toastify'
 
 import { createPayment, getReceipt, getUnpaidOrders, getCurrentShift } from '../api'
-import { updateOrderStatus } from '../../orders/api'
 import ReceiptPrintModal from '../components/ReceiptPrintModal'
 import PaymentsHistory from '../components/PaymentsHistory'
 import ShiftPanel from '../components/ShiftPanel'
 
 import { unwrap, unwrapList, apiErrorMessage, formatSom, formatTime } from '../../../lib/api'
-import {
-  ORDER_STATUS,
-  ORDER_STATUS_LABELS,
-  ORDER_STATUS_TONE,
-  PAYMENT_METHODS,
-  PAYMENT_METHOD_LABELS,
-} from '../../../constants/roles'
+import { PAYMENT_METHODS, PAYMENT_METHOD_LABELS } from '../../../constants/roles'
 import {
   Badge,
   Button,
   Card,
   EmptyState,
   Input,
+  Modal,
   PageHeader,
   Skeleton,
 } from '../../../components/ui'
@@ -49,14 +42,6 @@ const METHOD_ICONS = {
   [PAYMENT_METHODS.CLICK]: Smartphone,
   [PAYMENT_METHODS.PAYME]: Smartphone,
 }
-
-const FLOW_STEPS = [
-  { step: 1, name: "1. Buyurtmani tanlash" },
-  { step: 2, name: "2. Chek tarkibi" },
-  { step: 3, name: "3. Usul & Split" },
-  { step: 4, name: "4. To'lovni tasdiqlash" },
-  { step: 5, name: "5. Chek chop etish" },
-]
 
 export default function Cashier() {
   const { t } = useTranslation()
@@ -77,20 +62,18 @@ export default function Cashier() {
     refetchInterval: 30_000,
   })
 
-
-
   const shift = shiftQuery.data
   const hasOpenShift = shift && shift.status === 'open'
 
-  const [activeTab, setActiveTab] = useState('cashier') // 'cashier' | 'history'
   const [selectedId, setSelectedId] = useState(null)
   const [method, setMethod] = useState(PAYMENT_METHODS.CASH)
   const [splitCount, setSplitCount] = useState(1)
   const [customAmount, setCustomAmount] = useState('')
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false)
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
+  const [showPartialPayment, setShowPartialPayment] = useState(false)
 
-  // To'lanmagan buyurtmalar — GET /api/payments/unpaid-orders (fallback: /orders?paid=false)
+  // To'lanmagan buyurtmalar
   const unpaidQuery = useQuery({
     queryKey: ['orders', 'unpaid'],
     queryFn: async () => unwrapList(await getUnpaidOrders(), 'orders'),
@@ -104,14 +87,13 @@ export default function Cashier() {
     enabled: Boolean(selectedId),
   })
 
-  // 🔔 Socket Real-time obunalar va ortiqcha listenerlarni tozalash (cleanup)
+  // Socket real-time obunalar
   useEffect(() => {
     const handleOrderEvent = () => {
       playNotificationSound()
       queryClient.invalidateQueries({ queryKey: ['orders', 'unpaid'] })
       queryClient.invalidateQueries({ queryKey: ['orders'] })
     }
-
     const handlePaymentEvent = () => {
       playNotificationSound()
       queryClient.invalidateQueries({ queryKey: ['orders', 'unpaid'] })
@@ -124,7 +106,6 @@ export default function Cashier() {
     socket.on('table:status_updated', handleOrderEvent)
     socket.on('payment:created', handlePaymentEvent)
 
-    // Unmount bo'lganda obunalarni toza o'chirish (Memory leak bo'lmaydi)
     return () => {
       socket.off('order:created', handleOrderEvent)
       socket.off('order:status_changed', handleOrderEvent)
@@ -133,7 +114,6 @@ export default function Cashier() {
     }
   }, [queryClient])
 
-  // To'lov mutation — POST /api/payments
   const paymentMutation = useMutation({
     mutationFn: (amount) =>
       createPayment({
@@ -144,6 +124,7 @@ export default function Cashier() {
     onMutate: async (amount) => {
       setCustomAmount('')
       setSplitCount(1)
+      setShowPartialPayment(false)
       setIsReceiptModalOpen(true)
       if (!amount || amount >= remaining) {
         queryClient.setQueryData(['orders', 'unpaid'], (old) => {
@@ -162,45 +143,12 @@ export default function Cashier() {
     onError: (error) => toast.error(apiErrorMessage(error, t('cashier.paymentFailed'))),
   })
 
-  // Buyurtmani bekor qilish mutation
-  const cancelMutation = useMutation({
-    mutationFn: () => updateOrderStatus(selectedId, ORDER_STATUS.CANCELLED),
-    onSuccess: () => {
-      toast.info(t('cashier.orderCancelled'))
-      setShowCancelConfirm(false)
-      setSelectedId(null)
-      queryClient.invalidateQueries({ queryKey: ['orders'] })
-      queryClient.invalidateQueries({ queryKey: ['reports'] })
-    },
-    onError: (error) => toast.error(apiErrorMessage(error, t('cashier.cancelFailed'))),
-  })
-
-  const unpaid = useMemo(() => unpaidQuery.data ?? [], [unpaidQuery.data])
+  const unpaid = unpaidQuery.data ?? []
   const receipt = receiptQuery.data
-
-  useEffect(() => {
-    if (selectedId && unpaidQuery.isSuccess && !unpaid.some((o) => o._id === selectedId)) {
-      if (!receipt || receipt.isPaid) {
-        // preserve selected receipt for print modal
-      }
-    }
-  }, [unpaid, selectedId, unpaidQuery.isSuccess, receipt])
-
   const remaining = receipt?.remainingBalance ?? 0
-
-  const currentStep = useMemo(() => {
-    if (!selectedId) return 1
-    if (remaining <= 0 || receipt?.isPaid) return 5
-    if (customAmount || splitCount > 1) return 4
-    return 3
-  }, [selectedId, remaining, receipt?.isPaid, customAmount, splitCount])
-
-  const splitAmount = useMemo(() => {
-    if (splitCount > 1 && remaining > 0) {
-      return Math.ceil(remaining / splitCount)
-    }
-    return remaining
-  }, [remaining, splitCount])
+  const splitAmount = splitCount > 1 && remaining > 0 ? Math.ceil(remaining / splitCount) : remaining
+  const parsedAmount = Number(customAmount)
+  const payAmount = customAmount && Number.isFinite(parsedAmount) ? parsedAmount : remaining
 
   const handlePay = () => {
     if (paymentMutation.isPending) return
@@ -210,7 +158,9 @@ export default function Cashier() {
       return
     }
     if (parsed !== null && parsed > remaining) {
-      toast.error(`${t('cashier.amountExceeds', { defaultValue: 'Summa qolgan balansdan katta bo\'lishi mumkin emas' })} (${formatSom(remaining)})`)
+      toast.error(
+        `${t('cashier.amountExceeds', { defaultValue: "Summa qolgan balansdan katta bo'lishi mumkin emas" })} (${formatSom(remaining)})`
+      )
       return
     }
     paymentMutation.mutate(parsed)
@@ -218,90 +168,35 @@ export default function Cashier() {
 
   return (
     <div className="space-y-5">
-      <PageHeader title={t('cashier.title')} subtitle={t('cashier.subtitle')} />
+      <PageHeader
+        title={t('cashier.title')}
+        subtitle={t('cashier.subtitle')}
+        actions={
+          <Button variant="secondary" onClick={() => setIsHistoryModalOpen(true)}>
+            <History className="mr-2 h-4 w-4" />
+            {t('cashier.paymentsHistory')}
+          </Button>
+        }
+      />
 
-      {/* Smena paneli — smena ochilmagan bo'lsa to'lov bloklanadi */}
       <ShiftPanel onShiftChange={() => shiftQuery.refetch()} />
 
-      {/* Smena bloki — to'lov paneli faqat smena ochiq bo'lganda ishlaydi */}
       {!hasOpenShift && shiftQuery.isSuccess && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-center dark:border-amber-800 dark:bg-amber-950/40">
           <div className="flex items-center justify-center gap-2 text-amber-700 dark:text-amber-300">
             <Lock className="h-5 w-5" />
-            <p className="text-sm font-semibold">
-              {t('cashier.shiftNotOpenDesc')}
-            </p>
+            <p className="text-sm font-semibold">{t('cashier.shiftNotOpenDesc')}</p>
           </div>
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex gap-2 border-b border-slate-200 pb-3 dark:border-slate-800">
-        <button
-          type="button"
-          onClick={() => setActiveTab('cashier')}
-          className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
-            activeTab === 'cashier'
-              ? 'bg-indigo-600 text-white shadow-sm'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-          }`}
-        >
-          <Wallet className="h-4 w-4" />
-          {t('cashier.cashierAndPay')}
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('history')}
-          className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
-            activeTab === 'history'
-              ? 'bg-indigo-600 text-white shadow-sm'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-          }`}
-        >
-          <History className="h-4 w-4" />
-          {t('cashier.paymentsHistory')}
-        </button>
-      </div>
-
-      {/* 5-Qadamli Kassa Oqimi Bar */}
-      {activeTab === 'cashier' && (
-        <Card className="py-3">
-          <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-            {FLOW_STEPS.map((s) => {
-              const isActive = currentStep === s.step
-              const isPassed = currentStep > s.step
-              return (
-                <div
-                  key={s.step}
-                  className={`flex items-center gap-1.5 font-medium px-3 py-1.5 rounded-lg transition ${
-                    isActive
-                      ? 'bg-indigo-600 text-white shadow-sm font-bold'
-                      : isPassed
-                      ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
-                      : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
-                  }`}
-                >
-                  <span>{s.name}</span>
-                </div>
-              )
-            })}
-          </div>
-        </Card>
-      )}
-
-      {activeTab === 'history' ? (
-        <PaymentsHistory />
-      ) : !hasOpenShift ? (
+      {!hasOpenShift ? (
         <Card>
-          <EmptyState
-            icon={Lock}
-            title={t('shift.shiftClosed')}
-            description={t('shift.shiftNotOpenDesc')}
-          />
+          <EmptyState icon={Lock} title={t('shift.shiftClosed')} description={t('shift.shiftNotOpenDesc')} />
         </Card>
       ) : (
-        <div className="grid gap-5 lg:grid-cols-[320px_1fr]">
-          {/* Qadam 1: To'lanmagan buyurtmalar ro'yxati */}
+        <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
+          {/* To'lanmagan buyurtmalar — faqat stol raqami va summa */}
           <Card padded={false} className="overflow-hidden">
             <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-800">
               <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
@@ -320,11 +215,7 @@ export default function Cashier() {
                   ))}
                 </div>
               ) : unpaid.length === 0 ? (
-                <EmptyState
-                  icon={CheckCircle}
-                  title={t('cashier.allPaid')}
-                  description={t('cashier.noUnpaidOrders')}
-                />
+                <EmptyState icon={CheckCircle} title={t('cashier.allPaid')} description={t('cashier.noUnpaidOrders')} />
               ) : (
                 unpaid.map((order) => (
                   <button
@@ -334,26 +225,18 @@ export default function Cashier() {
                       setSelectedId(order._id)
                       setCustomAmount('')
                       setSplitCount(1)
-                      setShowCancelConfirm(false)
+                      setShowPartialPayment(false)
                     }}
-                    className={`flex w-full items-center gap-3 border-b border-slate-100 px-4 py-3 text-left transition last:border-0 dark:border-slate-800 ${
+                    className={`flex w-full items-center justify-between gap-3 border-b border-slate-100 px-4 py-4 text-left transition last:border-0 dark:border-slate-800 ${
                       selectedId === order._id
                         ? 'bg-indigo-50 dark:bg-indigo-950/40'
                         : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
                     }`}
                   >
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-slate-900 dark:text-white">
-                        {t('cashier.tableNum')} {order.table?.number ?? '—'}
-                      </p>
-                      <p className="truncate text-xs text-slate-500">
-                        {order.waiter?.name ?? '—'} · {formatTime(order.createdAt)}
-                      </p>
-                      <Badge variant={ORDER_STATUS_TONE[order.status]} className="mt-1">
-                        {t(`orderStatus.${order.status}`, ORDER_STATUS_LABELS[order.status] ?? order.status)}
-                      </Badge>
-                    </div>
-                    <span className="shrink-0 text-sm font-bold text-slate-900 dark:text-white">
+                    <span className="text-2xl font-bold text-slate-900 dark:text-white">
+                      {order.table?.number ?? '—'}
+                    </span>
+                    <span className="text-lg font-bold text-slate-900 dark:text-white">
                       {formatSom(order.totalAmount)}
                     </span>
                   </button>
@@ -362,14 +245,10 @@ export default function Cashier() {
             </div>
           </Card>
 
-          {/* Chek ko'rish va to'lov paneli */}
+          {/* Chek + to'lov usuli + TO'LASH */}
           {!selectedId ? (
             <Card>
-              <EmptyState
-                icon={ReceiptIcon}
-                title={t('cashier.orderNotSelected')}
-                description={t('cashier.selectOrderDesc')}
-              />
+              <EmptyState icon={ReceiptIcon} title={t('cashier.orderNotSelected')} description={t('cashier.selectOrderDesc')} />
             </Card>
           ) : receiptQuery.isLoading ? (
             <Card>
@@ -377,199 +256,173 @@ export default function Cashier() {
             </Card>
           ) : receiptQuery.isError ? (
             <Card>
-              <p className="text-sm text-rose-600">
-                {apiErrorMessage(receiptQuery.error, t('kitchen.loadFailed'))}
-              </p>
+              <p className="text-sm text-rose-600">{apiErrorMessage(receiptQuery.error, t('kitchen.loadFailed'))}</p>
             </Card>
           ) : (
-            <div className="grid gap-5 xl:grid-cols-[1fr_340px]">
-              {/* Qadam 2: Chek tarkibi va balans */}
-              <Card>
-                <div className="mb-4 flex items-start justify-between border-b border-slate-200 pb-4 dark:border-slate-800">
-                  <div>
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                      {t('cashier.tableNum')} {receipt?.order?.table?.number ?? '—'}
-                    </h2>
-                    <p className="text-xs text-slate-500">
-                      {t('dashboard.waiter')}: {receipt?.order?.waiter?.name ?? '—'} ·{' '}
-                      {formatTime(receipt?.order?.createdAt)}
-                    </p>
-                  </div>
-                  <Badge variant={receipt?.isPaid ? 'success' : 'warning'}>
-                    {receipt?.isPaid ? t('cashier.paid') : t('cashier.unpaid')}
-                  </Badge>
-                </div>
-
-                <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {receipt?.order?.items?.map((item, index) => (
-                    <div key={`${item.product}-${index}`} className="flex justify-between py-2.5 text-sm">
-                      <div>
-                        <p className="font-medium text-slate-900 dark:text-white">{item.name}</p>
-                        <p className="text-xs text-slate-400">
-                          {item.quantity} × {formatSom(item.price)}
-                        </p>
-                      </div>
-                      <span className="font-semibold text-slate-900 dark:text-white">
-                        {formatSom(item.price * item.quantity)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-4 space-y-1.5 border-t border-slate-200 pt-4 text-sm dark:border-slate-800">
-                  <Row label={t('cashier.orderAmount')} value={formatSom(receipt?.order?.totalAmount)} />
-                  <Row label={t('cashier.paidAmount')} value={formatSom(receipt?.paidTotal)} />
-                  <div className="flex justify-between border-t border-slate-200 pt-2 text-base font-bold text-slate-900 dark:border-slate-800 dark:text-white">
-                    <span>{t('cashier.remainingBalance')}</span>
-                    <span className="text-indigo-600 dark:text-indigo-400">{formatSom(remaining)}</span>
-                  </div>
-                </div>
-
-                {receipt?.payments?.length > 0 && (
-                  <div className="mt-4 border-t border-slate-200 pt-4 dark:border-slate-800">
-                    <h3 className="mb-2 text-xs font-semibold text-slate-500">{t('cashier.paymentsHistory')}</h3>
-                    <div className="space-y-1">
-                      {receipt.payments.map((payment) => (
-                        <div key={payment._id} className="flex justify-between text-xs text-slate-500">
-                          <span>
-                            {t(`paymentMethods.${payment.method}`, PAYMENT_METHOD_LABELS[payment.method] ?? payment.method)} ·{' '}
-                            {payment.receivedBy?.name ?? '—'} · {formatTime(payment.createdAt)}
-                          </span>
-                          <span className="font-semibold">{formatSom(payment.amount)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </Card>
-
-              {/* Qadam 3 & 4: To'lov usuli, Split bill va to'lovni qabul qilish */}
-              <Card className="h-fit space-y-4">
-                <h3 className="border-b border-slate-200 pb-3 text-sm font-semibold text-slate-900 dark:border-slate-800 dark:text-white">
-                  {t('cashier.paymentMethodAndSplit')}
-                </h3>
-
-                <div className="grid grid-cols-2 gap-2">
-                  {Object.values(PAYMENT_METHODS).map((value) => {
-                    const Icon = METHOD_ICONS[value]
-                    return (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => setMethod(value)}
-                        className={`flex flex-col items-center gap-1.5 rounded-xl border p-3 transition ${
-                          method === value
-                            ? 'border-indigo-600 bg-indigo-50 font-semibold text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300'
-                            : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'
-                        }`}
-                      >
-                        <Icon className="h-5 w-5" />
-                        <span className="text-xs">{t(`paymentMethods.${value}`, PAYMENT_METHOD_LABELS[value])}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-
+            <Card className="space-y-4">
+              <div className="flex items-start justify-between border-b border-slate-200 pb-4 dark:border-slate-800">
                 <div>
-                  <p className="mb-2 flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
-                    <Users className="h-3.5 w-3.5 text-indigo-500" /> {t('cashier.splitBill')}
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                    {t('cashier.tableNum')} {receipt?.order?.table?.number ?? '—'}
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    {t('dashboard.waiter')}: {receipt?.order?.waiter?.name ?? '—'} · {formatTime(receipt?.order?.createdAt)}
                   </p>
-                  <div className="flex gap-1.5">
-                    {[1, 2, 3, 4].map((num) => (
-                      <button
-                        key={num}
-                        type="button"
-                        onClick={() => {
-                          setSplitCount(num)
-                          setCustomAmount(num > 1 && remaining > 0 ? String(Math.ceil(remaining / num)) : '')
-                        }}
-                        className={`flex-1 rounded-lg px-2 py-1.5 text-xs font-bold transition ${
-                          splitCount === num
-                            ? 'bg-indigo-600 text-white'
-                            : 'border border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'
-                        }`}
-                      >
-                        {num === 1 ? '1' : `${num}`}
-                      </button>
+                </div>
+                <Badge variant={receipt?.isPaid ? 'success' : 'warning'}>
+                  {receipt?.isPaid ? t('cashier.paid') : t('cashier.unpaid')}
+                </Badge>
+              </div>
+
+              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                {receipt?.order?.items?.map((item, index) => (
+                  <div key={`${item.product}-${index}`} className="flex justify-between py-2.5 text-sm">
+                    <div>
+                      <p className="font-medium text-slate-900 dark:text-white">{item.name}</p>
+                      <p className="text-xs text-slate-400">
+                        {item.quantity} × {formatSom(item.price)}
+                      </p>
+                    </div>
+                    <span className="font-semibold text-slate-900 dark:text-white">
+                      {formatSom(item.price * item.quantity)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-1.5 border-t border-slate-200 pt-4 text-sm dark:border-slate-800">
+                <Row label={t('cashier.orderAmount')} value={formatSom(receipt?.order?.totalAmount)} />
+                <Row label={t('cashier.paidAmount')} value={formatSom(receipt?.paidTotal)} />
+                <div className="flex justify-between border-t border-slate-200 pt-2 text-base font-bold text-slate-900 dark:border-slate-800 dark:text-white">
+                  <span>{t('cashier.remainingBalance')}</span>
+                  <span className="text-indigo-600 dark:text-indigo-400">{formatSom(remaining)}</span>
+                </div>
+              </div>
+
+              {/* Shu chek bo'yicha tushgan to'lovlar — split bill'da kimdan pul
+                  olinganini ko'rish uchun. Tarix modali barcha to'lovlarni
+                  ko'rsatadi, bu esa faqat shu buyurtmanikini. */}
+              {receipt?.payments?.length > 0 && (
+                <div className="border-t border-slate-200 pt-3 dark:border-slate-800">
+                  <h3 className="mb-2 text-xs font-semibold text-slate-500">
+                    {t('cashier.paymentsHistory')}
+                  </h3>
+                  <div className="space-y-1">
+                    {receipt.payments.map((payment) => (
+                      <div key={payment._id} className="flex justify-between text-xs text-slate-500">
+                        <span>
+                          {t(`paymentMethods.${payment.method}`, PAYMENT_METHOD_LABELS[payment.method] ?? payment.method)}
+                          {' · '}
+                          {payment.receivedBy?.name ?? '—'} · {formatTime(payment.createdAt)}
+                        </span>
+                        <span className="font-semibold">{formatSom(payment.amount)}</span>
+                      </div>
                     ))}
                   </div>
-                  {splitCount > 1 && remaining > 0 && (
-                    <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                      {t('cashier.perPerson')} <strong>{formatSom(splitAmount)}</strong>
-                    </p>
-                  )}
                 </div>
+              )}
 
-                <Input
-                  label={t('cashier.paymentAmountLabel')}
-                  type="number"
-                  min={1}
-                  max={remaining}
-                  placeholder={`${t('cashier.emptyDefault')} ${formatSom(remaining)}`}
-                  value={customAmount}
-                  onChange={(e) => setCustomAmount(e.target.value)}
-                />
-
-                {/* Qadam 4: To'lovni tasdiqlash */}
-                <Button
-                  className="w-full"
-                  disabled={remaining <= 0 || paymentMutation.isPending}
-                  isLoading={paymentMutation.isPending}
-                  onClick={handlePay}
-                >
-                  {remaining <= 0 ? t('cashier.fullyPaid') : t('cashier.acceptPayment')}
-                </Button>
-
-                {/* Qadam 5: Chek chop etish */}
-                <Button variant="secondary" className="w-full" onClick={() => setIsReceiptModalOpen(true)}>
-                  <Printer className="mr-2 h-4 w-4" /> {t('cashier.viewPrintReceipt')}
-                </Button>
-
-                {/* Buyurtmani bekor qilish */}
-                <div className="border-t border-slate-200 pt-3 dark:border-slate-800">
-                  {!showCancelConfirm ? (
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {Object.values(PAYMENT_METHODS).map((value) => {
+                  const Icon = METHOD_ICONS[value]
+                  return (
                     <button
+                      key={value}
                       type="button"
-                      onClick={() => setShowCancelConfirm(true)}
-                      className="w-full text-center text-xs font-semibold text-rose-600 hover:underline dark:text-rose-400"
+                      onClick={() => setMethod(value)}
+                      className={`flex flex-col items-center gap-1.5 rounded-xl border p-3 transition ${
+                        method === value
+                          ? 'border-indigo-600 bg-indigo-50 font-semibold text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300'
+                          : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'
+                      }`}
                     >
-                      {t('cashier.cancelOrder')}
+                      <Icon className="h-5 w-5" />
+                      <span className="text-xs">{t(`paymentMethods.${value}`, PAYMENT_METHOD_LABELS[value])}</span>
                     </button>
-                  ) : (
-                    <div className="space-y-2 rounded-xl bg-rose-50 p-3 dark:bg-rose-950/40">
-                      <p className="flex items-center gap-1.5 text-xs font-medium text-rose-700 dark:text-rose-300">
-                        <AlertOctagon className="h-4 w-4 shrink-0" />
-                        {t('cashier.confirmCancel')}
-                      </p>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="secondary"
-                          className="h-8 flex-1 text-xs"
-                          onClick={() => setShowCancelConfirm(false)}
+                  )
+                })}
+              </div>
+
+              {!showPartialPayment ? (
+                <button
+                  type="button"
+                  onClick={() => setShowPartialPayment(true)}
+                  className="text-xs font-semibold text-indigo-600 hover:underline dark:text-indigo-400"
+                >
+                  {t('cashier.partialPaymentLink')}
+                </button>
+              ) : (
+                <div className="space-y-3 rounded-xl bg-slate-50 p-3 dark:bg-slate-800/50">
+                  <div>
+                    <p className="mb-2 flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+                      <Users className="h-3.5 w-3.5 text-indigo-500" /> {t('cashier.splitBill')}
+                    </p>
+                    <div className="flex gap-1.5">
+                      {[1, 2, 3, 4].map((num) => (
+                        <button
+                          key={num}
+                          type="button"
+                          onClick={() => {
+                            setSplitCount(num)
+                            setCustomAmount(num > 1 && remaining > 0 ? String(Math.ceil(remaining / num)) : '')
+                          }}
+                          className={`flex-1 rounded-lg px-2 py-1.5 text-xs font-bold transition ${
+                            splitCount === num
+                              ? 'bg-indigo-600 text-white'
+                              : 'border border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'
+                          }`}
                         >
-                          {t('cashier.noKeep')}
-                        </Button>
-                        <Button
-                          className="h-8 flex-1 bg-rose-600 text-xs text-white hover:bg-rose-700"
-                          isLoading={cancelMutation.isPending}
-                          onClick={() => cancelMutation.mutate()}
-                        >
-                          {t('cashier.yesCancel')}
-                        </Button>
-                      </div>
+                          {num}
+                        </button>
+                      ))}
                     </div>
-                  )}
+                    {splitCount > 1 && remaining > 0 && (
+                      <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                        {t('cashier.perPerson')} <strong>{formatSom(splitAmount)}</strong>
+                      </p>
+                    )}
+                  </div>
+
+                  <Input
+                    label={t('cashier.paymentAmountLabel')}
+                    type="number"
+                    min={1}
+                    max={remaining}
+                    placeholder={`${t('cashier.emptyDefault')} ${formatSom(remaining)}`}
+                    value={customAmount}
+                    onChange={(e) => setCustomAmount(e.target.value)}
+                  />
                 </div>
-              </Card>
-            </div>
+              )}
+
+              <Button
+                className="w-full text-base"
+                disabled={remaining <= 0 || paymentMutation.isPending}
+                isLoading={paymentMutation.isPending}
+                onClick={handlePay}
+              >
+                {remaining <= 0 ? t('cashier.fullyPaid') : `${t('cashier.acceptPayment')} · ${formatSom(payAmount)}`}
+              </Button>
+
+              <Button variant="secondary" className="w-full" onClick={() => setIsReceiptModalOpen(true)}>
+                <Printer className="mr-2 h-4 w-4" /> {t('cashier.viewPrintReceipt')}
+              </Button>
+            </Card>
           )}
 
-          {/* Qadam 5: Chek @media print modali */}
           <ReceiptPrintModal
             isOpen={isReceiptModalOpen}
             onClose={() => setIsReceiptModalOpen(false)}
             receipt={receipt}
           />
+
+          <Modal
+            isOpen={isHistoryModalOpen}
+            onClose={() => setIsHistoryModalOpen(false)}
+            title={t('cashier.paymentsHistory')}
+          >
+            <PaymentsHistory />
+          </Modal>
         </div>
       )}
     </div>
