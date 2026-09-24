@@ -3,7 +3,7 @@ import React from 'react';
 export default function TableQrModal({ isOpen, onClose, table }) {
   if (!isOpen || !table) return null;
 
-  const qrUrl = `${window.location.origin}/menu?table=${table.number || table._id}`;
+  const qrUrl = `${window.location.origin}/guest?table=${table._id || table.id}`;
   const qrImageApi = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrUrl)}`;
 
   const handlePrint = () => {

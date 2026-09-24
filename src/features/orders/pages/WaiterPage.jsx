@@ -10,6 +10,7 @@ import { useSearchParams } from 'react-router-dom'
 import { createOrder, getOrders, transferOrderTable, updateOrderStatus } from '../api'
 import { getTables } from '../../tables/api'
 import { getCategories, getProducts } from '../../menu/api'
+import WaiterRequestsBanner from '../components/WaiterRequestsBanner'
 import { unwrapList, apiErrorMessage, formatSom, formatTime } from '../../../lib/api'
 import {
   ORDER_STATUS,
@@ -169,6 +170,9 @@ export default function WaiterPage() {
   return (
     <div>
       <PageHeader title={t('waiter.title')} subtitle={t('waiter.subtitle')} />
+
+      {/* Mehmon chaqiruv/hisob so'rovlari — real vaqtda banner */}
+      <WaiterRequestsBanner />
 
       <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
         <div className="space-y-5">
