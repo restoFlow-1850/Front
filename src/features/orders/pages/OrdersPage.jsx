@@ -15,6 +15,7 @@ import {
   ORDER_STATUS_LIST,
   ORDER_STATUS_TONE,
   NEXT_ORDER_STATUS,
+  canSetOrderStatus,
   ROLES,
 } from '../../../constants/roles'
 import { Badge, Button, Card, EmptyState, Input, Modal, PageHeader, Select, Skeleton } from '../../../components/ui'
@@ -35,8 +36,10 @@ export default function OrdersPage() {
   const [deleteTarget, setDeleteTarget] = useState(null)
 
   const canTransfer = [ROLES.ADMIN, ROLES.MANAGER, ROLES.WAITER].includes(role)
-  const canCancel = [ROLES.ADMIN, ROLES.MANAGER, ROLES.WAITER, ROLES.CASHIER].includes(role)
-  const canDelete = [ROLES.ADMIN, ROLES.MANAGER, ROLES.WAITER].includes(role)
+  // Backend bilan bir xil: PATCH /orders/:id/cancel → admin, manager, waiter
+  const canCancel = canSetOrderStatus(role, ORDER_STATUS.CANCELLED)
+  // Backend: DELETE /orders/:id → faqat admin, manager
+  const canDelete = [ROLES.ADMIN, ROLES.MANAGER].includes(role)
 
   const params = useMemo(() => {
     const p = { page, limit: PAGE_SIZE }
@@ -206,6 +209,7 @@ export default function OrdersPage() {
               canTransfer={canTransfer}
               canCancel={canCancel}
               canDelete={canDelete}
+              role={role}
               onAdvance={(nextStatus) =>
                 statusMutation.mutate({ id: order._id, nextStatus })
               }
@@ -316,9 +320,10 @@ export default function OrdersPage() {
   )
 }
 
-function OrderRow({ order, onAdvance, onTransfer, onCancel, onDelete, canTransfer, canCancel, canDelete, isBusy }) {
+function OrderRow({ order, role, onAdvance, onTransfer, onCancel, onDelete, canTransfer, canCancel, canDelete, isBusy }) {
   const { t } = useTranslation()
-  const next = NEXT_ORDER_STATUS[order.status]
+  const nextStatus = NEXT_ORDER_STATUS[order.status]
+  const next = canSetOrderStatus(role, nextStatus) ? nextStatus : null
   const paidTotal = order.paidTotal ?? 0
   const isPaid = order.isPaid ?? paidTotal >= order.totalAmount
   const isActive = order.status !== ORDER_STATUS.CLOSED && order.status !== ORDER_STATUS.CANCELLED

@@ -39,6 +39,7 @@ const NotificationsPage = lazy(() => import('../features/notifications/pages/Not
 const FeedbackPage = lazy(() => import('../features/feedback/pages/FeedbackPage'))
 const SettingsPage = lazy(() => import('../features/settings/pages/SettingsPage'))
 const ProfilePage = lazy(() => import('../features/auth/pages/Profile'))
+const BranchesMapPage = lazy(() => import('../features/branches/pages/BranchesMapPage'))
 
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage'))
 const ForbiddenPage = lazy(() => import('../pages/ForbiddenPage'))
@@ -60,6 +61,7 @@ const PAGE_BY_KEY = {
   feedback: <FeedbackPage />,
   settings: <SettingsPage />,
   profile: <ProfilePage />,
+  map: <BranchesMapPage />,
 }
 
 // Har bandni o'z rollari bilan RoleRoute ichiga o'raydi.
