@@ -108,7 +108,7 @@ export default function ProductModal({ isOpen, onClose, onSubmit, product, categ
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
           >
             <X size={18} />
           </button>
@@ -134,7 +134,7 @@ export default function ProductModal({ isOpen, onClose, onSubmit, product, categ
                 Kategoriya *
               </label>
               <select
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 px-3.5 text-sm font-medium text-slate-900 outline-none transition focus:border-[#F97316] focus:bg-white focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                className="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 px-3.5 text-sm font-medium text-slate-900 outline-none transition focus:border-[#F97316] focus:bg-white focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                 {...register('category')}
               >
                 <option value="">Kategoriyani tanlang...</option>
@@ -236,7 +236,7 @@ export default function ProductModal({ isOpen, onClose, onSubmit, product, categ
                     key={key}
                     type="button"
                     onClick={() => toggleTag(key)}
-                    className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all ${
+                    className={`inline-flex min-h-11 items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition-all ${
                       active
                         ? 'bg-[#F97316] text-white border-orange-500 shadow-sm'
                         : `border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300`
@@ -252,7 +252,7 @@ export default function ProductModal({ isOpen, onClose, onSubmit, product, categ
 
           {/* Availability */}
           <div className="flex flex-wrap gap-6 pt-2 border-t border-slate-100 dark:border-slate-800">
-            <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300">
+            <label className="flex min-h-11 cursor-pointer items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
               <input
                 type="checkbox"
                 className="h-4 w-4 rounded text-[#F97316] accent-[#F97316]"
@@ -261,7 +261,7 @@ export default function ProductModal({ isOpen, onClose, onSubmit, product, categ
               <span>Menyuda mavjud (Faol)</span>
             </label>
 
-            <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300">
+            <label className="flex min-h-11 cursor-pointer items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
               <input
                 type="checkbox"
                 className="h-4 w-4 rounded text-[#F97316] accent-[#F97316]"
