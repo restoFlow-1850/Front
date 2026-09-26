@@ -13,7 +13,10 @@ import { somPattern } from './helpers/money.js'
 // Har rol alohida brauzer kontekstida (alohida token/sessiya), qadamlar
 // ketma-ket va bitta holatga tayanadi — shuning uchun serial.
 
-test.describe.configure({ mode: 'serial' })
+// retries: 0 — qayta urinish butun guruhni boshidan yuritadi va admin taomni
+// ikkinchi marta qo'shib yuboradi (ikki xil «E2E Lag'mon» → strict mode xatosi).
+// timeout: kassir qadami 4 ta sahifa amalini bajaradi — 30s kamlik qiladi.
+test.describe.configure({ mode: 'serial', retries: 0, timeout: 90_000 })
 
 const dishPrice = somPattern(NEW_DISH.price)
 const tableButton = new RegExp(`^\\s*${TABLE.number}(?!\\d)`)
@@ -59,7 +62,7 @@ test.describe('full flow: menu → order → kitchen → shift → payment → Z
       const table = page.getByRole('button', { name: tableButton }).first()
       await expect(table).toBeVisible()
       await table.click()
-      const dish = page.getByRole('button', { name: new RegExp(NEW_DISH.name) })
+      const dish = page.getByRole('button', { name: new RegExp(NEW_DISH.name) }).first()
       await expect(dish).toBeEnabled()
       await dish.click()
       const submit = page.getByRole('button', { name: 'Buyurtmani yuborish' })
@@ -86,10 +89,10 @@ test.describe('full flow: menu → order → kitchen → shift → payment → Z
   test('cashier opens a shift, takes payment, Z-report total equals the payment', async () => {
     await asRole(ACCOUNTS.cashier, async (page) => {
       // Smena: 1-bosish formani ochadi, 2-bosish smenani ochadi (boshlang'ich balans 0)
-      await page.getByRole('button', { name: 'Smenani ochish' }).click()
+      await page.getByRole('button', { name: 'Smenani ochish' }).first().click()
       await expect(page.getByText("Boshlang'ich balans (so'm)")).toBeVisible()
-      await page.getByRole('button', { name: 'Smenani ochish' }).click()
-      await expect(page.getByText('Smena ochiq')).toBeVisible()
+      await page.getByRole('button', { name: 'Smenani ochish' }).last().click()
+      await expect(page.getByText('Smena ochiq').first()).toBeVisible()
 
       // To'lanmagan buyurtmani tanlash → to'liq summa naqd
       const order = page.getByRole('button', { name: dishPrice }).first()
