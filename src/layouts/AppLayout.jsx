@@ -72,7 +72,7 @@ export default function AppLayout() {
         <button
           type="button"
           onClick={() => setMobileOpen(false)}
-          className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white lg:hidden transition"
+          className="flex size-11 shrink-0 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white lg:hidden transition"
           aria-label={t('close')}
         >
           <X className="h-5 w-5" />
@@ -136,10 +136,15 @@ export default function AppLayout() {
           </span>
         </NavLink>
 
+        {/* Telefonda til almashtirish shu yerda (topbar'da joy yo'q). */}
+        <div className="lg:hidden">
+          <LanguageSwitcher className="mb-2 w-full justify-center border border-slate-800 bg-slate-900 shadow-none" />
+        </div>
+
         <button
           type="button"
           onClick={handleLogout}
-          className="flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-bold text-slate-400 transition-all hover:bg-rose-500/10 hover:text-rose-400"
+          className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-bold text-slate-400 transition-all hover:bg-rose-500/10 hover:text-rose-400"
         >
           <LogOut size={15} />
           <span>{t('logout')}</span>
@@ -169,28 +174,30 @@ export default function AppLayout() {
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Top Navbar */}
         <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200/80 bg-white/85 px-4 py-3 backdrop-blur-xl dark:border-slate-800/80 dark:bg-[#0B0F17]/85 lg:px-7 transition-colors">
-          <div className="flex items-center gap-3">
+          {/* Mobil til almashtirish — topbar'da joy kam, shuning uchun u faqat sm+ da turadi,
+              telefonda esa yon menyuning pastki qismiga ko'chiriladi (pastga qarang). */}
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
-              className="rounded-xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 lg:hidden"
+              className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 lg:hidden"
               aria-label="Menyuni ochish"
             >
               <Menu className="h-5 w-5" />
             </button>
 
             {/* Breadcrumb Title */}
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 dark:text-slate-500">
-              <span className="hidden sm:inline">RestoFlow</span>
-              <ChevronRight size={14} className="hidden sm:inline text-slate-300 dark:text-slate-600" />
-              <span className="text-sm font-extrabold text-slate-900 dark:text-white">
+            <div className="flex min-w-0 items-center gap-2 text-xs font-semibold text-slate-400 dark:text-slate-500">
+              <span className="hidden truncate sm:inline">RestoFlow</span>
+              <ChevronRight size={14} className="hidden shrink-0 sm:inline text-slate-300 dark:text-slate-600" />
+              <span className="truncate text-sm font-extrabold text-slate-900 dark:text-white">
                 {currentItem ? t(`nav.${currentItem.key}`, currentItem.label) : t('nav.dashboard')}
               </span>
             </div>
           </div>
 
           {/* Topbar Right Controls */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             {/* Live Socket Status Pill */}
             <div
               className={`hidden sm:flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold ${
@@ -207,14 +214,16 @@ export default function AppLayout() {
               <span>{isSocketConnected ? t('live') : t('disconnected')}</span>
             </div>
 
-            {/* Language Switcher */}
-            <LanguageSwitcher className="border border-slate-200 bg-slate-50/80 shadow-2xs dark:border-slate-800 dark:bg-slate-900" />
+            {/* Language Switcher — telefonda topbar sig'maydi, shuning uchun sm+ */}
+            <div className="hidden sm:block">
+              <LanguageSwitcher className="border border-slate-200 bg-slate-50/80 shadow-2xs dark:border-slate-800 dark:bg-slate-900" />
+            </div>
 
             {/* Theme Toggle */}
             <button
               type="button"
               onClick={toggleTheme}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs transition-all hover:bg-orange-50 hover:text-[#F97316] dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              className="flex min-h-11 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs transition-all hover:bg-orange-50 hover:text-[#F97316] dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
               title={theme === 'dark' ? t('lightThemeTip') : t('darkThemeTip')}
               aria-label="Mavzuni almashtirish"
             >
@@ -234,7 +243,7 @@ export default function AppLayout() {
             {/* Notifications Bell */}
             <NavLink
               to="/notifications"
-              className="relative flex size-9 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition-colors hover:border-orange-500/30 hover:bg-orange-500/10 hover:text-[#F97316] dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="relative flex size-11 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition-colors hover:border-orange-500/30 hover:bg-orange-500/10 hover:text-[#F97316] dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
               aria-label="Bildirishnomalar"
             >
               <Bell className="h-4 w-4" />
@@ -248,7 +257,7 @@ export default function AppLayout() {
             {/* User Avatar */}
             <NavLink
               to="/profile"
-              className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#F97316] to-[#EA580C] text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:scale-105 transition"
+              className="flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-[#F97316] to-[#EA580C] text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:scale-105 transition"
               aria-label="Profil"
             >
               {(user?.name ?? user?.email ?? '?').charAt(0).toUpperCase()}
