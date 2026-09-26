@@ -337,7 +337,11 @@ export default function WaiterPage() {
                         </Button>
                       )}
                       {order.status !== ORDER_STATUS.CLOSED && (
-                        <Button variant="ghost" onClick={() => openTransferModal(order)}>
+                        <Button
+                          variant="ghost"
+                          aria-label={t('waiter.transfer', { defaultValue: "Ko'chirish" })}
+                          onClick={() => openTransferModal(order)}
+                        >
                           <ArrowRightLeft className="h-3.5 w-3.5" />
                         </Button>
                       )}
@@ -378,16 +382,16 @@ export default function WaiterPage() {
                     <button
                       type="button"
                       onClick={() => changeQuantity(item.product, -1)}
-                      className="grid h-7 w-7 place-items-center rounded border border-slate-300 text-slate-600 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300"
+                      className="grid size-11 shrink-0 place-items-center rounded border border-slate-300 text-slate-600 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300"
                       aria-label="Kamaytirish"
                     >
                       <Minus className="h-3 w-3" />
                     </button>
-                    <span className="w-6 text-center text-sm font-semibold">{item.quantity}</span>
+                    <span className="min-w-6 flex-1 text-center text-sm font-semibold">{item.quantity}</span>
                     <button
                       type="button"
                       onClick={() => changeQuantity(item.product, 1)}
-                      className="grid h-7 w-7 place-items-center rounded border border-slate-300 text-slate-600 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300"
+                      className="grid size-11 shrink-0 place-items-center rounded border border-slate-300 text-slate-600 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300"
                       aria-label="Ko'paytirish"
                     >
                       <Plus className="h-3 w-3" />
@@ -480,7 +484,7 @@ function CategoryChip({ active, children, ...props }) {
   return (
     <button
       type="button"
-      className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
+      className={`min-h-11 rounded-full px-3 py-1.5 text-xs font-medium transition ${
         active
           ? 'bg-indigo-600 text-white'
           : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300'
