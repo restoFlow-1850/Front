@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config'
+import { defineConfig, configDefaults } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
@@ -6,5 +6,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    // e2e/ — Playwright testlari (npm run test:e2e), vitest ularni ishga tushirmasin
+    exclude: [...configDefaults.exclude, 'e2e/**'],
   },
 })
