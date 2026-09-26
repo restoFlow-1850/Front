@@ -19,3 +19,6 @@ export const MENU = {
 }
 
 export const TABLE = { number: 1, capacity: 4, location: 'E2E zal' }
+
+// full-flow.spec.js da admin UI orqali qo'shadigan taom (seed'da YO'Q)
+export const NEW_DISH = { name: "E2E Lag'mon", price: 38000 }
