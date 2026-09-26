@@ -32,3 +32,9 @@ dist-ssr
 
 # Local Netlify folder
 .netlify
+
+# Playwright (E2E)
+/playwright-report/
+/test-results/
+/blob-report/
+/playwright/.cache/

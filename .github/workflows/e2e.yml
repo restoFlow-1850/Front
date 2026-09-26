@@ -1,0 +1,109 @@
+name: E2E
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MONGO_URI: mongodb://127.0.0.1:27017/restoflow_e2e?replicaSet=rs0&directConnection=true
+      API_PORT: 5000
+      FRONT_PORT: 4173
+
+    steps:
+      - name: Checkout Front
+        uses: actions/checkout@v4
+
+      # Backend repo private — o'qish uchun token kerak (Settings → Secrets → BACKEND_REPO_TOKEN)
+      - name: Checkout Backend
+        uses: actions/checkout@v4
+        with:
+          repository: restoFlow-1850/Backend
+          ref: ${{ vars.E2E_BACKEND_REF || 'main' }}
+          token: ${{ secrets.BACKEND_REPO_TOKEN }}
+          path: backend
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+
+      # To'lovlar MongoDB tranzaksiyasini ishlatadi → replica set shart
+      - name: Start MongoDB (replica set)
+        run: |
+          docker run -d --name mongo -p 27017:27017 mongo:7 --replSet rs0 --bind_ip_all
+          for i in $(seq 1 30); do
+            docker exec mongo mongosh --quiet --eval "db.adminCommand('ping').ok" && break
+            sleep 1
+          done
+          docker exec mongo mongosh --quiet --eval "rs.initiate({_id:'rs0',members:[{_id:0,host:'127.0.0.1:27017'}]})"
+          for i in $(seq 1 30); do
+            docker exec mongo mongosh --quiet --eval "rs.status().myState" | grep -q 1 && break
+            sleep 1
+          done
+
+      - name: Install Backend
+        working-directory: backend
+        run: npm ci
+
+      - name: Install Front
+        run: npm ci
+
+      - name: Seed test database
+        env:
+          BACKEND_DIR: backend
+        run: npm run e2e:seed
+
+      - name: Start Backend
+        working-directory: backend
+        env:
+          PORT: ${{ env.API_PORT }}
+          NODE_ENV: test
+          JWT_ACCESS_SECRET: e2e-access-secret
+          JWT_REFRESH_SECRET: e2e-refresh-secret
+          JWT_ROOT_SECRET: e2e-root-secret
+          JWT_ACCESS_EXPIRES_IN: 1h
+          JWT_REFRESH_EXPIRES_IN: 7d
+          CORS_ORIGIN: http://localhost:${{ env.FRONT_PORT }}
+        run: |
+          nohup node src/server.js > ../backend.log 2>&1 &
+          npx --yes wait-on -t 60000 http-get://127.0.0.1:${{ env.API_PORT }}/api/health
+
+      - name: Build Front (local API)
+        env:
+          VITE_API_URL: http://localhost:${{ env.API_PORT }}/api
+          VITE_SOCKET_URL: http://localhost:${{ env.API_PORT }}
+        run: npm run build
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E
+        env:
+          E2E_FRONT_PORT: ${{ env.FRONT_PORT }}
+        run: npm run test:e2e
+
+      # Xato bo'lsa: skrinshot, video, trace va backend logi artefakt sifatida
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+            backend.log
+          retention-days: 7
