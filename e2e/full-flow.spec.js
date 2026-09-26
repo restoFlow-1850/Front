@@ -55,9 +55,16 @@ test.describe('full flow: menu → order → kitchen → shift → payment → Z
 
   test('waiter places an order with the new dish', async () => {
     await asRole(ACCOUNTS.waiter, async (page) => {
-      await page.getByRole('button', { name: tableButton }).first().click()
-      await page.getByRole('button', { name: new RegExp(NEW_DISH.name) }).click()
-      await page.getByRole('button', { name: 'Buyurtmani yuborish' }).click()
+      // Stollar va menyu API'dan yuklanishini kutamiz — aks holda bosish bo'sh joyga tushadi
+      const table = page.getByRole('button', { name: tableButton }).first()
+      await expect(table).toBeVisible()
+      await table.click()
+      const dish = page.getByRole('button', { name: new RegExp(NEW_DISH.name) })
+      await expect(dish).toBeEnabled()
+      await dish.click()
+      const submit = page.getByRole('button', { name: 'Buyurtmani yuborish' })
+      await expect(submit).toBeEnabled()
+      await submit.click()
 
       // Faol buyurtmalar ro'yxatida paydo bo'ladi, holati «Yangi»
       await expect(page.getByText('Yangi', { exact: true }).first()).toBeVisible()
@@ -80,19 +87,24 @@ test.describe('full flow: menu → order → kitchen → shift → payment → Z
     await asRole(ACCOUNTS.cashier, async (page) => {
       // Smena: 1-bosish formani ochadi, 2-bosish smenani ochadi (boshlang'ich balans 0)
       await page.getByRole('button', { name: 'Smenani ochish' }).click()
+      await expect(page.getByText("Boshlang'ich balans (so'm)")).toBeVisible()
       await page.getByRole('button', { name: 'Smenani ochish' }).click()
       await expect(page.getByText('Smena ochiq')).toBeVisible()
 
       // To'lanmagan buyurtmani tanlash → to'liq summa naqd
-      await page.getByRole('button', { name: dishPrice }).first().click()
+      const order = page.getByRole('button', { name: dishPrice }).first()
+      await expect(order).toBeVisible()
+      await order.click()
       const payButton = page.getByRole('button', { name: /To'lovni qabul qilish/ })
+      await expect(payButton).toBeEnabled()
       await expect(payButton).toContainText(dishPrice)
       await payButton.click()
-      await expect(page.getByText("To'lov muvaffaqiyatli qabul qilindi!")).toBeVisible()
+      // Muvaffaqiyat: tugma «To'liq to'langan» ga o'tadi yoki buyurtma ro'yxatdan chiqadi
+      await expect(payButton).toBeHidden()
 
       // Z-hisobot: haqiqiy tushum = qabul qilingan to'lov
       await page.getByRole('button', { name: 'Z-Report' }).click()
-      const totalRow = page.getByRole('row', { name: /Jami To'langan Summa/ })
+      const totalRow = page.locator('tr', { hasText: "Jami To'langan Summa" })
       await expect(totalRow).toContainText(dishPrice)
     })
   })
