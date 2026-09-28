@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { FiAlertTriangle, FiCalendar, FiClock, FiMinus, FiPlus, FiRefreshCw, FiUsers } from 'react-icons/fi'
 import TableSeat from './TableSeat'
 import { buildTimeSlots, toDateInputValue } from '../lib/time'
@@ -17,15 +18,16 @@ export default function HallStep({
   onSelectTable,
   onNext,
 }) {
+  const { t } = useTranslation()
   const timeSlots = buildTimeSlots(date)
-  const zones = groupByLocation(tables)
+  const zones = groupByLocation(tables, t)
 
   return (
     <div className="flex flex-col gap-6">
       <div className="grid gap-4 rounded-2xl border border-[#4a1616] bg-[#1c0a0b] p-4 shadow-sm sm:grid-cols-3 sm:p-5">
         <label className="flex flex-col gap-1.5">
           <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[#cbbcbc]">
-            <FiCalendar /> Sana
+            <FiCalendar /> {t('guestOrder.dateLabel')}
           </span>
           <input
             type="date"
@@ -38,14 +40,14 @@ export default function HallStep({
 
         <div className="flex flex-col gap-1.5">
           <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[#cbbcbc]">
-            <FiClock /> Vaqt
+            <FiClock /> {t('guestOrder.timeLabel')}
           </span>
           <select
             value={time}
             onChange={(e) => onTimeChange(e.target.value)}
             className="rounded-lg border border-[#4a1616] bg-[#150708] px-3 py-2 text-sm text-[#E6DCDC] outline-none focus:border-[#C89B5E] focus:ring-1 focus:ring-[#C89B5E] [color-scheme:dark]"
           >
-            {timeSlots.length === 0 && <option value="">Bugun uchun vaqt qolmadi</option>}
+            {timeSlots.length === 0 && <option value="">{t('guestOrder.noTimeSlots')}</option>}
             {timeSlots.map((t) => (
               <option key={t} value={t}>
                 {t}
@@ -56,7 +58,7 @@ export default function HallStep({
 
         <div className="flex flex-col gap-1.5">
           <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[#cbbcbc]">
-            <FiUsers /> Mehmonlar soni
+            <FiUsers /> {t('guestOrder.guestsLabel')}
           </span>
           <div className="flex items-center gap-3 rounded-lg border border-[#4a1616] px-2 py-1.5">
             <button
@@ -82,13 +84,13 @@ export default function HallStep({
 
       <div className="flex items-center justify-center gap-5 text-xs font-medium text-[#cbbcbc]">
         <span className="flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded-full bg-[#5a3436]" /> Bo'sh
+          <span className="h-3 w-3 rounded-full bg-[#5a3436]" /> {t('guestOrder.freeTable')}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded-full bg-[#dc2626]" /> Band
+          <span className="h-3 w-3 rounded-full bg-[#dc2626]" /> {t('guestOrder.busyTable')}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded-full bg-[#C89B5E]" /> Tanlangan
+          <span className="h-3 w-3 rounded-full bg-[#C89B5E]" /> {t('guestOrder.selectedTable')}
         </span>
       </div>
 
@@ -107,7 +109,7 @@ export default function HallStep({
               <FiAlertTriangle className="h-7 w-7 text-red-400" />
             </div>
             <p className="max-w-xs text-sm text-[#9a8080]">
-              {error || "Zal planini yuklab bo'lmadi. Internet aloqasini tekshiring."}
+              {error || t('guestOrder.hallError')}
             </p>
             {onRetry && (
               <button
@@ -116,7 +118,7 @@ export default function HallStep({
                 className="mt-1 flex items-center gap-2 rounded-lg bg-[#C89B5E] px-5 py-2.5 text-sm font-semibold text-[#2a0e10] transition hover:bg-[#D9A968]"
               >
                 <FiRefreshCw className="h-4 w-4" />
-                Qayta urinish
+                {t('guestOrder.retry')}
               </button>
             )}
           </div>
@@ -126,10 +128,8 @@ export default function HallStep({
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#2a1315] text-2xl">
               🪑
             </div>
-            <p className="text-base font-bold text-[#E6DCDC]">Stollar topilmadi</p>
-            <p className="max-w-xs text-sm text-[#9a8080]">
-              Bu vaqt uchun hozircha stollar mavjud emas. Boshqa sana yoki vaqtni tanlab ko'ring.
-            </p>
+            <p className="text-base font-bold text-[#E6DCDC]">{t('guestOrder.noTables')}</p>
+            <p className="max-w-xs text-sm text-[#9a8080]">{t('guestOrder.noTablesDesc')}</p>
           </div>
         ) : (
           <div className="flex flex-col gap-6">
@@ -155,8 +155,11 @@ export default function HallStep({
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-[#9a8080]">
           {selectedTable
-            ? `Tanlandi: Stol ${selectedTable.number} (${selectedTable.capacity} kishilik)`
-            : 'Davom etish uchun bo\'sh stolni tanlang'}
+            ? t('guestOrder.selectedTableDesc', {
+                table: selectedTable.number,
+                capacity: selectedTable.capacity,
+              })
+            : t('guestOrder.selectTableHint')}
         </p>
         <button
           type="button"
@@ -164,7 +167,7 @@ export default function HallStep({
           onClick={onNext}
           className="rounded-lg bg-[#C89B5E] px-6 py-2.5 text-sm font-semibold text-[#2a0e10] shadow-sm transition hover:bg-[#D9A968] disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Davom etish
+          {t('guestOrder.continue')}
         </button>
       </div>
     </div>
@@ -181,11 +184,12 @@ function TableSeatSkeleton() {
   )
 }
 
-function groupByLocation(tables) {
+function groupByLocation(tables, t) {
   const map = new Map()
   for (const table of tables) {
-    const zone = table.location?.trim() || 'Asosiy zal'
-    map.set(zone, map.has(zone) ? [...map.get(zone), table] : [table])
+    const zone = table.location?.trim() || t('guestOrder.mainHall')
+    if (!map.has(zone)) map.set(zone, [])
+    map.get(zone).push(table)
   }
   return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]))
 }
