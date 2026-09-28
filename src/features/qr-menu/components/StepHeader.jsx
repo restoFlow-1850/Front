@@ -1,12 +1,13 @@
+import { useTranslation } from 'react-i18next'
 import { FiCheck } from 'react-icons/fi'
 
-const STEPS = [
-  { key: 'hall', label: 'Zal' },
-  { key: 'menu', label: 'Menyu' },
-  { key: 'confirm', label: 'Tasdiqlash' },
-]
-
 export default function StepHeader({ current }) {
+  const { t } = useTranslation()
+  const STEPS = [
+    { key: 'hall', label: t('guestOrder.stepHall') },
+    { key: 'menu', label: t('guestOrder.stepMenu') },
+    { key: 'confirm', label: t('guestOrder.stepConfirm') },
+  ]
   const currentIndex = STEPS.findIndex((s) => s.key === current)
 
   return (

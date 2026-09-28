@@ -1,10 +1,12 @@
 // Mehmon (QR-menyu) oqimi uchun umumiy sarlavha — RestoFlow brendi,
 // restoran nomi va stol raqamini ko'rsatadi. Landing'dagi tashrif sahifasidagi
 // uslub bilan bir xil (qora fon, orange aksent).
+import { useTranslation } from 'react-i18next'
 import { UtensilsCrossed, MapPin } from 'lucide-react'
 import LanguageSwitcher from '../../../components/common/LanguageSwitcher'
 
 export function GuestHeader({ restaurant, tableNumber, children }) {
+  const { t } = useTranslation()
   const restName = restaurant?.name || null
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0B0F17] via-[#0F172A] to-[#1E293B] text-slate-100">
@@ -21,11 +23,11 @@ export function GuestHeader({ restaurant, tableNumber, children }) {
               {restName ? (
                 <p className="flex max-w-[180px] items-center gap-1 truncate text-[11px] font-bold text-[#F97316]">
                   <MapPin size={11} /> {restName}
-                  {tableNumber && <span className="text-slate-400">· stol {tableNumber}</span>}
+                  {tableNumber && <span className="text-slate-400">· {t('guestOrder.table', { table: tableNumber })}</span>}
                 </p>
               ) : (
                 <p className="text-[11px] font-bold text-slate-400">
-                  {tableNumber ? `Stol ${tableNumber}` : 'Onlayn menyu'}
+                  {tableNumber ? t('guestOrder.tableLabel', { table: tableNumber }) : t('guestOrder.onlineMenu')}
                 </p>
               )}
             </div>
