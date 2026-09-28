@@ -33,6 +33,7 @@ import {
   deleteProduct,
   resolveImageUrl,
 } from '../api'
+import { getIngredients } from '../../inventory/api'
 import CategoryModal, { ICONS } from '../components/CategoryModal'
 import ProductModal from '../components/ProductModal'
 import ProductPreviewModal from '../components/ProductPreviewModal'
@@ -80,6 +81,13 @@ export default function MenuPage() {
   const productsQuery = useQuery({
     queryKey: ['products'],
     queryFn: async () => unwrapList(await getProducts(), 'products'),
+  })
+
+  // Fetch Ingredients — teхnologik karta (recipe) uchun. Faqat admin/manager faollaydi.
+  const ingredientsQuery = useQuery({
+    queryKey: ['ingredients'],
+    queryFn: async () => unwrapList(await getIngredients({ limit: 500 }), 'ingredients'),
+    enabled: canManage,
   })
 
   const categories = categoriesQuery.data ?? []
@@ -608,6 +616,7 @@ export default function MenuPage() {
         }}
         product={editingProduct}
         categories={categories}
+        ingredients={ingredientsQuery.data ?? []}
       />
 
       {/* Product Preview Modal */}
