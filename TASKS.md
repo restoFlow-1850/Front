@@ -24,7 +24,7 @@ kuchda qoladi, ustiga har kimga katta modul qo'shildi.
 | Ochiq PR'lar | 🔴 **9 ta, birortasida review yo'q** |
 | Deploy eskirganini kim sezadi? | ⚠️ hech kim — `/api/health` qaysi commit ishlayotganini aytmaydi |
 | Billing (Zulfiqor) | 🔴 0 commit |
-| Izzat · Behruz H. | 🔴 26-sent 20:00 ultimatumi — 0 PR, 0 Issue → **o'rin bo'shadi**, modullari boshqaga o'tdi |
+| Izzat · Behruz H. | 🔴 26-sent ultimatumi — 0 PR, 0 Issue → modullari boshqaga o'tdi. Izzatga oxirgi imkoniyat — i18n (7️⃣) |
 
 **Kod branch'da = kod yo'q. Kod `main` da, lekin deploy qilinmagan = kod yo'q.**
 Mijoz faqat **prod'dagi** narsani ko'radi.
@@ -202,9 +202,28 @@ Ish bor (44px, PWA — 26-sent), lekin **PR yo'q.** `fayoz-pwa` diff'i +7246 qat
 
 ---
 
-## ⛔ IZZAT · BEHRUZ H.
+## 7️⃣ IZZAT — I18N: BUTUN PANEL 3 TILDA (oxirgi imkoniyat)
 
-26-sent 20:00 ultimatumi bajarilmadi (0 PR, 0 Issue). Modullar: Telegram → **Zulfiqor**, Sifat nazorati → **Abdurahmon**.
+26-sent ultimatumi bajarilmadi, Telegram moduli Zulfiqorga o'tdi. Senga **yangi, mustaqil modul** — lekin shart qat'iy:
+⚠️ **30-sent 20:00 gacha PR 1 bo'lmasa — o'rin bo'shaydi, qayta taklif bo'lmaydi.**
+
+Lokal fayllar to'liq (uz/ru/en — 499 kalit), lekin JSX'da **~146 ta hardcode matn** `t()` dan o'tmagan.
+Eng ko'pi: `ZReportModal.jsx` (38) · `ReceiptPrintModal.jsx` (14) · `ReceiptModal.jsx` (14) · `RootPanel.jsx` (13) · `PaymentsHistory.jsx` (9) · `SettingsPage.jsx` (7) · `ExcelImportModal.jsx` (7) · `Register.jsx` (5).
+(`/guest` — Ziyodillaniki, tegma.)
+
+**PR 1 — BUGUN–ERTAGA:** `ZReportModal.jsx` → hamma matn `t('zreport.*')`, uz/ru/en tarjima. Skrinshot 3 tilda
+**PR 2:** chek modallari (`ReceiptModal`, `ReceiptPrintModal`) + `PaymentsHistory` — summa formati tilga qarab (`Intl.NumberFormat`)
+**PR 3:** `RootPanel`, `SettingsPage`, `ExcelImportModal`, `Register`
+**PR 4 — himoya:** `scripts/check-i18n.js` — (a) 3 til fayllarida kalitlar bir xil, (b) JSX'da hardcode matn yo'q → CI'da ishlaydi, yangi hardcode kelsa CI yiqiladi
+**PR 5 (2-hafta):** tanlangan til `localStorage` + foydalanuvchi profilida saqlanadi; sana/vaqt formati tilga qarab
+
+✅ **Qabul:** 1-okt — PR 1-2 ochiq, 1 tasi `main` da. 8-okt — `check-i18n` CI'da yashil, hardcode matn 0 ta.
+
+---
+
+## ⛔ BEHRUZ H.
+
+26-sent 20:00 ultimatumi bajarilmadi (0 Issue). Sifat nazorati → **Abdurahmon**.
 Qaytmoqchi bo'lsang — Behruzga yoz, **avval bitta merge bo'lgan PR** bilan.
 
 ---
@@ -214,7 +233,7 @@ Qaytmoqchi bo'lsang — Behruzga yoz, **avval bitta merge bo'lgan PR** bilan.
 | Sana | Nima |
 |---|---|
 | **29-sent (bugun)** | Back #22 merge · prod backend qayta deploy · har PR'ga reviewer |
-| **30-sent 20:00** | Zulfiqor PR 1 · Abdugani, Ziyodilla, Fayoz — branch'lar PR'ga · Madina — CI yashil |
+| **30-sent 20:00** | Zulfiqor PR 1 · Izzat PR 1 · Abdugani, Ziyodilla, Fayoz — branch'lar PR'ga · Madina — CI yashil |
 | **Har kuni 20:00** | «✅ Hisobotlar» · 21:00 — Javodbek hisobot bermaganlar ro'yxati |
 | **1-okt** | 1-hafta qabuli — yuqoridagi ✅ mezonlar |
 | **Seshanba/juma** | Release kuni (Javodbek) |
