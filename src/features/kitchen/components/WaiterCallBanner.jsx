@@ -75,7 +75,7 @@ function WaiterCallCard({ call, onDismiss }) {
       <button
         type="button"
         onClick={() => onDismiss(call.id)}
-        className="shrink-0 rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-200/60 hover:text-slate-600 dark:hover:bg-slate-700/60 dark:hover:text-slate-300"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-200/60 hover:text-slate-600 dark:hover:bg-slate-700/60 dark:hover:text-slate-300"
         aria-label={t('kitchen.waiterCall.dismiss')}
       >
         <X className="h-5 w-5" />
@@ -100,7 +100,7 @@ export default function WaiterCallBanner({ calls = [], onDismiss, onDismissAll }
           <button
             type="button"
             onClick={onDismissAll}
-            className="text-sm font-medium text-slate-500 underline decoration-dashed underline-offset-2 transition-colors hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+            className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-slate-500 underline decoration-dashed underline-offset-2 transition-colors hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
           >
             {t('kitchen.waiterCall.dismissAll')}
           </button>
