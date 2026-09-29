@@ -1,11 +1,13 @@
 // Menyu ko'rinishi (mehmon, QR-menyu): kategoriyalar, qidiruv, rasm, narx —
 // telefonga moslashgan. Savat pastida float bar va yuqoriga ochiladigan savat
 // paneli (miqdor +/- va har bir taomga izoh — masalan "piyozsiz").
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FiMinus, FiPlus, FiSearch, FiShoppingCart, FiTrash2 } from 'react-icons/fi'
+import { toast } from 'react-toastify'
 
 import { createPublicOrder, resolveImageUrl, formatSum } from '../api'
+import { canIncreaseBy, isSoldOut } from '../lib/stock'
 import { GuestHeader } from './SnackHeader'
 
 function loadMenuFor(restaurantId) {
@@ -15,20 +17,22 @@ function loadMenuFor(restaurantId) {
   return Promise.resolve().then(async () => {
     const { getGuestRestaurantMenu, getPublicCategories } = await import('../api')
     const res = await getGuestRestaurantMenu(restaurantId)
+    const payload = res.data?.data ?? res.data
     if (restaurantId) {
-      const payload = res.data?.data ?? res.data
       return { categories: payload.categories ?? [], products: payload.products ?? [] }
     }
+    // Restoran konteksti yo'q — public kategoriyalar alohida olinadi
+    // (getGuestRestaurantMenu allaqachon mahsulotlarni olib keldi).
     const catRes = await getPublicCategories()
     const catPayload = catRes.data?.data ?? catRes.data
-    const prodPayload = res.data?.data ?? res.data
     return {
       categories: Array.isArray(catPayload) ? catPayload : (catPayload.categories ?? []),
-      products: Array.isArray(prodPayload) ? prodPayload : (prodPayload.products ?? []),
+      products: Array.isArray(payload) ? payload : (payload.products ?? []),
     }
   })
 }
 
+// Qoldiq (stock) mantiqi umumiy lib/stock.js da — bitta manba, testlangan.
 export default function GuestOrderMenu({ tableId, tableNumber, restaurant, onOrderPlaced }) {
   const { t } = useTranslation()
   const [categories, setCategories] = useState([])
@@ -41,7 +45,6 @@ export default function GuestOrderMenu({ tableId, tableNumber, restaurant, onOrd
   const [cart, setCart] = useState({})
   const [cartOpen, setCartOpen] = useState(false)
   const [placing, setPlacing] = useState(false)
-  const loadedRestaurantId = useRef(null)
 
   const restaurantId = restaurant?.id ?? restaurant?._id
 
@@ -52,13 +55,12 @@ export default function GuestOrderMenu({ tableId, tableNumber, restaurant, onOrd
       const { categories: cats, products: prods } = await loadMenuFor(restaurantId)
       setCategories(cats.filter((cat) => cat.isActive !== false))
       setProducts(prods)
-      loadedRestaurantId.current = restaurantId
     } catch (err) {
-      setError(err?.response?.data?.message || err?.message || 'load_failed')
+      setError(err?.response?.data?.message || t('guestOrder.menuLoadFailed'))
     } finally {
       setLoading(false)
     }
-  }, [restaurantId])
+  }, [restaurantId, t])
 
   useEffect(() => {
     fetchMenu()
@@ -73,6 +75,8 @@ export default function GuestOrderMenu({ tableId, tableNumber, restaurant, onOrd
         delete copy[product._id]
         return copy
       }
+      // Qoldiqqa sig'maydigan miqdorni buyurtmaga yubormaslik uchun cheklaymiz.
+      if (!canIncreaseBy(product, next - current)) return prev
       return {
         ...prev,
         [product._id]: {
@@ -108,14 +112,28 @@ export default function GuestOrderMenu({ tableId, tableNumber, restaurant, onOrd
     return base.filter((p) => p.name.toLowerCase().includes(q))
   }, [products, activeCategory, search])
 
-  const isSoldOut = useCallback((product) => {
-    if (product?.isAvailable === false) return true
-    const stock = Number(product?.stock ?? product?.inStock)
-    return stock === 0
-  }, [])
+  // Savatda turgan, lekin endi tugagan taomlar — buyurtmani yuborishdan oldin
+  // mehmonga ko'rsatamiz (3-hafta: sayqal).
+  const soldOutInCart = useMemo(
+    () => cartItems.filter((item) => isSoldOut(item.product)),
+    [cartItems]
+  )
+
+  const removeSoldOutItems = useCallback(() => {
+    setCart((prev) => {
+      const next = { ...prev }
+      for (const item of soldOutInCart) delete next[item.product._id]
+      return next
+    })
+  }, [soldOutInCart])
 
   const handlePlaceOrder = async () => {
     if (cartItems.length === 0 || placing) return
+    // Tugagan taom qolgan bo'lsa — serverga yubormasdan ogohlantiramiz.
+    if (soldOutInCart.length > 0) {
+      toast.error(t('guestOrder.cartHasSoldOut', { count: soldOutInCart.length }))
+      return
+    }
     setPlacing(true)
     try {
       const res = await createPublicOrder({
@@ -131,11 +149,11 @@ export default function GuestOrderMenu({ tableId, tableNumber, restaurant, onOrd
       const createdOrder = data?.order ?? data
       onOrderPlaced(createdOrder, createdOrder?._id ?? createdOrder?.id, createdOrder?.orderNumber ?? createdOrder?.number)
     } catch (err) {
-      const message = err?.response?.data?.message || err?.message
+      // Xatoni alohida oynada ko'rsatamiz — savat va menyu o'z joyida qoladi.
+      const message = err?.response?.data?.message
+      toast.error(message || t('guestOrder.placeOrderFailed'))
       setPlacing(false)
       setCartOpen(false)
-      // Xatoni status sahifasiga emas, menyuda ko'rsatamiz
-      setError(message || 'place_failed')
     }
   }
 
@@ -355,53 +373,84 @@ export default function GuestOrderMenu({ tableId, tableNumber, restaurant, onOrd
                 <p className="py-8 text-center text-sm text-slate-400">{t('guestOrder.cartEmpty')}</p>
               )}
 
-              {cartItems.map((item) => (
-                <div key={item.product._id} className="rounded-xl border border-slate-800 bg-slate-900/60 p-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-slate-100">{item.product.name}</p>
-                      <p className="mt-0.5 text-xs font-bold text-[#F97316]">
-                        {formatSum(item.product.price)} × {item.quantity} = {formatSum(item.product.price * item.quantity)}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleQtyChange(item.product, -item.quantity)}
-                      className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-800 hover:text-red-400"
-                      aria-label={t('guestOrder.remove')}
-                    >
-                      <FiTrash2 size={15} />
-                    </button>
-                  </div>
-
-                  <div className="mt-2 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-1 rounded-lg bg-slate-800 px-1 py-1">
-                      <button
-                        type="button"
-                        onClick={() => handleQtyChange(item.product, -1)}
-                        className="flex size-7 items-center justify-center rounded-md bg-[#0B0F17] text-[#F97316] hover:bg-black"
-                      >
-                        <FiMinus size={13} />
-                      </button>
-                      <span className="w-7 text-center text-sm font-bold text-slate-100">{item.quantity}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleQtyChange(item.product, 1)}
-                        className="flex size-7 items-center justify-center rounded-md bg-[#0B0F17] text-[#F97316] hover:bg-black"
-                      >
-                        <FiPlus size={13} />
-                      </button>
-                    </div>
-                  </div>
-
-                  <input
-                    value={item.note}
-                    onChange={(e) => handleNoteChange(item.product._id, e.target.value)}
-                    placeholder={t('guestOrder.itemNote')}
-                    className="mt-2 w-full rounded-lg border border-slate-800 bg-[#0B0F17] px-3 py-2 text-xs text-slate-100 placeholder:text-slate-500 outline-none focus:border-[#F97316]"
-                  />
+              {/* Savatga tushdan keyin tugagan taomlar — buyurtmani to'xtatamiz */}
+              {soldOutInCart.length > 0 && (
+                <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-3">
+                  <p className="text-xs font-bold text-red-300">
+                    {t('guestOrder.cartSoldOutTitle', { count: soldOutInCart.length })}
+                  </p>
+                  <p className="mt-1 text-[11px] text-red-200/80">{t('guestOrder.cartSoldOutDesc')}</p>
+                  <button
+                    type="button"
+                    onClick={removeSoldOutItems}
+                    className="mt-2 w-full rounded-lg bg-red-500/90 py-2 text-xs font-bold text-white transition hover:bg-red-500"
+                  >
+                    {t('guestOrder.removeSoldOut')}
+                  </button>
                 </div>
-              ))}
+              )}
+
+              {cartItems.map((item) => {
+                const itemSoldOut = isSoldOut(item.product)
+                return (
+                  <div
+                    key={item.product._id}
+                    className={`rounded-xl border bg-slate-900/60 p-3 ${
+                      itemSoldOut ? 'border-red-500/40 opacity-70' : 'border-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-slate-100">{item.product.name}</p>
+                        <p className="mt-0.5 text-xs font-bold text-[#F97316]">
+                          {formatSum(item.product.price)} × {item.quantity} = {formatSum(item.product.price * item.quantity)}
+                        </p>
+                        {itemSoldOut && (
+                          <span className="mt-1 inline-block rounded-full bg-red-500/90 px-2 py-0.5 text-[10px] font-bold text-white">
+                            {t('guestOrder.soldOut')}
+                          </span>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleQtyChange(item.product, -item.quantity)}
+                        className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-800 hover:text-red-400"
+                        aria-label={t('guestOrder.remove')}
+                      >
+                        <FiTrash2 size={15} />
+                      </button>
+                    </div>
+
+                    <div className="mt-2 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-1 rounded-lg bg-slate-800 px-1 py-1">
+                        <button
+                          type="button"
+                          onClick={() => handleQtyChange(item.product, -1)}
+                          className="flex size-7 items-center justify-center rounded-md bg-[#0B0F17] text-[#F97316] hover:bg-black"
+                        >
+                          <FiMinus size={13} />
+                        </button>
+                        <span className="w-7 text-center text-sm font-bold text-slate-100">{item.quantity}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleQtyChange(item.product, 1)}
+                          disabled={itemSoldOut}
+                          className="flex size-7 items-center justify-center rounded-md bg-[#0B0F17] text-[#F97316] hover:bg-black disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          <FiPlus size={13} />
+                        </button>
+                      </div>
+                    </div>
+
+                    <input
+                      value={item.note}
+                      onChange={(e) => handleNoteChange(item.product._id, e.target.value)}
+                      placeholder={t('guestOrder.itemNote')}
+                      className="mt-2 w-full rounded-lg border border-slate-800 bg-[#0B0F17] px-3 py-2 text-xs text-slate-100 placeholder:text-slate-500 outline-none focus:border-[#F97316]"
+                    />
+                  </div>
+                )
+              })}
             </div>
 
             <div className="border-t border-slate-800 px-5 py-4">
@@ -412,7 +461,7 @@ export default function GuestOrderMenu({ tableId, tableNumber, restaurant, onOrd
               <button
                 type="button"
                 onClick={handlePlaceOrder}
-                disabled={placing || cartItems.length === 0}
+                disabled={placing || cartItems.length === 0 || soldOutInCart.length > 0}
                 className="w-full rounded-xl bg-gradient-to-r from-[#F97316] to-[#EA580C] py-3.5 text-sm font-bold text-white shadow-lg shadow-orange-500/25 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {placing ? `${t('guestOrder.placing')}...` : t('guestOrder.placeOrder')}
