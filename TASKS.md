@@ -1,139 +1,222 @@
-# RestoFlow — Vazifalar (19-sentabr 2026, 11-to'plam)
+# RestoFlow — Vazifalar (29-sentabr 2026, 16-to'plam: 🚀 MEGA — PRODGA CHIQARAMIZ)
 
 > **Kod bo'yicha tekshirilgan, notaga emas.**
-> frontend `origin/main` = `6af67ae` · backend `origin/main` = `8caee0a` (19-sent, 16:00 holati).
-> PR, CI va Issues holati GitHub'dan (`gh`) o'qildi.
-> **Deadline: 22-sentabr (seshanba) darsi.**
+> frontend `origin/main` = `ef637f6` · backend `origin/main` = `8b0650c` (29-sent, 15:20 holati).
+> PR, CI va prod holati GitHub'dan (`gh`) va `curl` bilan o'qildi.
+> **Nazorat: 1-okt (1-hafta) · 8-okt (2-hafta) · 🎯 15-okt — MVP DEMO PROD'DA.**
 
-Jamoa: Zulfiqor, Izzat, Abdurahmon, Ziyodilla, Fayoz, Madina, Abdugani, Behruz H.
-**Loyiha boshqaruvchisi (19-sentdan): Javodbek** (`Javodbekabdusalimov`, Telegram `@Javodbe411`) —
-task, review, merge va deadline u orqali.
+Bu to'plam 15-to'plamning o'rnini **to'liq egallaydi**. 15-to'plamdagi qabul mezonlari
+kuchda qoladi, ustiga har kimga katta modul qo'shildi.
 
----
-
-## 🎯 Bu to'plamning maqsadi
-
-**Avval har kim O'Z xatosini tuzatadi.** Tugatganlarga — yangi ish (⭐).
-
-Hozirgi holat:
-
-- 🟢 Ikkala `main` CI yashil (Front 17-sent 16:30 dan beri). `restoflow.uz` prod'da ishlayapti.
-- 🟢 Xavfsizlik auditi (17-sent): 10 topilmadan 6 tasi yopildi (Backend #2 #4 #5 #6 #8, Front #17).
-- 🔴 17-sentdan beri 8 ta PR — **hech birida review yo'q**, 7 tasini muallifning o'zi merge qilgan
-  (#20 — 0 daqiqada, #11 — 2 daqiqada).
-- 🔴 Backend'ga `6d478cd` yana PR'siz to'g'ridan `main` ga tushdi.
-- 🔴 Tayyor ishlar `main` dan tashqarida: Abdugani branchi (4 commit, shu jumladan QR → `/guest`),
-  Zulfiqor `afe7cf6` + `fd702b7` (merge bo'lib ketgan `integration/sprint-10` da yetim),
-  backend `feature/zulfiqor-payment-concurrency-tests`.
-- 🔴 Izzat, Fayoz, Ziyodilla, Behruz H. — 17-sentdan beri 0 commit, 0 PR, 0 Issue.
-- 🔴 18-sent 20:00 hisobotini hech kim yozmadi.
-
-## 📏 Qoidalar
-
-1. **`main` ga faqat PR + yashil CI orqali.** Backend'ga ham (GitHub Free'da private repo uchun
-   branch protection yo'q — bu qoida faqat intizomda turadi).
-2. **Commit nomi = haqiqatda qilingan ish.**
-3. **Yozilgan ish PR'siz 24 soatdan ortiq turmaydi.**
-4. **YANGI: o'z PR'ingni o'zing merge qilmaysan.** Kamida 1 kishi review (approve) beradi,
-   merge'ni Javodbek yoki reviewer bosadi.
-5. **YANGI: `TASKS.md` ga hech kim tegmaydi** — har safar konflikt beryapti. O'zgartirish kerak bo'lsa Javodbekka yoz.
+**Loyiha boshqaruvchisi: Javodbek** (`Javodbekabdusalimov`, TG `@Javodbe411`).
 
 ---
 
-## Avval o'z xatoingni tuzat
+## 🔥 Hozirgi holat — nega MEGA
 
-### 1. Zulfiqor
-- `afe7cf6` (RootPanel «Control Center») va `fd702b7` (notifications 401 guard) — PR #15 merge bo'lgandan
-  KEYIN `integration/sprint-10` ga push qilingan, `main` da yo'q. Konfliktsiz:
-  ```bash
-  git fetch origin && git switch -c feature/zulfiqor-rootpanel-control-center origin/main
-  git cherry-pick fd702b7 afe7cf6
-  git push -u origin HEAD   # → PR
-  ```
-- Backend `feature/zulfiqor-payment-concurrency-tests` — 3 kundan beri PR'siz. Bugun och.
-- Guruhga yoz: Railway'da `JWT_ROOT_SECRET` alohidami? `api.restoflow.uz` SSL chiqdimi?
-  Prod'da 4 ta test user (admin / manager / cashier / cook) — parollar Javodbekka lichkada, guruhga emas.
-- ⭐ Yangi: `docs/multi-tenant.md` (Backend #3, HIGH) — 1 sahifa, kodsiz: `restaurant` maydoni qaysi
-  modellarga (`Order, Table, User, Payment, Shift, Reservation, Setting`), JWT'da `restaurantId`
-  qanday yuradi, eski ma'lumot qanday ko'chadi.
+| Nima | Holat |
+|---|---|
+| Prod front `restoflow.uz` (Netlify) | 🟢 ishlayapti |
+| Prod backend (Railway) | 🟡 ishlayapti, lekin **uptime 6,9 kun — 22-sentdan beri deploy YO'Q** |
+| Backend #23 (xavfsizlik teshiklari, 24-sent) | 🔴 `main` da bor, **prod'da YO'Q** |
+| Backend `main` | 🔴 24-sentdan beri merge yo'q (5 kun) |
+| Front `main` | 🔴 26-sentdan beri merge yo'q |
+| Ochiq PR'lar | 🔴 **9 ta, birortasida review yo'q** |
+| Deploy eskirganini kim sezadi? | ⚠️ hech kim — `/api/health` qaysi commit ishlayotganini aytmaydi |
+| Billing (Zulfiqor) | 🔴 0 commit |
+| Izzat · Behruz H. | 🔴 26-sent 20:00 ultimatumi — 0 PR, 0 Issue → **o'rin bo'shadi**, modullari boshqaga o'tdi |
 
-### 2. Madina
-- `d87db34` (branch `feature/madina-zreport-summary`) — Backend #7 ni **teskari** qilgansan. Audit
-  «to'lov yozuvlarini hamma rol ko'ryapti — yop» degan; sen frontda `payments:view` ni oshpazga ham berding.
-  Bu commitni tashla, PR qilma.
-- To'g'ri fix **backend**da: `src/routes/payment.routes.js` → `router.get('/')` ga
-  `checkRole('admin', 'manager', 'cashier')` (97-qatorda tayyor namuna bor) +
-  `test/payment.test.js` ga 2 test: cook → 403, cashier → 200. PR → Backend #7 yopiladi.
-- Merge bo'lgan 2 ta eski branchingni o'chir (`kitchen-socket-sync`, `zreport-summary`).
+**Kod branch'da = kod yo'q. Kod `main` da, lekin deploy qilinmagan = kod yo'q.**
+Mijoz faqat **prod'dagi** narsani ko'radi.
 
-### 3. Abdugani
-- `feature/abdugani-guest-qr-flow` dagi 4 commit (`8c6d4f1` QR → `/guest` + A4, `c76063d`, `65c60c1`
-  landing `t()`, `597a310`) `main` da **yo'q** — prod'da QR hali `/menu` ga olib boradi. **Bugun:**
-  ```bash
-  git fetch origin && git switch feature/abdugani-guest-qr-flow
-  git merge origin/main            # konflikt faqat TASKS.md da
-  git checkout origin/main -- TASKS.md && git commit
-  git push                         # → PR
-  ```
-- ⭐ Yangi (sotuv uchun №1 funksiya): Menyu sahifasida «Excel'dan yuklash» — `exceljs` allaqachon bor.
-  Ustunlar: nom | kategoriya | narx | tavsif → preview jadval → har qator `POST /products`.
+### Ochiq PR'lar — kim nima qiladi (BUGUN)
 
-### 4. Abdurahmon
-- 19-sentda 3 ta PR — zo'r. Lekin #20 va #11 ni o'zing, reviewsiz merge qilding. Backend PR #10
-  (npm audit) ga review so'ra, o'zing bosma.
-- Backend #8 ni yop (PR #11 tuzatgan).
-- 10-to'plamdan qolgan: Front `main` protection — required check `build-and-test` + 1 review +
-  `enforce_admins`. Skrinshot guruhga.
-- ⭐ Yangi: `src/constants/permissions.js` dagi `can()` uchun vitest (har rol × ruxsat).
-
-## 0 commit — oxirgi imkoniyat
-
-22-sentabrgacha kamida 1 ta PR yoki Issue bo'lmasa — o'rin vazifa kutayotganlarga beriladi.
-
-### 5. Izzat — backend, branch `fix/izzat-telegram-alerts`
-- `src/services/telegram.service.js:572` — «ЗАБАНКРОТИЛСЯ ЗАПАС» → «ЗАКАНЧИВАЕТСЯ ЗАПАС НА СКЛАДЕ».
-- `:549` dagi `200000` → `LARGE_CANCEL_THRESHOLD` env (+ `.env.example`).
-- Sof funksiya `isLargeCancellation(amount)` + `test/telegram.test.js` da 3 test
-  (199 999 → false, 200 000 → true, env o'zgarsa chegara o'zgaradi). `npm test` yashil → PR.
-
-### 6. Fayoz
-- `src/features/settings/pages/SettingsPage.module.css` → Tailwind, CSS faylni o'chir → PR.
-- Sening demo-login tasking (Front #17) ni Javodbek yopdi. Qaysi kunlari ishlay olishingni guruhga yoz.
-
-### 7. Ziyodilla
-- `origin/Ziyodilla` yana tarixsiz (`git init` qilingan) — `main` bilan umumiy commit yo'q, merge bo'lmaydi.
-  ```bash
-  git config --global user.name "Ziyodilla"
-  git config --global user.email "<github emailing>"
-  git clone https://github.com/restoFlow-1850/Front.git restoflow-yangi && cd restoflow-yangi
-  git switch -c feature/ziyodilla-map-card
-  # faqat RestaurantMapCard.jsx va AppLayout.jsx ni eski papkadan ko'chir
-  git status        # 2 tadan ko'p fayl ko'rinsa — TO'XTA, Javodbekka yoz
-  git add -A && git commit -m "feat(map): update RestaurantMapCard and AppLayout" && git push -u origin HEAD
-  ```
-- Tushunmasang — BUGUN Javodbekka yoz, birga qilamiz.
-
-### 8. Behruz H.
-- `restoflow.uz` ni telefonda (360/390px) och: landing, `/guest`, login, ofitsiant, oshxona, kassa.
-  Har bir kesilgan tugma/modal = alohida GitHub Issue (sahifa + kenglik + skrinshot). Kamida 5 ta.
-- Login sahifasida demo tugmalar endi yo'qligini tasdiqla (skrinshot).
-
----
-
-## Hali ochiq Issue'lar
-
-| Issue | Daraja | Kim |
+| PR | Holat | Kim |
 |---|---|---|
-| Backend #3 — tenant/restoran scoping | HIGH | Zulfiqor (avval `docs/multi-tenant.md`) |
-| Backend #7 — `GET /payments` checkRole | MEDIUM | Madina |
-| Backend #9 — npm audit | HIGH | Abdurahmon (PR #10 review kutmoqda) |
-| Backend #8 — sanitize body | LOW | tuzatilgan, yopish kerak |
-| Front #18 — token `localStorage` da | MEDIUM | keyingi to'plam |
+| Back #22 checkRole (#7) | ✅ yashil, 11 qator | **Javodbek — merge** |
+| Front #30 15-to'plam | ✅ yashil | **Javodbek — yop** (16-to'plam o'rnini oldi) |
+| Back #26 ombor | 🟡 lock fayl tuzatildi (`7460daa`), 4 test yiqilgan | Madina |
+| Back #24 hisobot API | ❌ 5 test yiqilgan | Madina |
+| Back #25 eksport | CI ishlamagan | Madina |
+| Front #34 ombor ekrani | ✅ yashil | Back #26 dan keyin — Javodbek |
+| Front #33 hisobot + landing | ⚠️ konflikt | Madina — rebase |
+| Front #27 xarita | CHANGES_REQUESTED (22-sentdan) | Ziyodilla |
+| Front #32 e2e full-flow | ❌ Z-hisobot qadami yiqilgan | Abdurahmon |
 
-## 📝 Hisobot
+---
 
-**21-sentabr (dushanba) 20:00** gacha «✅ Hisobotlar» topigiga bir qator:
+## 📏 Qoidalar (qat'iy, 15-to'plamdagidan tashqari)
 
-```
-Ism | PR/Issue havolasi | nima qilindi | bloklovchi
-```
+1. **Merge SLA — 24 soat.** CI yashil + 1 approve = merge. 24 soatda review bo'lmasa — Javodbek o'zi review qiladi.
+2. **Har `main` merge → prod'ga deploy.** Deploy qilinmagan merge — tugallanmagan ish.
+3. **Har kuni kamida 1 push, push → 24 soatda PR.** Yangi PR ≤ 400 qator (test/lock hisobga kirmaydi).
+4. **O'z PR'ingni o'zing merge qilmaysan.**
+5. **20:00 — «✅ Hisobotlar»:** `Ism | PR havolasi | nima qilindi | bloklovchi`. Faqat GitHub'da BOR narsa.
+6. **Bloklangan odam 2 soatdan ortiq jim turmaydi** — guruhga yoz, Javodbekni belgila.
+7. **`TASKS.md` ga tegmang.**
+
+---
+
+## 0️⃣ JAVODBEK — RELEASE KAPITANI (merge navbati + prod)
+
+Sen endi faqat PM emas — **prod sening qo'lingda.**
+
+**BUGUN (29-sent):**
+- Back #22 merge · Front #30 yop · har ochiq PR'ga reviewer tayinla (jadval yuqorida)
+- Railway: backend `main` ni **qo'lda qayta deploy** qil → `curl https://backend-production-109c0.up.railway.app/api/health` da `uptime` kichik bo'lishi kerak. Natijani guruhga yoz
+
+**1-hafta:**
+- **Railway auto-deploy `main` dan** yoqilganini tekshir (yoqilmagan bo'lsa — yoq). Netlify front ham `main` dan
+- **Staging:** Railway'da 2-servis `staging` (alohida baza!) + Netlify deploy preview har PR uchun. PR tavsifida preview havolasi bo'lsin
+- `docs/RELEASE.md` — release tartibi: `main` → staging smoke → prod → smoke → «✅ Hisobotlar» ga release notes
+- **Branch protection** ikkala repoda: `main` ga to'g'ridan push yo'q, CI yashil + 1 approve majburiy
+
+**2-hafta:**
+- Har seshanba va juma — **release kuni**, tag `v0.x.0`, CHANGELOG
+- Rollback rejasi: Railway'da oldingi deploy'ga qaytish — 1 marta mashq qil, vaqtini yoz
+
+✅ **Qabul (1-okt):** 9 ta PR'dan har biri merge yoki aniq sabab bilan yopilgan; prod backend `main` bilan bir xil; branch protection yoqilgan.
+
+---
+
+## 1️⃣ ZULFIQOR — BIZNES BACKEND: BILLING + TELEGRAM (Izzat moduli senga o'tdi)
+
+⚠️ 23-sentdan beri 0 commit. **30-sent 20:00 gacha PR 1 bo'lmasa — billing Abdurahmonga o'tadi.**
+
+**A. Billing** (15-to'plamdagi 4 PR o'zgarmadi):
+- PR 1 `Client.subscription { plan, status: trial|active|expired|blocked, trialEndsAt, paidUntil }` + migratsiya
+- PR 2 `subscription.middleware.js`: tugagan → yozish 402, o'qish 200, `root` o'tadi + testlar
+- PR 3 `GET /billing/status` + `PATCH /root/clients/:id/subscription` + AuditLog
+- PR 4 **Payme sandbox** — `docs/billing.md` + callback (`CheckPerformTransaction`, `PerformTransaction`), 2-hafta
+
+**B. Telegram — har restoranga o'z chati** (Izzatdan):
+- `telegram.service.js:12` — `process.env.TELEGRAM_CHAT_ID` → **hamma restoranning xabari bitta chatga tushyapti**
+- PR 5 `Client.telegram { chatId, enabled, events[], largeCancelThreshold }` + `isLargeCancellation()` sof funksiya + test
+- PR 6 service restoranning o'z sozlamasidan o'qiydi. Test: 2 restoran → xabar faqat o'z chatiga
+- PR 7 (2-hafta) sozlamalar sahifasi: chat ID ulash, «test xabar yuborish» tugmasi
+
+✅ **Qabul:** 1-okt — PR 1-2 `main` da. 8-okt — obuna tugagan restoran buyurtma ocholmaydi; 2 restoranning xabari 2 xil chatga tushadi.
+
+---
+
+## 2️⃣ MADINA — HISOBOT + OMBOR: TOPSHIR VA TUGAT
+
+Eng ko'p kod sendan. Endi uni **`main` ga va prod'ga** olib chiqamiz.
+
+**BUGUN–ERTAGA:**
+- **Back #24** — 5 test yiqilgan:
+  - `authorization.test.js` — yangi `/reports/*` route'lar `test/authorization.matrix.js` da yo'q → qo'sh, rolni ongli tanla (admin/manager)
+  - `report.test.js` — 4 ta yiqilgan test, lokalda `npx vitest run test/report.test.js`
+- **Back #26** — lock faylni men tuzatdim (`7460daa`). Qolgan 4 test: `authorization` matritsasi, `product.test.js` (tannarx/foyda%), `report.test.js /reports/profit`, `stock.test.js` (`/ingredients/export`)
+- **Back #25** — CI ishlamagan: `main` ga rebase qil, push → CI ishga tushadi
+- **Front #33** — konflikt: `git rebase origin/main`
+
+**2-hafta — OMBOR TO'LIQ:**
+- Kam qolgan xomashyo → dashboard'da ogohlantirish + (Zulfiqor Telegram tayyor bo'lsa) Telegram
+- Yetkazib beruvchi: `Supplier` + kirim hujjati (kimdan, qancha, narx) → xomashyo tannarxi o'rtacha narx bo'yicha yangilanadi
+- Inventarizatsiya: haqiqiy qoldiq kiritiladi → farq `StockMovement` ga «inventarizatsiya» sababi bilan
+- Hisobot: **taom tannarxi va foyda%** — Excel eksportda ham
+
+✅ **Qabul:** 1-okt — Back #24, #25, #26 va Front #33, #34 `main` da + prod'da. 8-okt — kirim → sotuv → qoldiq kamaydi → inventarizatsiya farqi hisobotda.
+
+---
+
+## 3️⃣ ABDURAHMON — SIFAT VA XAVFSIZLIK SHTABI (Behruz H. moduli senga o'tdi)
+
+**A. E2E — yashil bo'lsin:**
+- **Front #32** — `full-flow.spec.js:89` Z-hisobot qadami yiqilgan (`browserContext.close: Target … closed`). Sababini top: beqarorlik bo'lsa `await expect(...).toBeVisible()` bilan kut, haqiqiy xato bo'lsa — Issue
+- `e2e/guest.spec.js` — `/guest?table=` → buyurtma → oshxonada chiqadi
+
+**B. Prod monitoring — deploy eskirsa darhol bilamiz:**
+- `/api/health` ga `commit` (git SHA) va `startedAt` qo'sh (Railway `RAILWAY_GIT_COMMIT_SHA`). Front'da ham `VITE_COMMIT` → footer'da kichik versiya
+- `npm run smoke`: prod `commit` ≠ `origin/main` bo'lsa — **FAIL «prod eskirgan»**
+- GitHub Actions `schedule` — har 30 daqiqada prod smoke, yiqilsa → Telegram ogohlantirish
+- Front'da backend URL 3 joyda hardcode (`backend-production-109c0.up.railway.app`) → hamma joyda `api.restoflow.uz`, bitta `src/shared/config.js` dan
+
+**C. MVP tekshiruv ro'yxati (Behruz H. dan):**
+- `docs/mvp-checklist.md`: ro'yxatdan o'tish → menyu → QR → mehmon buyurtmasi → oshxona → kassa → Z-hisobot → Telegram → obuna
+- Har release'dan keyin prod'da, telefonda o'tkaz → «✅ Hisobotlar» ga natija
+
+**D. Xavfsizlik:**
+- **Front Issue #18** — access/refresh token `localStorage` da → refresh token `httpOnly` cookie'ga (backend + front, 2 PR)
+- Rate limit: `/auth/login` va `/auth/otp` — 5 urinish / 15 daqiqa + test
+
+✅ **Qabul:** 1-okt — #32 yashil, `/api/health` commit SHA qaytaradi, checklist `main` da. 8-okt — #18 yopilgan, prod monitoring ishlayapti.
+
+---
+
+## 4️⃣ ABDUGANI — ONBOARDING: «10 DAQIQADA YANGI RESTORAN»
+
+`feature/abdugani-guest-qr-flow` da **+1752 qator, 0 PR.** 29-sentda `/start`, OTP, sehrgar yozilgan — endi PR qil.
+
+**BUGUN:** branch'ni **4 PR** ga bo'l (har biri ≤ 400 qator):
+1. Zal/stol parser + unit testlar
+2. QR PDF generator
+3. Sehrgar UI (5 qadam, holati saqlanadi)
+4. `/start` sahifasi + OTP + avtologin
+
+**Backend (Backend repo):**
+- PR 5 `POST /auth/register-restaurant` — `Client` + `admin` **tranzaksiyada**. Test: bir xil telefon → 409; user yiqilsa → `Client` ham yo'q
+- PR 6 **«Demo ma'lumot» tugmasi** — yangi restoranga 3 kategoriya, 12 taom, 10 stol bir bosishda (sotuvchi mijozga 1 daqiqada ko'rsata olsin)
+
+**2-hafta:** landing'dagi «Bepul boshlash» → `/start`. Sehrgar oxirida «Telegram ulash» qadami (Zulfiqor PR 7 bilan).
+
+✅ **Qabul:** 1-okt — PR 1-4 ochiq, 2 tasi `main` da. 8-okt — `restoflow.uz/start` → OTP → sehrgar → 10 stol + QR PDF — **prod'da**.
+
+---
+
+## 5️⃣ ZIYODILLA — MEHMON TOMONI: QR → BUYURTMA → JONLI KUZATISH
+
+`origin/Ziyodilla` da +2501 qator (3 til, QR menyu sayqali) — **PR yo'q.**
+
+**BUGUN:**
+- **Front #27** — 22-sentdan CHANGES_REQUESTED. `axios.js`/`time.js` chiqarildi (29-sent) → review so'ra
+- `Ziyodilla` branch'dan **2 PR:** (a) `/guest` i18n uz/ru/en · (b) QR menyu sayqali (tugagan taom, xato, valyuta)
+- `git config user.name "Ziyodilla"` + `user.email` — hali ham sozlanmagan
+
+**1–2-hafta:**
+- PR — savat: son, izoh («piyozsiz»), `POST /public/orders` → buyurtma raqami
+- PR — **jonli kuzatish**: «qabul qilindi → tayyorlanmoqda → tayyor» socket orqali, sahifa yangilanmasdan
+- PR — «Ofitsiantni chaqirish» va «Hisobni so'rash» tugmalari → ofitsiant ekraniga socket xabari
+- Lighthouse mobil: `/guest` ≥ 85 (Performance), skrinshot PR'da
+
+✅ **Qabul:** 1-okt — #27 va i18n `main` da. 8-okt — telefonda QR → buyurtma → holat jonli → «hisob» tugmasi ishlaydi, prod'da.
+
+---
+
+## 6️⃣ FAYOZ — MOBIL + PWA (ofitsiant telefoni)
+
+Ish bor (44px, PWA — 26-sent), lekin **PR yo'q.** `fayoz-pwa` diff'i +7246 qator — ichida keraksiz narsalar.
+
+**BUGUN:**
+- PR 1 — `fayoz` branch: 44px tap target'lar (menyu, stollar). Oldin/keyin skrinshot 360px
+- PR 2 — PWA: **`main` dan yangi branch**, faqat `vite-plugin-pwa` + manifest + ikonkalar. Diff ≤ 400 qator (lock'dan tashqari)
+
+**1–2-hafta:**
+- 360px va 390px da har sahifa: ofitsiant, oshxona, kassa, menyu, stollar — gorizontal scroll yo'q
+- **Offline sahifa**: internet uzilsa «Aloqa yo'q — qayta urinish» ekrani, oq ekran emas
+- Ofitsiant uchun **pastki navigatsiya** (Stollar · Buyurtmalar · Profil) mobil'da
+- `SettingsPage.module.css` → Tailwind (15-to'plamdan qolgan)
+
+✅ **Qabul:** 1-okt — PR 1-2 ochiq, 1 tasi `main` da. 8-okt — ofitsiant telefonda «Bosh ekranga qo'shish» qiladi va 360px da butun smena ishlaydi.
+
+---
+
+## ⛔ IZZAT · BEHRUZ H.
+
+26-sent 20:00 ultimatumi bajarilmadi (0 PR, 0 Issue). Modullar: Telegram → **Zulfiqor**, Sifat nazorati → **Abdurahmon**.
+Qaytmoqchi bo'lsang — Behruzga yoz, **avval bitta merge bo'lgan PR** bilan.
+
+---
+
+## 📅 Nazorat nuqtalari
+
+| Sana | Nima |
+|---|---|
+| **29-sent (bugun)** | Back #22 merge · prod backend qayta deploy · har PR'ga reviewer |
+| **30-sent 20:00** | Zulfiqor PR 1 · Abdugani, Ziyodilla, Fayoz — branch'lar PR'ga · Madina — CI yashil |
+| **Har kuni 20:00** | «✅ Hisobotlar» · 21:00 — Javodbek hisobot bermaganlar ro'yxati |
+| **1-okt** | 1-hafta qabuli — yuqoridagi ✅ mezonlar |
+| **Seshanba/juma** | Release kuni (Javodbek) |
+| **8-okt** | 2-hafta qabuli |
+| **15-okt** | 🎯 **MVP DEMO — butun zanjir PROD'DA, bitta telefonda:** ro'yxatdan o'tish → sehrgar → QR → mehmon buyurtmasi → oshxona → kassa → Z-hisobot → ombor kamaydi → Telegram xabari → obuna holati |
