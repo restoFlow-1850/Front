@@ -12,6 +12,7 @@ import {
   Flame,
   Package,
   PackageX,
+  Percent,
   Receipt,
   RefreshCw,
   Send,
@@ -29,6 +30,7 @@ import {
   getAnalyticsPayments,
   getAnalyticsProducts,
   getDashboardReport,
+  getProfitReport,
   getTopProductsReport,
   sendTelegramDailyReport,
 } from '../api'
@@ -136,6 +138,20 @@ export default function ReportsPage() {
     },
     staleTime: 60_000,
   })
+
+  // Foyda va tannarx (3-hafta: retsept × xomashyo narxi)
+  const profitQuery = useQuery({
+    queryKey: ['reports', 'profit', dateRange, customFrom, customTo],
+    queryFn: async () => {
+      const res = await getProfitReport({
+        from: startDate.toISOString().slice(0, 10),
+        to: endDate.toISOString().slice(0, 10),
+      })
+      return res.data?.data?.report ?? null
+    },
+    staleTime: 30_000,
+  })
+  const profitData = profitQuery.data ?? null
 
   const isLoading =
     dashboardQuery.isLoading ||
@@ -593,6 +609,201 @@ export default function ReportsPage() {
           </>
         )}
       </div>
+
+      {/* ─── 3. Foyda va Tannarx (3-hafta: pul bilan bog'lash) ──── */}
+      <Card>
+        <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
+          <div className="flex items-center gap-2">
+            <Receipt className="h-4 w-4 text-orange-500" />
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+              Foyda va Tannarx (Retsept bo'yicha)
+            </h3>
+          </div>
+          <span className="text-xs text-slate-400">Tannarx = retsept × xomashyo narxi</span>
+        </div>
+
+        {profitQuery.isLoading ? (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28" />)}
+          </div>
+        ) : !profitData ? (
+          <EmptyState
+            icon={Receipt}
+            title="Foyda ma'lumotlari topilmadi"
+            description="Retseptli taomlar bo'yicha foydani hisoblab bo'lmadi."
+          />
+        ) : (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <StatCard
+                icon={DollarSign}
+                tone="emerald"
+                label="Jami Sotuv"
+                value={formatSom(profitData.summary.totalRevenue)}
+                hint={`${profitData.summary.totalProducts} ta retseptli taom`}
+              />
+              <StatCard
+                icon={Wallet}
+                tone="amber"
+                label="Jami Tannarx"
+                value={formatSom(profitData.summary.totalCost)}
+                hint="Retsept × xomashyo narxi"
+              />
+              <StatCard
+                icon={TrendingUp}
+                tone={profitData.summary.totalProfit >= 0 ? 'emerald' : 'rose'}
+                label="Sof Foyda"
+                value={formatSom(profitData.summary.totalProfit)}
+                hint={profitData.summary.totalProfit >= 0 ? 'Daromadli davr' : 'Zararli davr'}
+              />
+              <StatCard
+                icon={Percent}
+                tone="indigo"
+                label="Foyda Ulushi"
+                value={`${profitData.summary.marginPercent}%`}
+                hint="Sof foyda / savdo"
+              />
+            </div>
+
+            <div className="mt-5 grid gap-5 lg:grid-cols-3">
+              {/* Kunlik tannarx va sof foyda */}
+              <div className="rounded-xl border border-slate-100 p-3 lg:col-span-1 dark:border-slate-800">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  Kunlik tannarx va sof foyda
+                </p>
+                {profitData.daily.length === 0 ? (
+                  <p className="py-6 text-center text-xs text-slate-400">
+                    Ushbu davrda yopilgan buyurtma yo'q
+                  </p>
+                ) : (
+                  <div className="max-h-72 overflow-y-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-slate-200 text-slate-500 font-semibold dark:border-slate-700">
+                          <th className="py-2 px-2">Sana</th>
+                          <th className="py-2 px-2 text-right">Savdo</th>
+                          <th className="py-2 px-2 text-right">Tannarx</th>
+                          <th className="py-2 px-2 text-right">Foyda</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {profitData.daily.map((d) => (
+                          <tr key={d.date} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                            <td className="py-2 px-2 font-semibold text-slate-700 dark:text-slate-300">
+                              {d.date}
+                            </td>
+                            <td className="py-2 px-2 text-right text-slate-500">
+                              {formatSom(d.revenue)}
+                            </td>
+                            <td className="py-2 px-2 text-right text-slate-500">
+                              {formatSom(d.cost)}
+                            </td>
+                            <td
+                              className={`py-2 px-2 text-right font-bold ${
+                                d.profit >= 0
+                                  ? 'text-emerald-600 dark:text-emerald-400'
+                                  : 'text-rose-600 dark:text-rose-400'
+                              }`}
+                            >
+                              {formatSom(d.profit)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              {/* Eng foydali 10 taom */}
+              <div className="rounded-xl border border-slate-100 p-3 lg:col-span-1 dark:border-slate-800">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-emerald-500">
+                  &#127942; Eng foydali 10 taom
+                </p>
+                {profitData.top10.length === 0 ? (
+                  <p className="py-6 text-center text-xs text-slate-400">Ma'lumot yo'q</p>
+                ) : (
+                  <div className="max-h-72 overflow-y-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-slate-200 text-slate-500 font-semibold dark:border-slate-700">
+                          <th className="py-2 px-2">#</th>
+                          <th className="py-2 px-2">Taom</th>
+                          <th className="py-2 px-2 text-right">Savdo</th>
+                          <th className="py-2 px-2 text-right">Foyda</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {profitData.top10.map((p, idx) => (
+                          <tr key={p.product + idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                            <td className="py-2 px-2 font-bold text-slate-400">{idx + 1}</td>
+                            <td className="py-2 px-2 font-semibold text-slate-800 dark:text-slate-200">
+                              {p.name}
+                            </td>
+                            <td className="py-2 px-2 text-right text-slate-500">
+                              {formatSom(p.revenue)}
+                            </td>
+                            <td className="py-2 px-2 text-right font-bold text-emerald-600 dark:text-emerald-400">
+                              {formatSom(p.profit)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              {/* Eng zarar 10 taom */}
+              <div className="rounded-xl border border-slate-100 p-3 lg:col-span-1 dark:border-slate-800">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-rose-500">
+                  &#9888;&#65039; Eng zarar 10 taom
+                </p>
+                {profitData.bottom10.length === 0 ? (
+                  <p className="py-6 text-center text-xs text-slate-400">
+                    Zarar ko'rgan taom yo'q
+                  </p>
+                ) : (
+                  <div className="max-h-72 overflow-y-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-slate-200 text-slate-500 font-semibold dark:border-slate-700">
+                          <th className="py-2 px-2">#</th>
+                          <th className="py-2 px-2">Taom</th>
+                          <th className="py-2 px-2 text-right">Savdo</th>
+                          <th className="py-2 px-2 text-right">Foyda</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {profitData.bottom10.map((p, idx) => (
+                          <tr key={p.product + idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                            <td className="py-2 px-2 font-bold text-slate-400">{idx + 1}</td>
+                            <td className="py-2 px-2 font-semibold text-slate-800 dark:text-slate-200">
+                              {p.name}
+                            </td>
+                            <td className="py-2 px-2 text-right text-slate-500">
+                              {formatSom(p.revenue)}
+                            </td>
+                            <td
+                              className={`py-2 px-2 text-right font-bold ${
+                                p.profit >= 0
+                                  ? 'text-emerald-600 dark:text-emerald-400'
+                                  : 'text-rose-600 dark:text-rose-400'
+                              }`}
+                            >
+                              {formatSom(p.profit)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </Card>
 
       {/* ─── 3. Diagrammalar Qatori (Daromad usullari & Yuklama) ─── */}
       <div className="grid gap-6 lg:grid-cols-12">

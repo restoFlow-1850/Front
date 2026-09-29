@@ -10,6 +10,9 @@ export const getDailySalesReport = (params) => api.get('/reports/daily-sales', {
 /** Eng ko'p sotilgan taomlar — GET /api/reports/top-products */
 export const getTopProductsReport = (params) => api.get('/reports/top-products', { params })
 
+/** Foyda va tannarx hisoboti — GET /api/reports/profit (kunlik + top/bottom 10) */
+export const getProfitReport = (params) => api.get('/reports/profit', { params })
+
 /** Barcha buyurtmalar ro'yxati (analitika uchun) — GET /api/orders */
 export const getAnalyticsOrders = (params) => api.get('/orders', { params })
 
