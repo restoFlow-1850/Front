@@ -17,6 +17,7 @@ import { NAV_ITEMS } from '../constants/navigation'
 // ─── Ochiq sahifalar ─────────────────────────────────────────────
 const LoginPage = lazy(() => import('../features/auth/pages/LoginPage'))
 const RegisterPage = lazy(() => import('../features/auth/pages/Register'))
+const StartPage = lazy(() => import('../features/auth/pages/StartPage'))
 const ForgotPasswordPage = lazy(() => import('../features/auth/pages/ForgotPassword'))
 const ResetPasswordPage = lazy(() => import('../features/auth/pages/ResetPassword'))
 const OTPPage = lazy(() => import('../features/auth/pages/OTP'))
@@ -90,6 +91,8 @@ export const router = createBrowserRouter([
         children: [
           { path: '/login', element: <LoginPage /> },
           { path: '/register', element: <RegisterPage /> },
+          { path: '/start', element: <StartPage /> },
+          { path: '/onboarding', element: <Navigate to="/start" replace /> },
           { path: '/forgot-password', element: <ForgotPasswordPage /> },
           { path: '/reset-password', element: <ResetPasswordPage /> },
           { path: '/otp', element: <OTPPage /> },

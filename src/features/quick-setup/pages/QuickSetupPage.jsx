@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Sparkles, Building2, FileSpreadsheet, Grid3X3, QrCode, Users, CheckCircle2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Sparkles, Building2, FileSpreadsheet, Grid3X3, QrCode, Users, CheckCircle2, RotateCcw } from 'lucide-react'
 import Step1RestaurantInfo from '../components/Step1RestaurantInfo'
 import Step2ExcelMenu from '../components/Step2ExcelMenu'
 import Step3HallsTables from '../components/Step3HallsTables'
@@ -15,20 +15,55 @@ const WIZARD_STEPS = [
   { id: 5, label: 'Xodimlar', icon: Users },
 ]
 
+const STORAGE_KEY_STEP = 'restoflow_onboarding_step'
+const STORAGE_KEY_DATA = 'restoflow_onboarding_data'
+
 export default function QuickSetupPage() {
-  const [currentStep, setCurrentStep] = useState(1)
-  const [wizardData, setWizardData] = useState({})
+  const [currentStep, setCurrentStep] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEY_STEP)
+    return saved ? parseInt(saved, 10) : 1
+  })
+  const [wizardData, setWizardData] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEY_DATA)
+    try {
+      return saved ? JSON.parse(saved) : {}
+    } catch {
+      return {}
+    }
+  })
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_STEP, String(currentStep))
+  }, [currentStep])
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_DATA, JSON.stringify(wizardData))
+  }, [wizardData])
 
   const handleNextStep = (stepData) => {
-    setWizardData((prev) => ({ ...prev, ...stepData }))
-    setCurrentStep((prev) => prev + 1)
+    setWizardData((prev) => {
+      const updated = { ...prev, ...stepData }
+      localStorage.setItem(STORAGE_KEY_DATA, JSON.stringify(updated))
+      return updated
+    })
+    setCurrentStep((prev) => {
+      const next = prev + 1
+      localStorage.setItem(STORAGE_KEY_STEP, String(next))
+      return next
+    })
   }
 
   const handlePrevStep = () => {
-    setCurrentStep((prev) => Math.max(1, prev - 1))
+    setCurrentStep((prev) => {
+      const prevStep = Math.max(1, prev - 1)
+      localStorage.setItem(STORAGE_KEY_STEP, String(prevStep))
+      return prevStep
+    })
   }
 
   const handleReset = () => {
+    localStorage.removeItem(STORAGE_KEY_STEP)
+    localStorage.removeItem(STORAGE_KEY_DATA)
     setWizardData({})
     setCurrentStep(1)
   }
