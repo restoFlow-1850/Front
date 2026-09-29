@@ -15,6 +15,7 @@ import {
   ClipboardCheck,
   Wallet,
   AlertTriangle,
+  FileSpreadsheet,
 } from 'lucide-react'
 import { toast } from 'react-toastify'
 
@@ -24,6 +25,7 @@ import {
   updateIngredient,
   deleteIngredient,
   addMovement,
+  exportMovements,
 } from '../api'
 import IngredientModal from '../components/IngredientModal'
 import MovementModal from '../components/MovementModal'
@@ -179,6 +181,28 @@ export default function InventoryPage() {
     movementMutation.isPending ||
     inventoryMutation.isPending
 
+  const [isExporting, setIsExporting] = useState(false)
+
+  const handleExport = async () => {
+    if (isExporting) return
+    setIsExporting(true)
+    try {
+      const blob = await exportMovements({})
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `ombor-harakati-${new Date().toISOString().slice(0, 10)}.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      toast.error(apiErrorMessage(err, 'Excel yuklab olishda xatolik'))
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -192,6 +216,12 @@ export default function InventoryPage() {
               <RefreshCw className={`mr-1.5 h-4 w-4 ${ingredientsQuery.isFetching ? 'animate-spin' : ''}`} />
               Yangilash
             </Button>
+            {canManage && (
+              <Button variant="secondary" onClick={handleExport} disabled={isExporting}>
+                <FileSpreadsheet className={`mr-1.5 h-4 w-4 text-emerald-500 ${isExporting ? 'animate-pulse' : ''}`} />
+                Excel hisoboti
+              </Button>
+            )}
             {canManage && (
               <Button
                 onClick={() => {

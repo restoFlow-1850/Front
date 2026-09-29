@@ -518,9 +518,19 @@ export default function MenuPage() {
 
                   {/* Bottom Price & Controls */}
                   <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-800/80">
-                    <span className="text-base font-extrabold text-[#F97316]">
-                      {formatSom(product.price)}
-                    </span>
+                    <div>
+                      <span className="text-base font-extrabold text-[#F97316]">
+                        {formatSom(product.price)}
+                      </span>
+                      {product.cost !== undefined && product.cost !== null && (
+                        <div className="mt-0.5 text-[11px] font-medium leading-tight text-slate-400 dark:text-slate-500">
+                          Tannarx&nbsp;{formatSom(product.cost)}&nbsp;·&nbsp;
+                          <span className={product.profitPercent >= 0 ? 'text-emerald-500' : 'text-rose-500'}>
+                            Foyda {product.profitPercent}%
+                          </span>
+                        </div>
+                      )}
+                    </div>
 
                     <div className="flex items-center gap-1.5">
                       <button
