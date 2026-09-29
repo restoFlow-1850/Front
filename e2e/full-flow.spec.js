@@ -115,6 +115,13 @@ test.describe('full flow: menu → order → kitchen → shift → payment → Z
       // Muvaffaqiyat: tugma «To'liq to'langan» ga o'tadi yoki buyurtma ro'yxatdan chiqadi
       await expect(payButton).toBeHidden()
 
+      // To'lovdan keyin chek (ReceiptPrintModal) avtomatik ochiladi va sahifani
+      // to'sib qo'yadi — chek ko'rinishini tekshirib, yopamiz
+      const receiptClose = page.getByRole('button', { name: 'Yopish', exact: true })
+      await expect(receiptClose.first()).toBeVisible()
+      await receiptClose.first().click()
+      await expect(receiptClose).toHaveCount(0)
+
       // Z-hisobot: haqiqiy tushum = qabul qilingan to'lov
       await page.getByRole('button', { name: 'Z-Report' }).click()
       const totalRow = page.locator('tr', { hasText: "Jami To'langan Summa" })
