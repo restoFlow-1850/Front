@@ -28,14 +28,24 @@ test.describe('full flow: menu → order → kitchen → shift → payment → Z
     browser = b
   })
 
+  // Har rol o'z kontekstida. Xato bo'lsa: skrinshot report'ga biriktiriladi va
+  // sahifadagi matn xato xabariga qo'shiladi — CI logining o'zida nima
+  // ko'ringani yoziladi, artefakt yuklab olish shart emas.
   async function asRole(account, fn) {
     const context = await browser.newContext()
     const page = await context.newPage()
     try {
       await login(page, account)
       await fn(page)
+    } catch (err) {
+      const info = test.info()
+      const shot = await page.screenshot({ fullPage: true }).catch(() => null)
+      if (shot) await info.attach(`${account.role}-failure.png`, { body: shot, contentType: 'image/png' })
+      const text = await page.locator('body').innerText({ timeout: 2_000 }).catch(() => '')
+      err.message += `\n\n── ${account.role} sahifasi (${page.url()}) ──\n${text.replace(/\n{2,}/g, '\n').slice(0, 1500)}`
+      throw err
     } finally {
-      await context.close()
+      await context.close().catch(() => {})
     }
   }
 
