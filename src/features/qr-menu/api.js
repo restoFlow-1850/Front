@@ -1,6 +1,7 @@
 // Mehmon (login qilmagan) uchun ochiq so'rovlar — services/axios orqali.
 // Stollar, band holati, menyu va bron yaratish shu yerdan ishlaydi.
 import api from '../../services/axios'
+import i18n from '../../i18n'
 
 export const getTableAvailability = (isoDateTime) =>
   api.get('/tables/availability', { params: { date: isoDateTime } })
@@ -60,6 +61,12 @@ export function resolveImageUrl(image) {
   return `${API_ORIGIN}${image.startsWith('/') ? '' : '/'}${image}`
 }
 
+// Valyuta yozilishi joriy tilga bog'liq: uz -> so'm, ru -> сум, en -> UZS.
+// Sonlar orasidagi probel ham har til uchun o'z holicha.
+const CURRENCY = { uz: "so'm", ru: 'сум', en: 'UZS' }
+
 export function formatSum(amount) {
-  return `${Number(amount || 0).toLocaleString('ru-RU')} so'm`
+  const lang = i18n.resolvedLanguage?.split('-')[0] ?? 'uz'
+  const locale = lang === 'en' ? 'en-US' : 'ru-RU'
+  return `${Number(amount || 0).toLocaleString(locale)} ${CURRENCY[lang] ?? CURRENCY.uz}`
 }
