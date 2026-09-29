@@ -170,7 +170,7 @@ export default function LandingPage() {
               <FiUser size={14} /> {t('landing.nav.login')}
             </Link>
             <Link
-              to="/register"
+              to="/start"
               className="rounded-lg bg-[#C89B5E] px-4 py-1.5 text-xs font-semibold text-[#2a0e10] transition hover:bg-[#D9A968]"
             >
               {t('landing.nav.start')}
@@ -191,7 +191,7 @@ export default function LandingPage() {
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3 sm:mt-10 sm:gap-4">
           <Link
-            to="/register"
+            to="/start"
             className="rounded-xl bg-[#D9A968] px-6 py-3 text-sm font-bold text-[#2a0e10] shadow-lg transition hover:bg-[#C89B5E] sm:px-8 sm:text-lg"
           >
             {t('landing.hero.startFree')}

@@ -76,7 +76,7 @@ export default function Step6Success({ wizardData, onReset }) {
       </div>
 
       {/* Login URL display */}
-      <div className="bg-[#0f1712] border border-emerald-800/60 rounded-xl p-4 mb-6 text-left">
+      <div className="bg-[#0f1712] border border-emerald-800/60 rounded-xl p-4 mb-4 text-left">
         <span className="text-xs font-medium text-emerald-400 block mb-1">
           🔗 Tizimga kirish havolasi:
         </span>
@@ -91,6 +91,27 @@ export default function Step6Success({ wizardData, onReset }) {
             Ochish <ExternalLink className="w-3 h-3" />
           </a>
         </div>
+      </div>
+
+      {/* Telegram Bot Connection Step */}
+      <div className="bg-[#121c24] border border-sky-800/60 rounded-xl p-4 mb-6 text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div>
+          <span className="text-xs font-bold text-sky-400 flex items-center gap-1.5 mb-0.5">
+            📱 Keyingi Qadam: Telegram Bildirishnomalar Botini Ulash
+          </span>
+          <p className="text-xs text-gray-400">
+            Yangi buyurtmalar, to'lovlar va oshxona holatini Telegram boti orqali real-vaqtda oling.
+          </p>
+        </div>
+        <a
+          href="https://t.me/restoflow_alert_bot"
+          target="_blank"
+          rel="noreferrer"
+          className="shrink-0 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 transition-all shadow-md"
+        >
+          Telegram Botni Ulash
+          <ExternalLink className="w-3.5 h-3.5" />
+        </a>
       </div>
 
       {/* Action Buttons */}

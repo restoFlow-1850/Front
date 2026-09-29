@@ -83,12 +83,21 @@ export function generateStaffAccounts(restaurantName = 'resto') {
  * Demo menyu ma'lumotlari (1-click instant load uchun)
  */
 export const DEMO_MENU_DATA = [
+  // 1-kategoriya: Milliy Taomlar (4 taom)
   { nom: 'Toshkent Palov', kategoriya: 'Milliy taomlar', narx: 38000, tavsif: 'An\'anaviy qo\'y go\'shtli maxsus osh' },
   { nom: 'Tandir Somsa', kategoriya: 'Milliy taomlar', narx: 14000, tavsif: 'Mazzali tandirda yopilgan mol go\'shtli somsa' },
-  { nom: 'Miyon Shashlik', kategoriya: 'Kabablar', narx: 22000, tavsif: 'Yumshoq qo\'y go\'shtidan shashlik' },
-  { nom: 'Mastava', kategoriya: 'Suyuq taomlar', narx: 28000, tavsif: 'Guruchli va sabzavotli quyuq sorba' },
-  { nom: 'Ko\'k Choy (Choynak)', kategoriya: 'Ichimliklar', narx: 5000, tavsif: 'Xushbo\'y ko\'k choy' },
-  { nom: 'Qora Choy (Choynak)', kategoriya: 'Ichimliklar', narx: 5000, tavsif: 'Limonli damlangan qora choy' },
-  { nom: 'Moxito Limonad', kategoriya: 'Ichimliklar', narx: 24000, tavsif: 'Yalpiz va limonli muzli salqin ichimlik' },
-  { nom: 'Muzqaymoq Assorti', kategoriya: 'Shirinliklar', narx: 20000, tavsif: 'Shokolad va meva qiyomli muzqaymoq' },
+  { nom: 'Naryn (Qazi bilan)', kategoriya: 'Milliy taomlar', narx: 42000, tavsif: 'Qo\'lda kesilgan xamir va ot go\'shtidan naryn' },
+  { nom: 'Qozon Kabob', kategoriya: 'Milliy taomlar', narx: 55000, tavsif: 'Qozonda qovurilgan qarsillama kartoshka va go\'sht' },
+
+  // 2-kategoriya: Suyuq taomlar va Kabablar (4 taom)
+  { nom: 'Miyon Shashlik', kategoriya: 'Suyuq taomlar va Kabablar', narx: 22000, tavsif: 'Yumshoq qo\'y go\'shtidan shashlik' },
+  { nom: 'Gijduvon Shashlik', kategoriya: 'Suyuq taomlar va Kabablar', narx: 24000, tavsif: 'Sirli ziravorlar bilan tayyorlangan qiymali shashlik' },
+  { nom: 'Mastava', kategoriya: 'Suyuq taomlar va Kabablar', narx: 28000, tavsif: 'Guruchli va sabzavotli quyuq sho\'rba' },
+  { nom: 'Tovuqli Sho\'rba', kategoriya: 'Suyuq taomlar va Kabablar', narx: 26000, tavsif: 'Uy tovug\'i va sabzavotli shifobaxsh sho\'rba' },
+
+  // 3-kategoriya: Ichimliklar va Shirinliklar (4 taom)
+  { nom: 'Ko\'k Choy (Choynak)', kategoriya: 'Ichimliklar va Shirinliklar', narx: 5000, tavsif: 'Xushbo\'y ko\'k choy' },
+  { nom: 'Moxito Limonad', kategoriya: 'Ichimliklar va Shirinliklar', narx: 24000, tavsif: 'Yalpiz va limonli muzli salqin ichimlik' },
+  { nom: 'Muzqaymoq Assorti', kategoriya: 'Ichimliklar va Shirinliklar', narx: 20000, tavsif: 'Shokolad va meva qiyomli muzqaymoq' },
+  { nom: 'Baklava Shirinligi', kategoriya: 'Ichimliklar va Shirinliklar', narx: 25000, tavsif: 'Yong\'oqli va asal qiyomli turk baklavasi' },
 ]
