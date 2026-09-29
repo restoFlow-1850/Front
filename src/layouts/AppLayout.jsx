@@ -15,6 +15,7 @@ import { useSocketStatus } from '../hooks/useSocketStatus'
 import { useTheme } from '../hooks/useTheme'
 import { disconnectSocket } from '../services/socket'
 import LanguageSwitcher from '../components/common/LanguageSwitcher'
+import { APP_COMMIT, APP_COMMIT_SHORT } from '../shared/config'
 
 export default function AppLayout() {
   const { t } = useTranslation()
@@ -144,6 +145,10 @@ export default function AppLayout() {
           <LogOut size={15} />
           <span>{t('logout')}</span>
         </button>
+        {/* Build versiyasi — prod eskirganini tekshirish uchun (/api/health.commit bilan solishtiring) */}
+        <p className="pt-1 text-center font-mono text-[10px] text-slate-600" title={APP_COMMIT || 'local build'}>
+          v · {APP_COMMIT_SHORT}
+        </p>
       </div>
     </div>
   )

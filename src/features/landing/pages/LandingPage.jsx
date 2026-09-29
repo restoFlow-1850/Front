@@ -17,10 +17,8 @@ import RestaurantCard from '../components/RestaurantCard'
 import RestaurantCardSkeleton from '../components/RestaurantCardSkeleton'
 import EmptyRestaurants from '../components/EmptyRestaurants'
 import ErrorRestaurants from '../components/ErrorRestaurants'
+import { API_ORIGIN } from '../../../shared/config'
 
-const API_ORIGIN = (
-  import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'https://backend-production-109c0.up.railway.app/api')
-).replace(/\/api\/?$/, '')
 
 function resolveImageUrl(image) {
   if (!image) return null

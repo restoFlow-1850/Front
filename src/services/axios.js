@@ -2,12 +2,9 @@
 // Mas'ul: Fayoz (auth interceptor). Foydalanadi: hamma feature.
 import axios from 'axios'
 import { disconnectSocket } from './socket.js'
+import { API_URL } from '../shared/config.js'
 
-const rawApiUrl = typeof import.meta !== 'undefined' ? import.meta.env?.VITE_API_URL : undefined
-const isDev = typeof import.meta !== 'undefined' && Boolean(import.meta.env?.DEV)
-const baseURL = isDev
-  ? (rawApiUrl && !rawApiUrl.startsWith('http') ? rawApiUrl : '/api')
-  : (rawApiUrl || 'https://backend-production-109c0.up.railway.app/api')
+const baseURL = API_URL
 
 const api = axios.create({
   baseURL,
