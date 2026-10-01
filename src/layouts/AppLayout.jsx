@@ -7,6 +7,7 @@ import { Bell, LogOut, Menu, User, X, UtensilsCrossed, Sun, Moon, ChevronRight }
 import { useTranslation } from 'react-i18next'
 import { clearCredentials } from '../features/auth/authSlice'
 import { clearSession, readUser } from '../features/auth/session'
+import { authApi } from '../features/auth/api'
 import { navItemsForRole } from '../constants/navigation'
 import { ROLE_LABELS } from '../constants/roles'
 import { useNotificationsSocket } from '../features/notifications'
@@ -44,6 +45,9 @@ export default function AppLayout() {
   useEffect(() => setMobileOpen(false), [location.pathname])
 
   const handleLogout = () => {
+    // Serverda refresh token bekor qilinadi va httpOnly cookie o'chiriladi (#18).
+    // Javobni kutmaymiz — tarmoq bo'lmasa ham foydalanuvchi darhol chiqadi.
+    authApi.logout().catch(() => {})
     disconnectSocket()
     clearSession()
     dispatch(clearCredentials())
