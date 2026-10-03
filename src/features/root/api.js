@@ -103,4 +103,34 @@ export async function wipeRootCollection(key) {
   return res.data?.data
 }
 
+// ─── SYSTEM STATUS ─────────────────────────────────────────────────
+export async function getSystemStatus() {
+  const res = await rootApi.get('/root/system-status')
+  return res.data?.data
+}
+
+// ─── LIVE ACTIVITY ─────────────────────────────────────────────────
+export async function getLiveActivity(limit = 25) {
+  const res = await rootApi.get('/root/live-activity', { params: { limit } })
+  return res.data?.data
+}
+
+// ─── API MONITOR ───────────────────────────────────────────────────
+export async function getApiMonitor() {
+  const res = await rootApi.get('/root/api-monitor')
+  return res.data?.data
+}
+
+// ─── SECURITY ──────────────────────────────────────────────────────
+export async function getSecurity() {
+  const res = await rootApi.get('/root/security')
+  return res.data?.data
+}
+
+// ─── JOBS STATUS ───────────────────────────────────────────────────
+export async function getJobsStatus() {
+  const res = await rootApi.get('/root/jobs')
+  return res.data?.data
+}
+
 export default rootApi
