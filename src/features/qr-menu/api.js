@@ -1,6 +1,7 @@
 // Mehmon (login qilmagan) uchun ochiq so'rovlar — services/axios orqali.
 // Stollar, band holati, menyu va bron yaratish shu yerdan ishlaydi.
 import api from '../../services/axios'
+import { API_ORIGIN } from '../../shared/config'
 
 export const getTableAvailability = (isoDateTime) =>
   api.get('/tables/availability', { params: { date: isoDateTime } })
@@ -18,9 +19,6 @@ export const getRestaurantMenu = (restaurantId, params) =>
 
 export const createGuestReservation = (payload) => api.post('/reservations', payload)
 
-const API_ORIGIN = (
-  import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'https://backend-production-109c0.up.railway.app/api')
-).replace(/\/api\/?$/, '')
 
 export function resolveImageUrl(image) {
   if (!image) return null
