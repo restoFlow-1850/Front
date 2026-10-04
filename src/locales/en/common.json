@@ -583,5 +583,23 @@
     "footer": {
       "rights": "All rights reserved."
     }
+  },
+  "subscription": {
+    "expiredTitle": "Subscription expired",
+    "expiredBody": "Write actions (creating an order, payment) are blocked. Please pay for the subscription or contact an administrator.",
+    "telegram": "Telegram notifications",
+    "telegramDesc": "Your restaurant receives messages in its own Telegram chat: cancellations, low stock and shift closing.",
+    "chatId": "Telegram Chat ID",
+    "chatIdHelp": "Add the bot to your group and send /getchatid — the Chat ID will appear there.",
+    "enabled": "Enable messages",
+    "events": "Which events",
+    "eventCancellation": "Cancellations",
+    "eventLowStock": "Low stock",
+    "eventShiftClose": "Shift closing",
+    "threshold": "Large cancellation threshold",
+    "thresholdHelp": "If an order above this amount is cancelled — a separate message goes to the manager.",
+    "telegramSaved": "Telegram settings saved",
+    "telegramSaveError": "Could not save Telegram settings",
+    "noChatIdWarning": "Until a Chat ID is set, messages will not be sent."
   }
 }
