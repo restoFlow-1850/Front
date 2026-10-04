@@ -17,6 +17,7 @@ import {
   SlidersHorizontal,
   MessageSquareHeart,
   MapPinned,
+  Warehouse,
 } from 'lucide-react'
 
 import { ROLES, ROLE_HOME } from './roles.js'
@@ -106,6 +107,14 @@ export const NAV_ITEMS = [
     path: '/employees',
     label: 'Xodimlar',
     icon: Users,
+    roles: STAFF,
+    inSidebar: true,
+  },
+  {
+    key: 'inventory',
+    path: '/inventory',
+    label: 'Ombor',
+    icon: Warehouse,
     roles: STAFF,
     inSidebar: true,
   },
