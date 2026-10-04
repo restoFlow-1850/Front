@@ -17,6 +17,9 @@ export default defineConfig({
   reporter: isCI ? [['github'], ['html', { open: 'never' }]] : [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL: `http://localhost:${FRONT_PORT}`,
+    // Cheksiz kutish o'rniga aniq xato: qaysi tugma/sahifa topilmagani logda ko'rinadi
+    actionTimeout: 15_000,
+    navigationTimeout: 20_000,
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
     video: 'retain-on-failure',
