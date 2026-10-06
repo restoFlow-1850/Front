@@ -4,12 +4,25 @@ import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { execSync } from 'child_process'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
+// Build qilinayotgan commit: Netlify (COMMIT_REF), Vercel (VERCEL_GIT_COMMIT_SHA),
+// GitHub Actions (GITHUB_SHA) yoki lokal git. src/shared/config.js → APP_COMMIT
+function resolveCommit(env) {
+  const fromEnv = env.VITE_COMMIT || process.env.COMMIT_REF || process.env.VERCEL_GIT_COMMIT_SHA || process.env.GITHUB_SHA
+  if (fromEnv) return fromEnv
+  try {
+    return execSync('git rev-parse HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()
+  } catch {
+    return ''
+  }
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const backendTarget = env.VITE_API_PROXY_TARGET || 'https://backend-production-109c0.up.railway.app'
+  const backendTarget = env.VITE_API_PROXY_TARGET || 'https://api.restoflow.uz'
 
   return {
     plugins: [
@@ -43,6 +56,9 @@ export default defineConfig(({ mode }) => {
         },
       }),
     ],
+    define: {
+      'import.meta.env.VITE_COMMIT': JSON.stringify(resolveCommit(env)),
+    },
     resolve: {
       alias: {
         '@utils': path.resolve(__dirname, 'src/features/cashier/utils'),
