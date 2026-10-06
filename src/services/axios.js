@@ -3,15 +3,16 @@
 import axios from 'axios'
 import { disconnectSocket } from './socket.js'
 import { isSubscriptionExpired, emitSubscriptionExpired } from '../lib/subscription'
+import { API_URL } from '../shared/config.js'
+import { clearSession, takeLegacyRefreshToken } from '../features/auth/session.js'
 
-const rawApiUrl = typeof import.meta !== 'undefined' ? import.meta.env?.VITE_API_URL : undefined
-const isDev = typeof import.meta !== 'undefined' && Boolean(import.meta.env?.DEV)
-const baseURL = isDev
-  ? (rawApiUrl && !rawApiUrl.startsWith('http') ? rawApiUrl : '/api')
-  : (rawApiUrl || 'https://backend-production-109c0.up.railway.app/api')
+const baseURL = API_URL
 
+// withCredentials — httpOnly refresh cookie (#18) /auth/refresh va /auth/logout'ga borishi uchun.
+// Backend CORS'da credentials: true va aniq origin ro'yxati bor.
 const api = axios.create({
   baseURL,
+  withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 })
 
@@ -42,6 +43,7 @@ const AUTH_ENDPOINTS = [
   '/auth/login',
   '/auth/register',
   '/auth/refresh',
+  '/auth/logout',
   '/auth/forgot-password',
   '/auth/reset-password',
   '/auth/send-otp',
@@ -49,9 +51,7 @@ const AUTH_ENDPOINTS = [
 ]
 
 const redirectToLogin = () => {
-  localStorage.removeItem('accessToken')
-  localStorage.removeItem('refreshToken')
-  localStorage.removeItem('user')
+  clearSession()
   disconnectSocket()
   window.location.href = '/login'
 }
@@ -72,15 +72,6 @@ api.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    // Refresh token har safar localStorage'dan o'qiladi — modul yuklanganda bir marta
-    // o'qilsa, login'dan keyin kelgan yangi token ko'rinmay qoladi.
-    const refreshToken = localStorage.getItem('refreshToken')
-
-    if (!isValidToken(refreshToken)) {
-      redirectToLogin()
-      return Promise.reject(error)
-    }
-
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         pendingQueue = [...pendingQueue, { resolve, reject }]
@@ -94,11 +85,17 @@ api.interceptors.response.use(
     isRefreshing = true
 
     try {
-      const res = await axios.post(`${baseURL}/auth/refresh`, { refreshToken })
+      // Refresh token httpOnly cookie'da — brauzer o'zi yuboradi. Eski versiyadan
+      // localStorage'da qolgan token bo'lsa, bir marta body'da yuborib, cookie'ga ko'chiramiz.
+      const legacy = takeLegacyRefreshToken()
+      const res = await axios.post(
+        `${baseURL}/auth/refresh`,
+        legacy ? { refreshToken: legacy } : {},
+        { withCredentials: true },
+      )
       // Backend standart {success, data} formatida o'raydi — xavfsiz ochamiz (Zulfqor).
       const data = res.data?.data ?? res.data
       localStorage.setItem('accessToken', data.accessToken)
-      if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken)
 
       processQueue(null, data.accessToken)
       originalRequest.headers.Authorization = `Bearer ${data.accessToken}`
