@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next'
 import {
   Search,
   Plus,
-  Filter,
   Pencil,
   Trash2,
   CheckCircle2,
@@ -19,6 +18,7 @@ import {
   AlertTriangle,
   FolderPlus,
   RefreshCw,
+  FileSpreadsheet,
 } from 'lucide-react'
 import { toast } from 'react-toastify'
 
@@ -33,9 +33,11 @@ import {
   deleteProduct,
   resolveImageUrl,
 } from '../api'
+import { getIngredients } from '../../inventory/api'
 import CategoryModal, { ICONS } from '../components/CategoryModal'
 import ProductModal from '../components/ProductModal'
 import ProductPreviewModal from '../components/ProductPreviewModal'
+import ExcelImportModal from '../components/ExcelImportModal'
 import { ROLES } from '../../../constants/roles'
 import { unwrapList, apiErrorMessage, formatSom } from '../../../lib/api'
 import { Modal, Button } from '../../../components/ui'
@@ -67,6 +69,7 @@ export default function MenuPage() {
   const [deleteProductTarget, setDeleteProductTarget] = useState(null)
 
   const [previewProduct, setPreviewProduct] = useState(null)
+  const [isExcelModalOpen, setIsExcelModalOpen] = useState(false)
 
   // Fetch Categories
   const categoriesQuery = useQuery({
@@ -78,6 +81,13 @@ export default function MenuPage() {
   const productsQuery = useQuery({
     queryKey: ['products'],
     queryFn: async () => unwrapList(await getProducts(), 'products'),
+  })
+
+  // Fetch Ingredients — teхnologik karta (recipe) uchun. Faqat admin/manager faollaydi.
+  const ingredientsQuery = useQuery({
+    queryKey: ['ingredients'],
+    queryFn: async () => unwrapList(await getIngredients({ limit: 500 }), 'ingredients'),
+    enabled: canManage,
   })
 
   const categories = categoriesQuery.data ?? []
@@ -219,6 +229,14 @@ export default function MenuPage() {
 
           {canManage && (
             <>
+              <Button
+                variant="secondary"
+                onClick={() => setIsExcelModalOpen(true)}
+              >
+                <FileSpreadsheet className="mr-1.5 h-4 w-4 text-emerald-500" />
+                Excel'dan yuklash
+              </Button>
+
               <Button
                 variant="secondary"
                 onClick={() => {
@@ -500,9 +518,19 @@ export default function MenuPage() {
 
                   {/* Bottom Price & Controls */}
                   <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-800/80">
-                    <span className="text-base font-extrabold text-[#F97316]">
-                      {formatSom(product.price)}
-                    </span>
+                    <div>
+                      <span className="text-base font-extrabold text-[#F97316]">
+                        {formatSom(product.price)}
+                      </span>
+                      {product.cost !== undefined && product.cost !== null && (
+                        <div className="mt-0.5 text-[11px] font-medium leading-tight text-slate-400 dark:text-slate-500">
+                          Tannarx&nbsp;{formatSom(product.cost)}&nbsp;·&nbsp;
+                          <span className={product.profitPercent >= 0 ? 'text-emerald-500' : 'text-rose-500'}>
+                            Foyda {product.profitPercent}%
+                          </span>
+                        </div>
+                      )}
+                    </div>
 
                     <div className="flex items-center gap-1.5">
                       <button
@@ -598,6 +626,7 @@ export default function MenuPage() {
         }}
         product={editingProduct}
         categories={categories}
+        ingredients={ingredientsQuery.data ?? []}
       />
 
       {/* Product Preview Modal */}
@@ -683,6 +712,19 @@ export default function MenuPage() {
           </p>
         </div>
       </Modal>
+
+      {/* Excel Import Modal */}
+      <ExcelImportModal
+        isOpen={isExcelModalOpen}
+        onClose={() => setIsExcelModalOpen(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['categories'] })
+          queryClient.invalidateQueries({ queryKey: ['products'] })
+        }}
+        categories={categories}
+        createCategory={createCategory}
+        createProduct={createProduct}
+      />
     </div>
   )
 }

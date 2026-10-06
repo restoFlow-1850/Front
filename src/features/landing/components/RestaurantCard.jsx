@@ -1,15 +1,14 @@
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { FiMapPin, FiStar, FiArrowRight, FiBookOpen } from 'react-icons/fi'
 
 // Restoran kartasi — bosilganda mehmon menyusiga (/guest) olib boradi.
-// Tanlangan restoran sessionStorage'ga yoziladi: /guest sahifasi "X restoran
-// menyusi" sarlavhasini ko'rsatish uchun shu ma'lumotni o'qiydi (Abdugani).
 export default function RestaurantCard({ restaurant }) {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { _id, id, name, slug, address, cuisine, rating, image, description } = restaurant
   const restaurantId = _id ?? id
 
-  // Kartani bosganda: restoran kontekstini saqlab, mehmon menyusiga o'tamiz.
   function openGuestMenu() {
     try {
       sessionStorage.setItem(
@@ -85,7 +84,7 @@ export default function RestaurantCard({ restaurant }) {
         {/* Mehmon menyusiga o'tish */}
         <span className="mt-3 flex items-center justify-center gap-2 rounded-lg border border-[#4a1616] py-2.5 text-sm font-medium text-[#cbbcbc] transition group-hover:border-[#C89B5E]/40 group-hover:bg-[#C89B5E]/5 group-hover:text-[#D9A968]">
           <FiBookOpen className="h-4 w-4" />
-          Menyuni ko'rish
+          {t('landing.restaurants.viewMenu')}
         </span>
       </div>
     </button>

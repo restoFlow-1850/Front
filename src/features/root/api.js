@@ -2,12 +2,9 @@
 // Alohide JWT secret bilan token olinadi (JWT_ROOT_SECRET backend'da) va
 // oddiy `api` instance'dan HAMMASI BO'LAB ajratilgan — xavfsizlik uchun.
 import axios from 'axios'
+import { API_URL } from '../../shared/config'
 
-const rawApiUrl = import.meta.env?.VITE_API_URL
-const isDev = Boolean(import.meta.env?.DEV)
-const baseURL = isDev
-  ? (rawApiUrl && !rawApiUrl.startsWith('http') ? rawApiUrl : '/api')
-  : (rawApiUrl || 'https://backend-production-109c0.up.railway.app/api')
+const baseURL = API_URL
 
 const rootApi = axios.create({
   baseURL,
@@ -100,6 +97,36 @@ export async function resetUserPassword(id, password = null) {
 
 export async function wipeRootCollection(key) {
   const res = await rootApi.post(`/root/collections/${key}/wipe`)
+  return res.data?.data
+}
+
+// ─── SYSTEM STATUS ─────────────────────────────────────────────────
+export async function getSystemStatus() {
+  const res = await rootApi.get('/root/system-status')
+  return res.data?.data
+}
+
+// ─── LIVE ACTIVITY ─────────────────────────────────────────────────
+export async function getLiveActivity(limit = 25) {
+  const res = await rootApi.get('/root/live-activity', { params: { limit } })
+  return res.data?.data
+}
+
+// ─── API MONITOR ───────────────────────────────────────────────────
+export async function getApiMonitor() {
+  const res = await rootApi.get('/root/api-monitor')
+  return res.data?.data
+}
+
+// ─── SECURITY ──────────────────────────────────────────────────────
+export async function getSecurity() {
+  const res = await rootApi.get('/root/security')
+  return res.data?.data
+}
+
+// ─── JOBS STATUS ───────────────────────────────────────────────────
+export async function getJobsStatus() {
+  const res = await rootApi.get('/root/jobs')
   return res.data?.data
 }
 

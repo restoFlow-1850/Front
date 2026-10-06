@@ -25,10 +25,12 @@ export default function useNotificationsSocket() {
   const tablesRef = useRef({ byId: new Map(), waiterFieldSeen: false })
   const seenEventsRef = useRef(new Map())
 
-  // Backend'dan bildirishnomalarni yuklash (birinchi kirishda)
+  // Backend'dan bildirishnomalarni yuklash (faqat login bo'lgan bo'lsa)
   useEffect(() => {
-    dispatch(fetchNotifications())
-  }, [dispatch])
+    if (user?._id || user?.id) {
+      dispatch(fetchNotifications())
+    }
+  }, [dispatch, user])
 
   useEffect(() => {
     let cancelled = false

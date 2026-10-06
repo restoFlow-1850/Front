@@ -2,6 +2,7 @@
 // Stollar, band holati, menyu va bron yaratish shu yerdan ishlaydi.
 import api from '../../services/axios'
 import i18n from '../../i18n'
+import { API_ORIGIN } from '../../shared/config'
 
 export const getTableAvailability = (isoDateTime) =>
   api.get('/tables/availability', { params: { date: isoDateTime } })
@@ -51,9 +52,6 @@ export const getPublicOrderById = (id) => api.get(`/public/orders/${id}`)
 export const callWaiterForTable = (tableId, type = 'call', notes = '') =>
   api.post(`/tables/${tableId}/call-waiter`, { type, ...(notes ? { notes } : {}) })
 
-const API_ORIGIN = (
-  import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'https://backend-production-109c0.up.railway.app/api')
-).replace(/\/api\/?$/, '')
 
 export function resolveImageUrl(image) {
   if (!image) return null
