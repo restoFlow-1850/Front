@@ -87,6 +87,34 @@
     "cook": "Cook",
     "chef": "Cook"
   },
+  "branchesMap": {
+    "title": "Branches Map",
+    "subtitle": "Branch locations and table occupancy (Admin only)",
+    "cardTitle": "Restaurant Branches Map",
+    "cardSubtitle": "All branches and table occupancy level",
+    "branchCount": "{{count}} branches",
+    "searchPlaceholder": "Search by branch or city...",
+    "noBranches": "No branch found",
+    "noBranchesYet": "No branches",
+    "loadFailed": "Failed to load branches",
+    "retry": "Retry",
+    "locationSet": "Location set",
+    "locationNotSet": "Location not set",
+    "setLocation": "Set on map",
+    "editLocation": "Edit location",
+    "clickOnMapToChoose": "Pick a point on the map to set the location",
+    "selectedPoint": "Selected point",
+    "saveLocation": "Save location",
+    "locationSaved": "Location saved successfully!",
+    "locationSaveFailed": "Failed to save location",
+    "tablesLabel": "Tables",
+    "tablesOccupied": "{{occupied}}/{{total}} occupied",
+    "open": "Open",
+    "busy": "Occupied",
+    "peak": "Peak 100%",
+    "active": "Active",
+    "allNeedLocation": "No branch has a location set yet. Pick a branch from the list and mark it on the map."
+  },
   "orderStatus": {
     "yangi": "New",
     "oshxonada": "In Kitchen",
@@ -716,5 +744,23 @@
     "reserveFailed": "Couldn't submit the reservation. Check your connection.",
     "giveFeedback": "Give feedback",
     "onlineMenu": "Online menu"
+  },
+  "subscription": {
+    "expiredTitle": "Subscription expired",
+    "expiredBody": "Write actions (creating an order, payment) are blocked. Please pay for the subscription or contact an administrator.",
+    "telegram": "Telegram notifications",
+    "telegramDesc": "Your restaurant receives messages in its own Telegram chat: cancellations, low stock and shift closing.",
+    "chatId": "Telegram Chat ID",
+    "chatIdHelp": "Add the bot to your group and send /getchatid — the Chat ID will appear there.",
+    "enabled": "Enable messages",
+    "events": "Which events",
+    "eventCancellation": "Cancellations",
+    "eventLowStock": "Low stock",
+    "eventShiftClose": "Shift closing",
+    "threshold": "Large cancellation threshold",
+    "thresholdHelp": "If an order above this amount is cancelled — a separate message goes to the manager.",
+    "telegramSaved": "Telegram settings saved",
+    "telegramSaveError": "Could not save Telegram settings",
+    "noChatIdWarning": "Until a Chat ID is set, messages will not be sent."
   }
 }
