@@ -2,6 +2,7 @@
 // Mas'ul: Fayoz (auth interceptor). Foydalanadi: hamma feature.
 import axios from 'axios'
 import { disconnectSocket } from './socket.js'
+import { isSubscriptionExpired, emitSubscriptionExpired } from '../lib/subscription'
 import { API_URL } from '../shared/config.js'
 import { clearSession, takeLegacyRefreshToken } from '../features/auth/session.js'
 
@@ -60,6 +61,12 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config
     const isAuthEndpoint = AUTH_ENDPOINTS.some((url) => originalRequest?.url?.includes(url))
+
+    // Obuna tugagan (402) — AppLayout'dagi "Obuna tugagan" banneriga e'lon qilinadi.
+    // Rad etishni bu yerda ham qayta ishlaymiz: 401 mantig'i boshqa joyda.
+    if (isSubscriptionExpired(error)) {
+      emitSubscriptionExpired(error.response?.data ?? {})
+    }
 
     if (error.response?.status !== 401 || isAuthEndpoint || originalRequest._retry) {
       return Promise.reject(error)

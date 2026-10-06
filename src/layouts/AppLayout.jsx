@@ -16,6 +16,7 @@ import { useSocketStatus } from '../hooks/useSocketStatus'
 import { useTheme } from '../hooks/useTheme'
 import { disconnectSocket } from '../services/socket'
 import LanguageSwitcher from '../components/common/LanguageSwitcher'
+import SubscriptionBanner from '../components/common/SubscriptionBanner'
 import { APP_COMMIT, APP_COMMIT_SHORT } from '../shared/config'
 
 export default function AppLayout() {
@@ -267,6 +268,7 @@ export default function AppLayout() {
 
         {/* Content Area */}
         <main className="min-w-0 flex-1 p-4 lg:p-6">
+          <SubscriptionBanner />
           <Outlet />
         </main>
       </div>
