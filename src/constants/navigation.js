@@ -17,6 +17,9 @@ import {
   SlidersHorizontal,
   MessageSquareHeart,
   Wand2,
+  MapPinned,
+  BarChart3,
+  Warehouse,
 } from 'lucide-react'
 
 import { ROLES, ROLE_HOME } from './roles.js'
@@ -51,6 +54,14 @@ export const NAV_ITEMS = [
     label: 'Buyurtmalar',
     icon: ClipboardList,
     roles: [ROLES.ADMIN, ROLES.MANAGER, ROLES.WAITER, ROLES.CASHIER],
+    inSidebar: true,
+  },
+  {
+    key: 'map',
+    path: '/map',
+    label: 'Filiallar xaritasi',
+    icon: MapPinned,
+    roles: [ROLES.ADMIN],
     inSidebar: true,
   },
   {
@@ -106,6 +117,22 @@ export const NAV_ITEMS = [
     path: '/employees',
     label: 'Xodimlar',
     icon: Users,
+    roles: STAFF,
+    inSidebar: true,
+  },
+  {
+    key: 'reports',
+    path: '/reports',
+    label: 'Hisobotlar va Analitika',
+    icon: BarChart3,
+    roles: STAFF,
+    inSidebar: true,
+  },
+  {
+    key: 'inventory',
+    path: '/inventory',
+    label: 'Ombor',
+    icon: Warehouse,
     roles: STAFF,
     inSidebar: true,
   },

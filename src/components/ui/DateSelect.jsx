@@ -33,12 +33,10 @@ function shortDate(dateStr) {
 
 // Vaqt slotlari: 10:00 - 22:00, 30 daq intervalda
 function buildTimeSlots() {
-  const slots = []
-  for (let h = 10; h <= 22; h++) {
-    slots.push(`${String(h).padStart(2, '0')}:00`)
-    if (h < 22) slots.push(`${String(h).padStart(2, '0')}:30`)
-  }
-  return slots
+  const tm = (h, m) => `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+  return Array.from({ length: 13 }, (_, i) => i + 10).flatMap((h) =>
+    h < 22 ? [tm(h, 0), tm(h, 30)] : [tm(h, 0)],
+  )
 }
 
 const TIME_SLOTS = buildTimeSlots()
@@ -47,11 +45,11 @@ const TIME_SLOTS = buildTimeSlots()
 function DateChips({ value, onChange }) {
   const today = todayStr()
   const seen = new Set()
-  const chips = []
+  let chips = []
   const addChip = (label, date) => {
     if (!seen.has(date)) {
       seen.add(date)
-      chips.push({ label, date })
+      chips = [...chips, { label, date }]
     }
   }
   addChip('Bugun', today)

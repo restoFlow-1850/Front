@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { useSelector } from 'react-redux'
 import { ArrowRightLeft, Minus, Plus, ShoppingCart, Trash2, UtensilsCrossed } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { useSearchParams } from 'react-router-dom'
@@ -16,6 +17,7 @@ import {
   ORDER_STATUS_LABELS,
   ORDER_STATUS_TONE,
   NEXT_ORDER_STATUS,
+  canSetOrderStatus,
   TABLE_STATUS,
   TABLE_STATUS_LABELS,
 } from '../../../constants/roles'
@@ -35,6 +37,7 @@ export default function WaiterPage() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [searchParams] = useSearchParams()
+  const role = useSelector((state) => state.auth.user?.role)
 
   // /tables sahifasidan kelganda stol oldindan tanlangan bo'ladi.
   const [tableId, setTableId] = useState(() => searchParams.get('table') ?? '')
@@ -311,7 +314,9 @@ export default function WaiterPage() {
             ) : (
               <div className="space-y-2">
                 {activeOrders.map((order) => {
-                  const next = NEXT_ORDER_STATUS[order.status]
+                  const nextStatus = NEXT_ORDER_STATUS[order.status]
+                  // Ofitsiant "tayyor" qila olmaydi — bu oshxonaning ishi (Backend STATUS_ROLES)
+                  const next = canSetOrderStatus(role, nextStatus) ? nextStatus : null
                   return (
                     <div
                       key={order._id}

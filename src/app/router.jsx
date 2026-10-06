@@ -37,10 +37,13 @@ const MenuPage = lazy(() => import('../features/menu/pages/MenuPage'))
 const TablesPage = lazy(() => import('../features/tables/pages/TablesPage'))
 const ReservationsPage = lazy(() => import('../features/reservations/pages/ReservationsPage'))
 const EmployeesPage = lazy(() => import('../features/employees/pages/EmployeesPage'))
+const ReportsPage = lazy(() => import('../features/reports/pages/ReportsPage'))
+const InventoryPage = lazy(() => import('../features/inventory/pages/InventoryPage'))
 const NotificationsPage = lazy(() => import('../features/notifications/pages/NotificationsPage'))
 const FeedbackPage = lazy(() => import('../features/feedback/pages/FeedbackPage'))
 const SettingsPage = lazy(() => import('../features/settings/pages/SettingsPage'))
 const ProfilePage = lazy(() => import('../features/auth/pages/Profile'))
+const BranchesMapPage = lazy(() => import('../features/branches/pages/BranchesMapPage'))
 
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage'))
 const ForbiddenPage = lazy(() => import('../pages/ForbiddenPage'))
@@ -59,10 +62,13 @@ const PAGE_BY_KEY = {
   tables: <TablesPage />,
   reservations: <ReservationsPage />,
   employees: <EmployeesPage />,
+  reports: <ReportsPage />,
+  inventory: <InventoryPage />,
   notifications: <NotificationsPage />,
   feedback: <FeedbackPage />,
   settings: <SettingsPage />,
   profile: <ProfilePage />,
+  map: <BranchesMapPage />,
 }
 
 // Har bandni o'z rollari bilan RoleRoute ichiga o'raydi.

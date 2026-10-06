@@ -82,6 +82,20 @@ export const NEXT_ORDER_STATUS = {
   [ORDER_STATUS.CANCELLED]: null,
 }
 
+// Qaysi rol buyurtmani qaysi holatga o'tkaza oladi.
+// Backend order.service.STATUS_ROLES bilan AYNAN bir xil bo'lishi SHART —
+// aks holda UI tugma ko'rsatadi, server esa 403 qaytaradi (Backend PR #23).
+export const ORDER_STATUS_ROLES = {
+  [ORDER_STATUS.IN_KITCHEN]: [ROLES.ADMIN, ROLES.MANAGER, ROLES.WAITER, ROLES.COOK],
+  [ORDER_STATUS.READY]: [ROLES.ADMIN, ROLES.MANAGER, ROLES.COOK],
+  [ORDER_STATUS.SERVED]: [ROLES.ADMIN, ROLES.MANAGER, ROLES.WAITER],
+  [ORDER_STATUS.CLOSED]: [ROLES.ADMIN, ROLES.MANAGER, ROLES.WAITER, ROLES.CASHIER],
+  [ORDER_STATUS.CANCELLED]: [ROLES.ADMIN, ROLES.MANAGER, ROLES.WAITER],
+}
+
+export const canSetOrderStatus = (role, status) =>
+  Boolean(role && status && ORDER_STATUS_ROLES[status]?.includes(role))
+
 export const TABLE_STATUS = {
   AVAILABLE: 'available',
   BUSY: 'occupied',
