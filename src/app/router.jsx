@@ -17,6 +17,8 @@ import { NAV_ITEMS } from '../constants/navigation'
 // ─── Ochiq sahifalar ─────────────────────────────────────────────
 const LoginPage = lazy(() => import('../features/auth/pages/LoginPage'))
 const RegisterPage = lazy(() => import('../features/auth/pages/Register'))
+// Yangi: /start — Restoran ro'yxatdan o'tkazish (client + admin bitta tranzaksiyada)
+const StartPage = lazy(() => import('../features/auth/pages/StartPage'))
 const ForgotPasswordPage = lazy(() => import('../features/auth/pages/ForgotPassword'))
 const ResetPasswordPage = lazy(() => import('../features/auth/pages/ResetPassword'))
 const OTPPage = lazy(() => import('../features/auth/pages/OTP'))
@@ -26,6 +28,8 @@ const ClientsPage = lazy(() => import('../features/landing/pages/ClientsPage'))
 const RootPanel = lazy(() => import('../features/root/pages/RootPanel'))
 
 // ─── Himoyalangan sahifalar ─────────────────────────────────────
+// Yangi: /quick-setup — 10 daqiqada yangi restoran sehrgari (PR2-PR4 da to'liqlanadi)
+const QuickSetupPage = lazy(() => import('../features/quick-setup/pages/QuickSetupPage'))
 const DashboardPage = lazy(() => import('../features/dashboard/pages/Dashboard'))
 const OrdersPage = lazy(() => import('../features/orders/pages/OrdersPage'))
 const WaiterPage = lazy(() => import('../features/orders/pages/WaiterPage'))
@@ -50,6 +54,7 @@ const ForbiddenPage = lazy(() => import('../pages/ForbiddenPage'))
 // yozilmasa, buildProtectedRoutes uni jimgina tashlab ketmaydi — dev rejimida
 // konsolga ogohlantirish chiqadi.
 const PAGE_BY_KEY = {
+  quickSetup: <QuickSetupPage />,
   dashboard: <DashboardPage />,
   orders: <OrdersPage />,
   waiter: <WaiterPage />,
@@ -94,6 +99,10 @@ export const router = createBrowserRouter([
         children: [
           { path: '/login', element: <LoginPage /> },
           { path: '/register', element: <RegisterPage /> },
+          // Restoran ro'yxatdan o'tkazish — client + admin bitta tranzaksiyada
+          { path: '/start', element: <StartPage /> },
+          // /onboarding eski havolalarni yo'naltiradi
+          { path: '/onboarding', element: <Navigate to="/start" replace /> },
           { path: '/forgot-password', element: <ForgotPasswordPage /> },
           { path: '/reset-password', element: <ResetPasswordPage /> },
           { path: '/otp', element: <OTPPage /> },
@@ -107,6 +116,10 @@ export const router = createBrowserRouter([
 
   // QR menyu — mehmon uchun, login talab qilinmaydi.
   { path: '/guest', element: <GuestMenuPage /> },
+
+  // Landing va clients sahifalari
+  { path: '/landing', element: <LandingPage /> },
+  { path: '/clients', element: <ClientsPage /> },
 
   // ROOT (superadmin) panel — sidebar'da ko'rinmaydi, faqat URL orqali.
   // URL: /sap (Super Admin Panel). O'z alohide auth'iga ega (login ekrani ichida).
