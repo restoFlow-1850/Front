@@ -19,6 +19,8 @@ export const authApi = {
   getMe: () => axios.get('/auth/me'),
   sendOtp: (payload) => axios.post('/auth/send-otp', payload),
   verifyOtp: (payload) => axios.post('/auth/verify-otp', payload),
+  /** Refresh token'ni serverda bekor qiladi va httpOnly cookie'ni o'chiradi (#18) */
+  logout: () => axios.post('/auth/logout'),
 }
 
 // Authentication failures are expected user-input outcomes, so present an

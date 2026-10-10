@@ -30,7 +30,7 @@ export function StatCard({ icon: Icon, label, value, hint, tone = 'orange' }) {
       <div className="min-w-0">
         <p className="truncate text-xs font-semibold text-[#6B7280] dark:text-gray-400">{label}</p>
         <p className="text-2xl font-bold text-[#111827] dark:text-white">{value}</p>
-        {hint && <p className="truncate text-xs font-medium text-gray-400">{hint}</p>}
+        {hint && <p className="line-clamp-2 text-xs font-medium text-gray-400">{hint}</p>}
       </div>
     </Card>
   )
