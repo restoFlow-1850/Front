@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { FiAlertTriangle, FiMinus, FiPlus, FiRefreshCw, FiShoppingCart } from 'react-icons/fi'
 import { resolveImageUrl, formatSum } from '../api'
 
@@ -16,6 +17,7 @@ export default function MenuStep({
   onBack,
   onNext,
 }) {
+  const { t } = useTranslation()
   const filtered = activeCategory
     ? products.filter((p) => (p.category?._id ?? p.category?.id ?? p.category) === activeCategory)
     : products
@@ -23,10 +25,8 @@ export default function MenuStep({
   return (
     <div className="flex flex-col gap-5 pb-24">
       <div>
-        <h2 className="text-lg font-bold text-[#E6DCDC]">Taomlar va ichimliklar</h2>
-        <p className="text-sm text-[#9a8080]">
-          Xohlasangiz oldindan buyurtma bering — stolga kelganingizda tayyor kutib turadi. Bu qadamni o'tkazib yuborishingiz ham mumkin.
-        </p>
+        <h2 className="text-lg font-bold text-[#E6DCDC]">{t('guestOrder.dishesTitle')}</h2>
+        <p className="text-sm text-[#9a8080]">{t('guestOrder.dishesSubtitle')}</p>
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-1">
@@ -39,7 +39,7 @@ export default function MenuStep({
               : 'bg-[#2a1315] text-[#cbbcbc] hover:bg-[#3a1a1c]'
           }`}
         >
-          Barchasi
+          {t('guestOrder.all')}
         </button>
         {categories.map((cat) => {
           const catId = cat._id ?? cat.id
@@ -84,7 +84,7 @@ export default function MenuStep({
             <FiAlertTriangle className="h-7 w-7 text-red-400" />
           </div>
           <p className="max-w-xs text-sm text-[#9a8080]">
-            {error || "Menyuni yuklab bo'lmadi. Internet aloqasini tekshiring."}
+            {error || t('guestOrder.menuError')}
           </p>
           {onRetry && (
             <button
@@ -93,7 +93,7 @@ export default function MenuStep({
               className="mt-1 flex items-center gap-2 rounded-lg bg-[#C89B5E] px-5 py-2.5 text-sm font-semibold text-[#2a0e10] transition hover:bg-[#D9A968]"
             >
               <FiRefreshCw className="h-4 w-4" />
-              Qayta urinish
+              {t('guestOrder.retry')}
             </button>
           )}
         </div>
@@ -104,12 +104,12 @@ export default function MenuStep({
             🍽️
           </div>
           <p className="text-base font-bold text-[#E6DCDC]">
-            {activeCategory ? "Bu bo'limda mahsulot topilmadi" : 'Menyu hozircha boʻsh'}
+            {activeCategory ? t('guestOrder.emptyCategoryTitle') : t('guestOrder.emptyMenuTitle')}
           </p>
           <p className="max-w-xs text-sm text-[#9a8080]">
             {activeCategory
-              ? "Boshqa kategoriya tanlab ko'ring yoki \"Barchasi\"ni oching."
-              : 'Restoran menyusi tez orada qo‘shiladi.'}
+              ? t('guestOrder.emptyCategoryDesc')
+              : t('guestOrder.emptyMenuDesc')}
           </p>
         </div>
       ) : (
@@ -143,7 +143,7 @@ export default function MenuStep({
                       onClick={() => onQtyChange(product, 1)}
                       className="mt-1 flex items-center justify-center gap-1.5 rounded-lg bg-[#C89B5E] py-1.5 text-xs font-semibold text-[#2a0e10] hover:bg-[#D9A968]"
                     >
-                      <FiPlus size={13} /> Qo'shish
+                      <FiPlus size={13} /> {t('guestOrder.add')}
                     </button>
                   ) : (
                     <div className="mt-1 flex items-center justify-between rounded-lg bg-[#2a1315] px-1.5 py-1">
@@ -178,12 +178,12 @@ export default function MenuStep({
             onClick={onBack}
             className="rounded-lg px-4 py-2.5 text-sm font-semibold text-[#cbbcbc] hover:bg-[#2a1315]"
           >
-            Orqaga
+            {t('back')}
           </button>
           <div className="flex items-center gap-4">
             {cartCount > 0 && (
               <span className="flex items-center gap-2 text-sm font-medium text-[#cbbcbc]">
-                <FiShoppingCart /> {cartCount} ta · {formatSum(cartTotal)}
+                <FiShoppingCart /> {t('guestOrder.cartCountLabel', { count: cartCount, amount: formatSum(cartTotal) })}
               </span>
             )}
             <button
@@ -191,7 +191,7 @@ export default function MenuStep({
               onClick={onNext}
               className="rounded-lg bg-[#C89B5E] px-6 py-2.5 text-sm font-semibold text-[#2a0e10] shadow-sm transition hover:bg-[#D9A968]"
             >
-              {cartCount > 0 ? 'Davom etish' : "O'tkazib yuborish"}
+              {cartCount > 0 ? t('guestOrder.continue') : t('guestOrder.skip')}
             </button>
           </div>
         </div>

@@ -1,6 +1,9 @@
 // Bitta stol — atrofida stullar bilan, xuddi teatr o'rindiqlar sxemasidagi kabi
 // tepadan ko'rinish. Rang holatga qarab: kulrang = bo'sh, qizil = band, to'q sariq = tanlangan.
+import { useTranslation } from 'react-i18next'
+
 export default function TableSeat({ table, isSelected, onSelect }) {
+  const { t } = useTranslation()
   const chairCount = Math.min(Math.max(table.capacity, 1), 8)
   const size = table.capacity > 6 ? 76 : table.capacity > 4 ? 66 : 56
   const radius = size / 2 + 15
@@ -28,9 +31,12 @@ export default function TableSeat({ table, isSelected, onSelect }) {
       type="button"
       disabled={table.isReserved}
       onClick={() => onSelect(table)}
-      title={`Stol ${table.number} — ${table.capacity} kishilik${table.location ? ' · ' + table.location : ''}${
-        table.isReserved ? ' (band)' : ''
-      }`}
+      title={t('guestOrder.seatTitle', {
+        number: table.number,
+        capacity: table.capacity,
+        location: table.location ? ` · ${table.location}` : '',
+        busy: table.isReserved ? ` (${t('guestOrder.busyTable').toLowerCase()})` : '',
+      })}
       className={`relative m-4 flex items-center justify-center transition-transform ${
         table.isReserved ? 'cursor-not-allowed' : 'cursor-pointer'
       }`}
@@ -54,7 +60,7 @@ export default function TableSeat({ table, isSelected, onSelect }) {
       >
         <span className="text-sm leading-none">{table.number}</span>
         <span className="mt-1 text-[10px] font-normal leading-none opacity-90">
-          {table.capacity} kishi
+          {t('guestOrder.seatCapacity', { count: table.capacity })}
         </span>
       </span>
     </button>
