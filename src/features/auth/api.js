@@ -4,6 +4,12 @@ import axios from '../../services/axios'
 export const authApi = {
   login: (credentials) => axios.post('/auth/login', credentials),
   register: (payload) => axios.post('/auth/register', payload),
+  /**
+   * Restoran egasi + admin akkaunti bitta tranzaksiyada ro'yxatdan o'tkazish.
+   * payload: { restaurantName, ownerName, phone, password }
+   * Backend hali mavjud bo'lmasa → StartPage ichida 404 fallback ishlaydi.
+   */
+  registerRestaurant: (payload) => axios.post('/auth/register-restaurant', payload),
   forgotPassword: (payload) => axios.post('/auth/forgot-password', payload),
   // DIQQAT: backend `password` nomini kutadi (`newPassword` emas) —
   // Backend/src/validations/auth.validation.js -> resetPassword.
