@@ -28,7 +28,7 @@ export default function LoginForm() {
       const response = await authApi.login(values)
       const data = response.data?.data ?? response.data
       saveSession(data)
-      dispatch(setCredentials({ user: data.user, accessToken: data.accessToken, refreshToken: data.refreshToken }))
+      dispatch(setCredentials({ user: data.user, accessToken: data.accessToken }))
       connectSocket(data.accessToken) // login'da socketni ulash
       navigate(resolveRedirect(location.state?.from, data.user?.role), { replace: true })
     } catch (err) {

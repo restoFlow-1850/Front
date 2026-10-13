@@ -40,7 +40,6 @@ export default function PrivateRoute() {
         setCredentials({
           user: data,
           accessToken: token,
-          refreshToken: readToken('refreshToken'),
         }),
       )
     }

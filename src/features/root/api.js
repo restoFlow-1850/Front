@@ -2,12 +2,9 @@
 // Alohide JWT secret bilan token olinadi (JWT_ROOT_SECRET backend'da) va
 // oddiy `api` instance'dan HAMMASI BO'LAB ajratilgan — xavfsizlik uchun.
 import axios from 'axios'
+import { API_URL } from '../../shared/config'
 
-const rawApiUrl = import.meta.env?.VITE_API_URL
-const isDev = Boolean(import.meta.env?.DEV)
-const baseURL = isDev
-  ? (rawApiUrl && !rawApiUrl.startsWith('http') ? rawApiUrl : '/api')
-  : (rawApiUrl || 'https://backend-production-109c0.up.railway.app/api')
+const baseURL = API_URL
 
 const rootApi = axios.create({
   baseURL,

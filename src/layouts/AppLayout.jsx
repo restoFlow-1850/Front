@@ -7,6 +7,7 @@ import { Bell, LogOut, Menu, User, X, UtensilsCrossed, Sun, Moon, ChevronRight }
 import { useTranslation } from 'react-i18next'
 import { clearCredentials } from '../features/auth/authSlice'
 import { clearSession, readUser } from '../features/auth/session'
+import { authApi } from '../features/auth/api'
 import { navItemsForRole } from '../constants/navigation'
 import { ROLE_LABELS } from '../constants/roles'
 import { useNotificationsSocket } from '../features/notifications'
@@ -15,6 +16,8 @@ import { useSocketStatus } from '../hooks/useSocketStatus'
 import { useTheme } from '../hooks/useTheme'
 import { disconnectSocket } from '../services/socket'
 import LanguageSwitcher from '../components/common/LanguageSwitcher'
+import SubscriptionBanner from '../components/common/SubscriptionBanner'
+import { APP_COMMIT, APP_COMMIT_SHORT } from '../shared/config'
 
 export default function AppLayout() {
   const { t } = useTranslation()
@@ -43,6 +46,9 @@ export default function AppLayout() {
   useEffect(() => setMobileOpen(false), [location.pathname])
 
   const handleLogout = () => {
+    // Serverda refresh token bekor qilinadi va httpOnly cookie o'chiriladi (#18).
+    // Javobni kutmaymiz — tarmoq bo'lmasa ham foydalanuvchi darhol chiqadi.
+    authApi.logout().catch(() => {})
     disconnectSocket()
     clearSession()
     dispatch(clearCredentials())
@@ -144,6 +150,10 @@ export default function AppLayout() {
           <LogOut size={15} />
           <span>{t('logout')}</span>
         </button>
+        {/* Build versiyasi — prod eskirganini tekshirish uchun (/api/health.commit bilan solishtiring) */}
+        <p className="pt-1 text-center font-mono text-[10px] text-slate-600" title={APP_COMMIT || 'local build'}>
+          v · {APP_COMMIT_SHORT}
+        </p>
       </div>
     </div>
   )
@@ -258,6 +268,7 @@ export default function AppLayout() {
 
         {/* Content Area */}
         <main className="min-w-0 flex-1 p-4 lg:p-6">
+          <SubscriptionBanner />
           <Outlet />
         </main>
       </div>

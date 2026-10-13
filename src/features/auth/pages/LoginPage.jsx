@@ -104,7 +104,6 @@ export default function LoginPage() {
         setCredentials({
           user: data.user,
           accessToken: data.accessToken,
-          refreshToken: data.refreshToken,
         }),
       )
       connectSocket(data.accessToken)

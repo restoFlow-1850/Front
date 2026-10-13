@@ -10,7 +10,10 @@ export const getPublicRestaurants = (params) =>
 export const getPublicRestaurant = (slug) =>
   api.get(`/restaurants/${slug}`)
 
-/** Namuna taomlarni olish (public): GET /products?limit=8&isAvailable=true */
+/** Namuna / mashhur taomlarni olish (public): GET /products?limit=8&isAvailable=true */
 export const getSampleProducts = (params) =>
   api.get('/products', { params: { limit: 8, isAvailable: true, ...params } })
+
+/** Mashhur va mavjud taomlar ro'yxati (public) */
+export const getPublicProducts = getSampleProducts
 

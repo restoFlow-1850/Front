@@ -17,6 +17,7 @@ import {
   SlidersHorizontal,
   MessageSquareHeart,
   MapPinned,
+  BarChart3,
   Warehouse,
 } from 'lucide-react'
 
@@ -107,6 +108,14 @@ export const NAV_ITEMS = [
     path: '/employees',
     label: 'Xodimlar',
     icon: Users,
+    roles: STAFF,
+    inSidebar: true,
+  },
+  {
+    key: 'reports',
+    path: '/reports',
+    label: 'Hisobotlar va Analitika',
+    icon: BarChart3,
     roles: STAFF,
     inSidebar: true,
   },

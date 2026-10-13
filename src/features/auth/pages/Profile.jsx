@@ -43,6 +43,9 @@ export default function ProfilePage() {
   })
 
   const handleLogout = () => {
+    // Serverda refresh token bekor qilinadi va httpOnly cookie o'chiriladi (#18).
+    // Javobni kutmaymiz — tarmoq bo'lmasa ham foydalanuvchi darhol chiqadi.
+    authApi.logout().catch(() => {})
     disconnectSocket()
     clearSession()
     dispatch(clearCredentials())
@@ -150,4 +153,4 @@ function InfoRow({ icon: Icon, label, value }) {
       <dd className="min-w-0 truncate font-medium text-slate-900 dark:text-white">{value}</dd>
     </div>
   )
-}
+}

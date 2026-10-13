@@ -1,6 +1,7 @@
 // Menyu (kategoriya + mahsulot) backend so'rovlari — services/axios orqali.
-// Manba: https://backend-production-109c0.up.railway.app/api-docs (Categories, Products)
+// Manba: https://api.restoflow.uz/api-docs (Categories, Products)
 import api from '../../services/axios'
+import { API_ORIGIN } from '../../shared/config'
 
 export const getCategories = () => api.get('/categories')
 export const getCategoryById = (id) => api.get(`/categories/${id}`)
@@ -16,10 +17,6 @@ export const updateProduct = (id, formData) =>
   api.put(`/products/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
 export const deleteProduct = (id) => api.delete(`/products/${id}`)
 
-const API_ORIGIN = (import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'https://backend-production-109c0.up.railway.app/api')).replace(
-  /\/api\/?$/,
-  '',
-)
 
 // Backend rasm uchun nisbiy yo'l qaytaradi (masalan "/uploads/xyz.jpg") — to'liq URL'ga aylantiramiz.
 export function resolveImageUrl(image) {

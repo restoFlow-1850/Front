@@ -39,6 +39,7 @@ const MenuPage = lazy(() => import('../features/menu/pages/MenuPage'))
 const TablesPage = lazy(() => import('../features/tables/pages/TablesPage'))
 const ReservationsPage = lazy(() => import('../features/reservations/pages/ReservationsPage'))
 const EmployeesPage = lazy(() => import('../features/employees/pages/EmployeesPage'))
+const ReportsPage = lazy(() => import('../features/reports/pages/ReportsPage'))
 const InventoryPage = lazy(() => import('../features/inventory/pages/InventoryPage'))
 const NotificationsPage = lazy(() => import('../features/notifications/pages/NotificationsPage'))
 const FeedbackPage = lazy(() => import('../features/feedback/pages/FeedbackPage'))
@@ -63,6 +64,7 @@ const PAGE_BY_KEY = {
   tables: <TablesPage />,
   reservations: <ReservationsPage />,
   employees: <EmployeesPage />,
+  reports: <ReportsPage />,
   inventory: <InventoryPage />,
   notifications: <NotificationsPage />,
   feedback: <FeedbackPage />,

@@ -611,5 +611,23 @@
     "footer": {
       "rights": "Barcha huquqlar himoyalangan."
     }
+  },
+  "subscription": {
+    "expiredTitle": "Obuna tugagan",
+    "expiredBody": "Yozuv amallari (buyurtma ochish, to'lov) to'xtatildi. Obunani to'lang yoki administratorga murojaat qiling.",
+    "telegram": "Telegram bildirishnomalari",
+    "telegramDesc": "Restoraningiz o'z Telegram chatiga xabar oladi: bekor qilish, ombor kamayishi va smena yopilishi.",
+    "chatId": "Telegram Chat ID",
+    "chatIdHelp": "Botni guruhga qo'shing va /getchatid buyrug'ini yuboring — chat ID shu yerdan chiqadi.",
+    "enabled": "Xabarlarni yoqish",
+    "events": "Qaysi hodisalar",
+    "eventCancellation": "Bekor qilishlar",
+    "eventLowStock": "Ombor kamayishi",
+    "eventShiftClose": "Smena yopilishi",
+    "threshold": "Katta bekor qilish chegarasi",
+    "thresholdHelp": "Shu summadan yuqori buyurtma bekor qilinsa — boshqaruvchiga alohida xabar ketadi.",
+    "telegramSaved": "Telegram sozlamalari saqlandi",
+    "telegramSaveError": "Telegram sozlamalarini saqlab bo'lmadi",
+    "noChatIdWarning": "Chat ID kiritilmasa, xabarlar umumiy chatga yuborilmaydi."
   }
 }
