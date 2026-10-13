@@ -272,7 +272,7 @@ export default function TablesPage() {
             <button
               type="button"
               onClick={openCreate}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#F97316] to-[#EA580C] px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-500/25 transition hover:from-[#EA580C] hover:to-[#C2410C] active:scale-95"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-[#F97316] to-[#EA580C] px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-500/25 transition hover:from-[#EA580C] hover:to-[#C2410C] active:scale-95"
             >
               <Plus className="h-4 w-4" />
               <span>{t('tables.addTable')}</span>
@@ -286,7 +286,7 @@ export default function TablesPage() {
         <button
           type="button"
           onClick={() => setSelectedZone('MAIN')}
-          className={`flex items-center gap-2.5 rounded-2xl px-5 py-3 text-sm font-bold transition-all ${
+          className={`flex min-h-11 items-center gap-2.5 rounded-2xl px-5 py-3 text-sm font-bold transition-all ${
             selectedZone === 'MAIN'
               ? 'bg-[#0F172A] text-white shadow-md dark:bg-white dark:text-slate-900'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200/70 dark:bg-slate-800/80 dark:text-slate-300'
@@ -308,7 +308,7 @@ export default function TablesPage() {
         <button
           type="button"
           onClick={() => setSelectedZone('VIP')}
-          className={`flex items-center gap-2.5 rounded-2xl px-5 py-3 text-sm font-bold transition-all ${
+          className={`flex min-h-11 items-center gap-2.5 rounded-2xl px-5 py-3 text-sm font-bold transition-all ${
             selectedZone === 'VIP'
               ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md shadow-amber-500/25'
               : 'border border-amber-200/80 bg-amber-50/70 text-amber-900 hover:bg-amber-100/80 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-300'
@@ -332,7 +332,7 @@ export default function TablesPage() {
             type="button"
             onClick={() => seedMutation.mutate()}
             disabled={seedMutation.isPending}
-            className="ml-auto flex items-center gap-2 rounded-xl border border-amber-300/80 bg-amber-50/90 px-3.5 py-2 text-xs font-bold text-amber-900 shadow-2xs transition hover:bg-amber-100 active:scale-95 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
+            className="ml-auto flex min-h-11 items-center gap-2 rounded-xl border border-amber-300/80 bg-amber-50/90 px-3.5 py-2 text-xs font-bold text-amber-900 shadow-2xs transition hover:bg-amber-100 active:scale-95 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
           >
             <Sparkles className="h-4 w-4 text-amber-500" />
             <span>{seedMutation.isPending ? t('loading') : t('tables.addTable')}</span>
@@ -347,7 +347,7 @@ export default function TablesPage() {
           <button
             type="button"
             onClick={() => setStatusFilter('ALL')}
-            className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
+            className={`min-h-11 rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
               statusFilter === 'ALL'
                 ? 'bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white shadow-md shadow-orange-500/20'
                 : 'border border-slate-200 bg-white text-slate-700 hover:border-orange-300 hover:text-[#F97316] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
@@ -359,7 +359,7 @@ export default function TablesPage() {
           <button
             type="button"
             onClick={() => setStatusFilter(TABLE_STATUS.FREE)}
-            className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
+            className={`inline-flex min-h-11 items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
               statusFilter === TABLE_STATUS.FREE
                 ? 'bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white shadow-md shadow-orange-500/20'
                 : 'border border-slate-200 bg-white text-slate-700 hover:border-orange-300 hover:text-[#F97316] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
@@ -372,7 +372,7 @@ export default function TablesPage() {
           <button
             type="button"
             onClick={() => setStatusFilter(TABLE_STATUS.BUSY)}
-            className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
+            className={`inline-flex min-h-11 items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
               statusFilter === TABLE_STATUS.BUSY
                 ? 'bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white shadow-md shadow-orange-500/20'
                 : 'border border-slate-200 bg-white text-slate-700 hover:border-orange-300 hover:text-[#F97316] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
@@ -385,7 +385,7 @@ export default function TablesPage() {
           <button
             type="button"
             onClick={() => setStatusFilter(TABLE_STATUS.RESERVED)}
-            className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
+            className={`inline-flex min-h-11 items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
               statusFilter === TABLE_STATUS.RESERVED
                 ? 'bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white shadow-md shadow-orange-500/20'
                 : 'border border-slate-200 bg-white text-slate-700 hover:border-orange-300 hover:text-[#F97316] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
@@ -401,7 +401,7 @@ export default function TablesPage() {
           <button
             type="button"
             onClick={() => setViewMode('grid')}
-            className={`rounded-lg p-1.5 text-slate-600 transition ${
+            className={`flex min-h-11 min-w-11 items-center justify-center rounded-lg p-1.5 text-slate-600 transition ${
               viewMode === 'grid'
                 ? 'bg-white font-bold text-slate-900 shadow-xs dark:bg-slate-800 dark:text-white'
                 : 'hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
@@ -413,7 +413,7 @@ export default function TablesPage() {
           <button
             type="button"
             onClick={() => setViewMode('list')}
-            className={`rounded-lg p-1.5 text-slate-600 transition ${
+            className={`flex min-h-11 min-w-11 items-center justify-center rounded-lg p-1.5 text-slate-600 transition ${
               viewMode === 'list'
                 ? 'bg-white font-bold text-slate-900 shadow-xs dark:bg-slate-800 dark:text-white'
                 : 'hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'

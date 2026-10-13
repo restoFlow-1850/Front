@@ -31,7 +31,7 @@ export default function LanguageSwitcher({ className = '' }) {
           key={code}
           type="button"
           onClick={() => setLang(code)}
-          className={`rounded-full px-2.5 py-1 text-xs font-semibold transition-colors ${
+          className={`min-h-11 rounded-full px-2.5 py-1 text-xs font-semibold transition-colors ${
             i18n.language === code
               ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-950 dark:text-white'
               : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'

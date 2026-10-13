@@ -120,14 +120,14 @@ export default function TableCard({
               e.stopPropagation()
               setMenuOpen((prev) => !prev)
             }}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-200/60 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-lg p-1.5 text-slate-400 hover:bg-slate-200/60 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
             aria-label="Stol menyusi"
           >
             <MoreVertical className="h-5 w-5" />
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 top-8 z-30 w-44 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg dark:border-slate-700 dark:bg-slate-800">
+            <div className="absolute right-0 top-12 z-30 w-44 rounded-xl border border-slate-200 bg-white py-1.5 shadow-lg dark:border-slate-700 dark:bg-slate-800">
               {canCreateOrder && onOrder && (
                 <button
                   type="button"
@@ -136,7 +136,7 @@ export default function TableCard({
                     setMenuOpen(false)
                     onOrder(table)
                   }}
-                  className="flex w-full items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[#F97316] hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-950/40"
+                  className="flex min-h-11 w-full items-center gap-2.5 px-3 py-2 text-xs font-semibold text-[#F97316] hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-950/40"
                 >
                   <ShoppingCart className="h-4 w-4" />
                   {t('waiter.submitOrder')}
@@ -188,7 +188,7 @@ export default function TableCard({
                         setMenuOpen(false)
                         onEdit(table)
                       }}
-                      className="flex w-full items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-700/50"
+                      className="flex min-h-11 w-full items-center gap-2.5 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-700/50"
                     >
                       <Pencil className="h-3.5 w-3.5" />
                       {t('edit')}
@@ -202,7 +202,7 @@ export default function TableCard({
                         setMenuOpen(false)
                         onDelete(table)
                       }}
-                      className="flex w-full items-center gap-2.5 px-3 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40"
+                      className="flex min-h-11 w-full items-center gap-2.5 px-3 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                       {t('delete')}

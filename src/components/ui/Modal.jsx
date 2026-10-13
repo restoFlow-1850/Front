@@ -25,7 +25,7 @@ export default function Modal({ isOpen, onClose, title, children, footer, classN
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+            className="-mr-2 flex min-h-11 min-w-11 items-center justify-center rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-200"
             aria-label="Yopish"
           >
             <X size={18} />
