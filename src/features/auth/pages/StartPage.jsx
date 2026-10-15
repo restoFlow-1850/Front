@@ -7,6 +7,7 @@ import {
   Building2,
   User,
   Phone,
+  Mail,
   Lock,
   Sparkles,
   UtensilsCrossed,
@@ -22,6 +23,7 @@ import { saveSession } from '../session'
 const schema = z.object({
   restaurantName: z.string().min(2, "Restoran nomi kamida 2 belgidan iborat bo'lishi kerak"),
   ownerName: z.string().min(2, "Egasi ismi kamida 2 belgidan iborat bo'lishi kerak"),
+  email: z.string().email('To\'g\'ri email kiriting — tasdiqlash kodi shu emailga keladi'),
   phone: z.string().min(9, "Telefon raqamini to'liq kiriting"),
   password: z.string().min(6, 'Parol kamida 6 belgidan iborat'),
 })
@@ -30,6 +32,7 @@ const schema = z.object({
 const DEMO_DATA = {
   restaurantName: 'Rayhon Milliy Taomlari',
   ownerName: "Abdug'ani Karimov",
+  email: 'demo@restoflow.uz',
   phone: '+998 90 123 45 67',
   password: 'Demo1234',
 }
@@ -42,9 +45,9 @@ const DEMO_DATA = {
  *   — 409 Conflict             → foydalanuvchiga xato ko'rsatiladi (haqiqiy xato).
  *   — boshqa HTTP xatolar      → xabar ko'rsatiladi.
  */
-async function registerClientAndAdmin({ restaurantName, ownerName, phone, password }) {
+async function registerClientAndAdmin({ restaurantName, ownerName, email, phone, password }) {
   try {
-    const res = await authApi.registerRestaurant({ restaurantName, ownerName, phone, password })
+    const res = await authApi.registerRestaurant({ restaurantName, ownerName, email, phone, password })
     return {
       ok: true,
       data: res?.data ?? null,
@@ -87,21 +90,38 @@ export default function StartPage() {
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: { restaurantName: '', ownerName: '', phone: '+998 90 ', password: '' },
+    defaultValues: { restaurantName: '', ownerName: '', email: '', phone: '+998 90 ', password: '' },
   })
 
   const handleFillDemo = () => {
     setValue('restaurantName', DEMO_DATA.restaurantName)
     setValue('ownerName', DEMO_DATA.ownerName)
+    setValue('email', DEMO_DATA.email)
     setValue('phone', DEMO_DATA.phone)
     setValue('password', DEMO_DATA.password)
   }
 
-  // ─── 1-qadam: Ro'yxatdan o'tish ──────────────────────────────────────────
+  // ─── 1-qadam: Ro'yxatdan o'tish ────────────────────────────────
   const onSubmitRegister = async (values) => {
     setError(null)
     try {
       const result = await registerClientAndAdmin(values)
+
+      // Backend bilan ishlayotgan bo'lsak — tasdiqlash kodini EMAILga yuboramiz
+      if (!result.usedFallback) {
+        try {
+          await authApi.sendOtp({ email: values.email })
+        } catch (otpErr) {
+          // Kod yuborilmadi (masalan SMTP sozlanmagan) — xatoni ko'rsatamiz,
+          // OTP bosqichiga O'TMAYMIZ (aks-holat kod ololmay qolgan odam qolib ketadi)
+          const msg =
+            otpErr?.response?.data?.message ??
+            "Tasdiqlash kodi emailga yuborilmadi. Keyinroq qayta urinib ko'ring."
+          setError(msg)
+          return
+        }
+      }
+
       setFormData(values)
       setUsedFallback(result.usedFallback)
       setStep('otp')
@@ -117,8 +137,15 @@ export default function StartPage() {
   // ─── 2-qadam: OTP tasdiqlash + admin session saqlash ─────────────────────
   const handleVerifyOtp = async (e) => {
     e.preventDefault()
-    if (!otpCode || otpCode.length < 4) {
-      setError('4 xonali OTP kodni kiriting (Demo uchun: 1234)')
+
+    // Haqiqiy rejim: 6 xonali kod (backend). Demo fallback: 4 xonali 1234.
+    const expectedLen = usedFallback ? 4 : 6
+    if (!otpCode || otpCode.length < expectedLen) {
+      setError(
+        usedFallback
+          ? '4 xonali OTP kodni kiriting (Demo uchun: 1234)'
+          : 'Emailga kelgan 6 xonali kodni kiriting'
+      )
       return
     }
     setError(null)
@@ -126,9 +153,9 @@ export default function StartPage() {
     let sessionData = null
 
     if (!usedFallback) {
-      // Backend mavjud — haqiqiy OTP tekshirish
+      // Backend mavjud — haqiqiy OTP tekshirish (EMAIL bilan)
       try {
-        const res = await authApi.verifyOtp({ phone: formData.phone, code: otpCode })
+        const res = await authApi.verifyOtp({ email: formData.email, code: otpCode })
         if (res?.data) {
           sessionData = {
             user: res.data.user ?? { name: formData.ownerName, role: 'admin' },
@@ -159,12 +186,13 @@ export default function StartPage() {
     // Admin sessiyasini saqlash (bitta tranzaksiya: client + admin)
     saveSession(sessionData)
 
-    // Sehrgar boshlang'ich holati
+      // Sehrgar boshlang'ich holati
     localStorage.setItem('restoflow_onboarding_step', '1')
     localStorage.setItem(
       'restoflow_onboarding_data',
       JSON.stringify({
         name: formData.restaurantName,
+        email: formData.email,
         phone: formData.phone,
         owner: formData.ownerName,
       }),
@@ -253,6 +281,25 @@ export default function StartPage() {
                 )}
               </div>
 
+              {/* Email — tasdiqlash kodi shu yerga ketadi */}
+              <div>
+                <label className="block text-xs font-bold text-gray-300 mb-1">
+                  Email <span className="text-red-400">*</span>
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    type="email"
+                    placeholder="siz@example.com"
+                    className="w-full rounded-xl border border-gray-800 bg-[#140a0b] py-2.5 pl-10 pr-4 text-sm font-medium text-white placeholder-gray-500 outline-none focus:border-[#C89B5E] focus:ring-2 focus:ring-[#C89B5E]/20"
+                    {...register('email')}
+                  />
+                </div>
+                {errors.email && (
+                  <p className="mt-1 text-xs text-red-400">{errors.email.message}</p>
+                )}
+              </div>
+
               {/* Telefon */}
               <div>
                 <label className="block text-xs font-bold text-gray-300 mb-1">
@@ -323,17 +370,17 @@ export default function StartPage() {
                 <div className="inline-flex p-3 rounded-full bg-[#C89B5E]/20 text-[#C89B5E] mb-2">
                   <ShieldCheck size={28} />
                 </div>
-                <h3 className="text-lg font-bold text-white">Telefon raqamni tasdiqlash</h3>
+                <h3 className="text-lg font-bold text-white">Emailni tasdiqlash</h3>
                 <p className="text-xs text-gray-400 mt-1">
-                  <span className="font-semibold text-white">{formData?.phone}</span> raqamiga
-                  yuborilgan 4 xonali kodni kiriting
+                  <span className="font-semibold text-white">{formData?.email}</span> manziliga
+                  yuborilgan 6 xonali kodni kiriting
                   {usedFallback && <span className="text-[#C89B5E]"> (Demo rejim: 1234)</span>}
                 </p>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-gray-300 mb-1 text-center">
-                  SMS OTP Kod
+                  Email OTP Kod
                 </label>
                 <div className="relative max-w-xs mx-auto">
                   <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -342,7 +389,7 @@ export default function StartPage() {
                     maxLength={6}
                     value={otpCode}
                     onChange={(e) => setOtpCode(e.target.value)}
-                    placeholder="1234"
+                    placeholder="000000"
                     className="w-full text-center tracking-[8px] text-lg font-extrabold rounded-xl border border-gray-800 bg-[#140a0b] py-2.5 pl-8 pr-4 text-white placeholder-gray-600 outline-none focus:border-[#C89B5E] focus:ring-2 focus:ring-[#C89B5E]/20"
                   />
                 </div>
