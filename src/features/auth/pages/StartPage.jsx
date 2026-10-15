@@ -156,11 +156,13 @@ export default function StartPage() {
       // Backend mavjud — haqiqiy OTP tekshirish (EMAIL bilan)
       try {
         const res = await authApi.verifyOtp({ email: formData.email, code: otpCode })
-        if (res?.data) {
+        // Backend sendSuccess: { success, message, data } — token/user data ichida
+        const data = res?.data?.data ?? res?.data
+        if (data) {
           sessionData = {
-            user: res.data.user ?? { name: formData.ownerName, role: 'admin' },
-            accessToken: res.data.accessToken,
-            refreshToken: res.data.refreshToken,
+            user: data.user ?? { name: formData.ownerName, role: 'admin' },
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken,
           }
         }
       } catch (err) {
