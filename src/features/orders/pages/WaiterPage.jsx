@@ -168,6 +168,28 @@ export default function WaiterPage() {
     (o) => o.status !== ORDER_STATUS.CLOSED && o.status !== ORDER_STATUS.CANCELLED,
   )
 
+  // Stollar zonalar bo'yicha guruhlanadi, har zonada raqam bo'yicha tartiblanadi (1, 2, …).
+  // Backend `zone` maydoni ("Asosiy zal", "VIP xona", …); eski yozuv — location fallback.
+  const zones = useMemo(() => {
+    const zoneOf = (table) => {
+      if (table?.zone) return table.zone
+      if (table?.location && /vip/i.test(table.location)) return 'VIP xona'
+      return 'Asosiy zal'
+    }
+    const byZone = new Map()
+    for (const table of tablesQuery.data ?? []) {
+      const name = zoneOf(table)
+      if (!byZone.has(name)) byZone.set(name, [])
+      byZone.get(name).push(table)
+    }
+    return [...byZone.entries()]
+      .map(([name, tables]) => ({
+        name,
+        tables: tables.sort((a, b) => (a.number ?? 0) - (b.number ?? 0)),
+      }))
+      .sort((a, b) => b.tables.length - a.tables.length) // eng katta (asosiy) zona oldin
+  }, [tablesQuery.data])
+
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0)
 
   return (
@@ -191,32 +213,44 @@ export default function WaiterPage() {
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-6">
-                {(tablesQuery.data ?? []).map((table) => {
-                  const selected = tableId === table._id
-                  const busy = table.status === TABLE_STATUS.BUSY
-                  return (
-                    <button
-                      key={table._id}
-                      type="button"
-                      onClick={() => setTableId(table._id)}
-                      className={`rounded-lg border-2 p-2 text-center transition ${
-                        selected
-                          ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950'
-                          : busy
-                            ? 'border-rose-200 bg-rose-50 dark:border-rose-900 dark:bg-rose-950/40'
-                            : 'border-slate-200 hover:border-indigo-400 dark:border-slate-700'
-                      }`}
-                    >
-                      <span className="block text-sm font-bold text-slate-900 dark:text-white">
-                        {table.number}
-                      </span>
-                      <span className="block text-[10px] text-slate-500 dark:text-slate-400">
-                        {t(`tableStatus.${table.status}`, TABLE_STATUS_LABELS[table.status])}
-                      </span>
-                    </button>
-                  )
-                })}
+              <div className="space-y-5">
+                {zones.map((zone) => (
+                  <div key={zone.name}>
+                    <div className="mb-1.5 flex items-center gap-2">
+                      <h3 className="text-xs font-bold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+                        {zone.name}
+                      </h3>
+                      <span className="text-[10px] text-slate-400">{zone.tables.length}</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-6">
+                      {zone.tables.map((table) => {
+                        const selected = tableId === table._id
+                        const busy = table.status === TABLE_STATUS.BUSY
+                        return (
+                          <button
+                            key={table._id}
+                            type="button"
+                            onClick={() => setTableId(table._id)}
+                            className={`rounded-lg border-2 p-2 text-center transition ${
+                              selected
+                                ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950'
+                                : busy
+                                  ? 'border-rose-200 bg-rose-50 dark:border-rose-900 dark:bg-rose-950/40'
+                                  : 'border-slate-200 hover:border-indigo-400 dark:border-slate-700'
+                            }`}
+                          >
+                            <span className="block text-sm font-bold text-slate-900 dark:text-white">
+                              {table.number}
+                            </span>
+                            <span className="block text-[10px] text-slate-500 dark:text-slate-400">
+                              {t(`tableStatus.${table.status}`, TABLE_STATUS_LABELS[table.status])}
+                            </span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </Card>
