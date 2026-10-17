@@ -132,6 +132,10 @@ export const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           { path: '/403', element: <ForbiddenPage /> },
+          // Sehrgar: NAV_ITEMS'da yo'q (sidebar'da ko'rinmasin), lekin login kerak.
+          // buildProtectedRoutes() PAGE_BY_KEY[quickSetup]'ni ishlatsa ham, NAV_ITEMS
+          // da key bo'lmagani uchun o'tkazib yuboradi — shu yerga alohida yozamiz.
+          { path: '/quick-setup', element: <QuickSetupPage /> },
           ...buildProtectedRoutes(),
         ],
       },
