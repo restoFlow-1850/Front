@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { authApi } from '../api'
 import { saveSession } from '../session'
+import SEOHead from '../../../components/common/SEOHead'
 
 // ─── Validatsiya sxemasi ──────────────────────────────────────────────────────
 const schema = z.object({
@@ -175,6 +176,12 @@ export default function StartPage() {
 
   return (
     <div className="min-h-screen bg-[#140a0b] text-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <SEOHead
+        path="/start"
+        title="Restoranni Boshlash va Ro'yxatdan O'tkazish — 10 Daqiqada Ishga Tushiring"
+        description="RestoFlow bilan restoraningizni 10 daqiqada avtomatlashtiring. Restoran egasi va boshqaruvchi akkauntini bitta qadamda yarating. 14 kun bepul sinov davri."
+        keywords="restoran ochish, restoran dasturi, restoran onboarding, restoflow start, kafe boshqaruv"
+      />
       {/* Logo */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center items-center gap-3">

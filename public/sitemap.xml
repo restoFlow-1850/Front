@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <!-- Bosh sahifa (Landing) -->
+  <url>
+    <loc>https://restoflow.uz/</loc>
+    <lastmod>2026-10-15</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="uz" href="https://restoflow.uz/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://restoflow.uz/?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://restoflow.uz/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://restoflow.uz/" />
+  </url>
+
+  <!-- Restoran ro'yxatdan o'tkazish / Onboarding -->
+  <url>
+    <loc>https://restoflow.uz/start</loc>
+    <lastmod>2026-10-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+    <xhtml:link rel="alternate" hreflang="uz" href="https://restoflow.uz/start" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://restoflow.uz/start?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://restoflow.uz/start?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://restoflow.uz/start" />
+  </url>
+
+  <!-- Mijozlar va Hamkor restoranlar -->
+  <url>
+    <loc>https://restoflow.uz/clients</loc>
+    <lastmod>2026-10-15</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="uz" href="https://restoflow.uz/clients" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://restoflow.uz/clients?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://restoflow.uz/clients?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://restoflow.uz/clients" />
+  </url>
+
+  <!-- Mehmonlar uchun QR menyu namoyishi -->
+  <url>
+    <loc>https://restoflow.uz/guest</loc>
+    <lastmod>2026-10-15</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.75</priority>
+    <xhtml:link rel="alternate" hreflang="uz" href="https://restoflow.uz/guest" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://restoflow.uz/guest?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://restoflow.uz/guest?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://restoflow.uz/guest" />
+  </url>
+
+  <!-- Ro'yxatdan o'tish -->
+  <url>
+    <loc>https://restoflow.uz/register</loc>
+    <lastmod>2026-10-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="uz" href="https://restoflow.uz/register" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://restoflow.uz/register?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://restoflow.uz/register?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://restoflow.uz/register" />
+  </url>
+
+  <!-- Tizimga kirish -->
+  <url>
+    <loc>https://restoflow.uz/login</loc>
+    <lastmod>2026-10-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="uz" href="https://restoflow.uz/login" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://restoflow.uz/login?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://restoflow.uz/login?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://restoflow.uz/login" />
+  </url>
+
+  <!-- Parolni unutdim -->
+  <url>
+    <loc>https://restoflow.uz/forgot-password</loc>
+    <lastmod>2026-10-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="uz" href="https://restoflow.uz/forgot-password" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://restoflow.uz/forgot-password?lang=ru" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://restoflow.uz/forgot-password?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://restoflow.uz/forgot-password" />
+  </url>
+
+</urlset>

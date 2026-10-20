@@ -7,6 +7,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     // e2e/ — Playwright testlari (npm run test:e2e), vitest ularni ishga tushirmasin
-    exclude: [...configDefaults.exclude, 'e2e/**'],
+    exclude: [...configDefaults.exclude, 'e2e/**', 'Backend/**'],
+    include: ['src/**/*.{test,spec}.{js,jsx}'],
   },
 })

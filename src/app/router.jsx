@@ -111,8 +111,8 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // '/' -> redirect to /login
-  { path: '/', element: <Navigate to="/login" replace /> },
+  // Bosh sahifa (Landing) — ochiq, token talab qilinmaydi
+  { path: '/', element: <LandingPage /> },
 
   // QR menyu — mehmon uchun, login talab qilinmaydi.
   { path: '/guest', element: <GuestMenuPage /> },

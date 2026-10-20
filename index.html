@@ -2,30 +2,225 @@
 <html lang="uz">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#F97316" />
-    <meta name="description" content="Buyurtmalar, oshxona, kassa, menyu va stollar — bitta ilovada." />
+    <title>RestoFlow — Restoran Boshqaruv Tizimi | Bulutli POS, KDS va QR Menyu</title>
+    <meta
+      name="description"
+      content="O'zbekistondagi restoranlar, kafelar va choyxonalar uchun zamonaviy bulutli boshqaruv platformasi. Qulay POS kassa, ofitsiant paneli, oshxona KDS, QR menyu, ombor kalkulyatsiyasi va tahliliy hisobotlar."
+    />
+    <meta
+      name="keywords"
+      content="restoran boshqaruv tizimi, restaurant pos uzbekistan, kafe kassa dasturi, qr menyu, kds oshxona, ombor hisobi restoran, restoflow, pos uzbekistan"
+    />
+    <meta name="author" content="RestoFlow" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+
+    <!-- Google Search Console & Bing Webmaster Verification -->
+    <meta name="google-site-verification" content="GSC_VERIFICATION_CODE_PLACEHOLDER" />
+    <meta name="msvalidate.01" content="BING_VERIFICATION_CODE_PLACEHOLDER" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://restoflow.uz/" />
+
+    <!-- Multilingual Hreflang Alternates -->
+    <link rel="alternate" hreflang="uz" href="https://restoflow.uz/" />
+    <link rel="alternate" hreflang="ru" href="https://restoflow.uz/?lang=ru" />
+    <link rel="alternate" hreflang="en" href="https://restoflow.uz/?lang=en" />
+    <link rel="alternate" hreflang="x-default" href="https://restoflow.uz/" />
+
+    <!-- Open Graph (Facebook, Telegram, LinkedIn) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="RestoFlow" />
+    <meta property="og:url" content="https://restoflow.uz/" />
+    <meta property="og:title" content="RestoFlow — Restoran Boshqaruv Tizimi | Bulutli POS, KDS va QR Menyu" />
+    <meta
+      property="og:description"
+      content="O'zbekistondagi restoranlar, kafelar va choyxonalar uchun zamonaviy bulutli boshqaruv platformasi. Qulay POS kassa, ofitsiant paneli, oshxona KDS, QR menyu, ombor kalkulyatsiyasi va tahliliy hisobotlar."
+    />
+    <meta property="og:image" content="https://restoflow.uz/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="RestoFlow — Restoran Boshqaruv Tizimi POS va KDS" />
+    <meta property="og:locale" content="uz_UZ" />
+    <meta property="og:locale:alternate" content="ru_RU" />
+    <meta property="og:locale:alternate" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="RestoFlow — Restoran Boshqaruv Tizimi | Bulutli POS, KDS va QR Menyu" />
+    <meta
+      name="twitter:description"
+      content="O'zbekistondagi restoranlar, kafelar va choyxonalar uchun zamonaviy bulutli boshqaruv platformasi. Qulay POS kassa, ofitsiant paneli, oshxona KDS, QR menyu, ombor kalkulyatsiyasi va tahliliy hisobotlar."
+    />
+    <meta name="twitter:image" content="https://restoflow.uz/og-image.png" />
+
+    <!-- Favicon & PWA Icons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/icons/pwa-192.png" />
+    <meta name="theme-color" content="#F97316" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <title>RestoFlow — Restoran Boshqaruv Tizimi</title>
+
+    <!-- JSON-LD: Organization + SoftwareApplication + FAQ -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://restoflow.uz/#organization",
+            "name": "RestoFlow",
+            "url": "https://restoflow.uz",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://restoflow.uz/restoflow-logo.svg",
+              "width": "512",
+              "height": "512"
+            },
+            "description": "Restoran, kafe, oshxona va choyxonalarni avtomatlashtirish uchun zamonaviy bulutli POS va boshqaruv tizimi.",
+            "sameAs": [
+              "https://t.me/restoflow",
+              "https://instagram.com/restoflow.uz"
+            ],
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "telephone": "+998-71-200-00-00",
+              "contactType": "customer service",
+              "areaServed": "UZ",
+              "availableLanguage": ["uz", "ru", "en"]
+            }
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://restoflow.uz/#software",
+            "name": "RestoFlow POS",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web, Android, iOS, Windows, macOS",
+            "offers": {
+              "@type": "AggregateOffer",
+              "priceCurrency": "UZS",
+              "lowPrice": "0",
+              "highPrice": "350000",
+              "offerCount": "3",
+              "price": "0"
+            },
+            "description": "Restoran va kafelar uchun qulay kassa (POS), ofitsiant va oshxona KDS tizimi, QR raqamli menyu, ombor kalkulyatsiyasi va real-vaqt moliya tahlili.",
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "4.9",
+              "ratingCount": "128",
+              "bestRating": "5",
+              "worstRating": "1"
+            }
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://restoflow.uz/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "RestoFlow nima va u restoran faoliyatini qanday osonlashtiradi?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "RestoFlow — restoran, kafe, bar, fastfud va choyxonalar uchun bulutli boshqaruv tizimi. U ofitsiantlar buyurtmasini oshxonaga 1 soniyada yetkazadi, kassadagi barcha to'lovlarni (naqd, karta, Click, Payme) hisoblaydi, ombordagi ingredientlarni retsept bo'yicha avtomatik ayiradi va rahbarga daromad bo'yicha to'liq hisobot beradi."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Tizimdan foydalanish uchun qimmatbaho maxsus kompyuter yoki uskunalar kerakmi?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yo'q, hech qanday maxsus server yoki qimmat uskunalar shart emas. RestoFlow brauzer orqali har qanday noutbuk, kompyuter, planshet (iPad/Android) yoki smartfonda ishlaydi. Chek chiqarish uchun oddiy 58mm yoki 80mm termal printerlar bilan ulanadi."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Sinov davri bormi va qancha vaqt bepul foydalanish mumkin?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Ha! Yangi restoranlar uchun 14 kunlik to'liq bepul sinov davri (Trial) taqdim etiladi. Hech qanday bank kartasi talab qilinmaydi va barcha funksiyalar to'liq ishlaydi."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Mehmonlar QR-kod orqali qanday qilib ofitsiantni kutmasdan buyurtma berishadi?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Har bir stolga o'rnatilgan QR-kodni mehmon kamerasi orqali skanerlaydi. Telefonida taomlarning suratlari, tarkibi va narxi aks etgan interaktiv menyu ochiladi. Mehmon taomlarni tanlab, bir tugma bilan oshxonaga buyurtma yuboradi."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Internet vaqtincha uzilib qolsa savdo to'xtab qoladimi?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yo'q. RestoFlow PWA (Progressive Web App) texnologiyasida yaratilgan. Kassa va ofitsiantlar oflayn rejimda ham ishlashni davom ettiradi. Internet tiklanishi bilan barcha ma'lumotlar avtomatik tarzda serverga sinxronlanadi."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Bir nechta filial va restoranlar tarmog'ini bitta joydan boshqarish mumkinmi?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Albatta! Multi-filial funksiyasi orqali boshqaruvchi o'z smartfoni yoki noutbukidan barcha filiallar kassasi, ombori va savdo tushumlarini bitta ekranda real-vaqtda kuzatib boradi."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+
     <script>
-      (function() {
+      (function () {
         try {
-          const stored = localStorage.getItem('theme');
-          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const stored = localStorage.getItem('theme')
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
           if (stored === 'dark' || (!stored && prefersDark)) {
-            document.documentElement.classList.add('dark');
+            document.documentElement.classList.add('dark')
           } else {
-            document.documentElement.classList.remove('dark');
+            document.documentElement.classList.remove('dark')
           }
         } catch (e) {}
-      })();
+      })()
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <!-- SPA Prerendered Shell for Web Crawlers and Bots (Hydrated by React on mount) -->
+    <div id="root">
+      <header style="background: #140708; border-bottom: 1px solid #4a1616; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <div style="font-size: 1.5rem; font-weight: 800; color: #D9A968;">
+          Resto<span style="color: #ffffff;">Flow</span>
+        </div>
+        <nav style="display: flex; gap: 1rem; align-items: center;">
+          <a href="/clients" style="color: #cbbcbc; text-decoration: none; font-size: 0.875rem;">Mijozlar</a>
+          <a href="/guest" style="color: #cbbcbc; text-decoration: none; font-size: 0.875rem;">QR Menyu</a>
+          <a href="/login" style="color: #cbbcbc; text-decoration: none; font-size: 0.875rem;">Kirish</a>
+          <a href="/start" style="background: #C89B5E; color: #2a0e10; padding: 0.4rem 1rem; border-radius: 0.5rem; text-decoration: none; font-weight: 700; font-size: 0.875rem;">Boshlash</a>
+        </nav>
+      </header>
+
+      <main style="background: linear-gradient(180deg, #2a0e10 0%, #140708 100%); color: #ffffff; padding: 3rem 1.5rem; min-height: 80vh;">
+        <section style="max-width: 900px; margin: 0 auto; text-align: center;">
+          <h1 style="font-size: 2.5rem; font-weight: 900; line-height: 1.2; margin-bottom: 1rem;">
+            Restoran Boshqaruv Tizimi — <span style="color: #D9A968;">Bitta Ilovada</span>
+          </h1>
+          <p style="font-size: 1.125rem; color: #9a8080; line-height: 1.6; max-width: 650px; margin: 0 auto 2rem;">
+            Buyurtmalar, oshxona KDS, POS kassa, QR raqamli menyu va ombor kalkulyatsiyasi. Restoraningiz faoliyatini to'liq avtomatlashtiring.
+          </p>
+          <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="/start" style="background: #D9A968; color: #2a0e10; padding: 0.75rem 2rem; border-radius: 0.75rem; text-decoration: none; font-weight: 700; font-size: 1.125rem;">Bepul Boshlash</a>
+            <a href="/guest" style="border: 2px solid #4a1616; color: #cbbcbc; padding: 0.75rem 2rem; border-radius: 0.75rem; text-decoration: none; font-weight: 600; font-size: 1.125rem;">QR Menyu Namoyishi</a>
+          </div>
+        </section>
+      </main>
+
+      <footer style="background: #140708; border-top: 1px solid #4a1616; padding: 1.5rem; text-align: center; color: #5a4a4a; font-size: 0.75rem;">
+        &copy; 2026 RestoFlow. Barcha huquqlar himoyalangan.
+      </footer>
+    </div>
+
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

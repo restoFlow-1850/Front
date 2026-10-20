@@ -9,6 +9,8 @@ import {
   FiBarChart2,
   FiStar,
   FiBookOpen,
+  FiChevronDown,
+  FiHelpCircle,
 } from 'react-icons/fi'
 
 import LanguageSwitcher from '../../../components/common/LanguageSwitcher'
@@ -19,6 +21,13 @@ import EmptyRestaurants from '../components/EmptyRestaurants'
 import ErrorRestaurants from '../components/ErrorRestaurants'
 import { formatSom, unwrapList } from '../../../lib/api'
 import { API_ORIGIN } from '../../../shared/config'
+import SEOHead from '../../../components/common/SEOHead'
+import {
+  RESTOFLOW_ORGANIZATION_SCHEMA,
+  RESTOFLOW_SOFTWARE_SCHEMA,
+  RESTOFLOW_FAQ_SCHEMA,
+  LANDING_FAQ_ITEMS,
+} from '../../../constants/seoData'
 
 
 function resolveImageUrl(image) {
@@ -35,6 +44,7 @@ export default function LandingPage() {
   const [error, setError] = useState(null)
   const [dishes, setDishes] = useState([])
   const [dishesLoading, setDishesLoading] = useState(true)
+  const [openFaq, setOpenFaq] = useState(null)
 
   const fetchRestaurants = useCallback(async () => {
     setLoading(true)
@@ -74,6 +84,17 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#2a0e10_0%,#140708_100%)]">
+      <SEOHead
+        path="/"
+        title="RestoFlow — Restoran Boshqaruv Tizimi | Bulutli POS, KDS va QR Menyu"
+        description="Restoran, kafe va choyxonalar uchun zamonaviy bulutli boshqaruv platformasi. Qulay POS kassa, ofitsiant paneli, oshxona KDS, QR menyu, ombor kalkulyatsiyasi va tahliliy hisobotlar."
+        keywords="restoran boshqaruv tizimi, restaurant pos uzbekistan, kafe kassa dasturi, qr menyu, kds oshxona, ombor hisobi restoran, restoflow, pos uzbekistan"
+        jsonLd={[
+          RESTOFLOW_ORGANIZATION_SCHEMA,
+          RESTOFLOW_SOFTWARE_SCHEMA,
+          RESTOFLOW_FAQ_SCHEMA,
+        ]}
+      />
       {/* ─── Navbar ────────────────────────────────────────── */}
       <nav className="sticky top-0 z-50 border-b border-[#4a1616] bg-[#140708]/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
@@ -310,6 +331,57 @@ export default function LandingPage() {
             ))}
           </div>
         )}
+      </section>
+
+      {/* ─── FAQ (Ko'p beriladigan savollar) ────────────────── */}
+      <section className="mx-auto max-w-4xl px-4 pb-16 sm:px-6 sm:pb-24">
+        <div className="mb-10 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#4a1616] bg-[#1c0a0b] px-3 py-1 text-xs font-semibold text-[#D9A968]">
+            <FiHelpCircle className="h-3.5 w-3.5" />
+            <span>FAQ</span>
+          </div>
+          <h2 className="mt-3 text-2xl font-extrabold text-white sm:text-4xl">
+            Tez-tez beriladigan savollar
+          </h2>
+          <p className="mt-2 text-sm text-[#9a8080] sm:text-base">
+            RestoFlow tizimi, imkoniyatlari va ulanish jarayoni bo'yicha muhim savollarga javoblar
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          {LANDING_FAQ_ITEMS.map((item, index) => {
+            const isOpen = openFaq === index
+            return (
+              <div
+                key={index}
+                className="overflow-hidden rounded-2xl border border-[#4a1616] bg-[#1c0a0b] transition-colors hover:border-[#C89B5E]/30"
+              >
+                <button
+                  type="button"
+                  onClick={() => setOpenFaq(isOpen ? null : index)}
+                  className="flex w-full items-center justify-between p-5 text-left transition"
+                  aria-expanded={isOpen}
+                >
+                  <span className="text-base font-bold text-[#E6DCDC] sm:text-lg">
+                    {item.question}
+                  </span>
+                  <FiChevronDown
+                    className={`ml-4 h-5 w-5 shrink-0 text-[#D9A968] transition-transform duration-200 ${
+                      isOpen ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+                {isOpen && (
+                  <div className="border-t border-[#4a1616]/60 px-5 pb-5 pt-3">
+                    <p className="text-sm leading-relaxed text-[#9a8080] sm:text-base">
+                      {item.answer}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
       </section>
 
       {/* ─── CTA ──────────────────────────────────────────── */}

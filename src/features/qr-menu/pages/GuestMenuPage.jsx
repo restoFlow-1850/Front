@@ -22,6 +22,7 @@ import GuestOrderFlow from '../components/GuestOrderFlow'
 import LanguageSwitcher from '../../../components/common/LanguageSwitcher'
 import FeedbackModal from '../../feedback/components/FeedbackModal'
 import { MessageSquareHeart } from 'lucide-react'
+import SEOHead from '../../../components/common/SEOHead'
 
 const PHONE_RE = /^[+\d][\d\s-]{6,17}$/
 
@@ -252,6 +253,12 @@ function GuestMenuPageContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0B0F17] via-[#0F172A] to-[#1E293B] text-slate-100">
+      <SEOHead
+        path="/guest"
+        title="QR Raqamli Menyu — RestoFlow Onlayn Buyurtma"
+        description="RestoFlow kontaktsiz QR menyusi orqali stolingizdan turib taomlarni tanlang, tarkibini ko'ring va ofitsiantni kutmasdan darhol oshxonaga buyurtma bering."
+        keywords="qr menyu, raqamli menyu, contactless menu, stol buyurtma, restoflow qr"
+      />
       <header className="border-b border-slate-800/80 bg-[#0B0F17]/90 backdrop-blur-md sticky top-0 z-40">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3.5 sm:px-6">
           <div className="flex items-center gap-3">

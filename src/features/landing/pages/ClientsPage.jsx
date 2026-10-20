@@ -6,6 +6,7 @@ import { getPublicRestaurants } from '../api'
 import RestaurantCardSkeleton from '../components/RestaurantCardSkeleton'
 import EmptyRestaurants from '../components/EmptyRestaurants'
 import ErrorRestaurants from '../components/ErrorRestaurants'
+import SEOHead from '../../../components/common/SEOHead'
 
 export default function ClientsPage() {
   const [restaurants, setRestaurants] = useState([])
@@ -36,6 +37,12 @@ export default function ClientsPage() {
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#2a0e10_0%,#140708_100%)]">
+      <SEOHead
+        path="/clients"
+        title="Mijozlarimiz — RestoFlow Tizimidan Foydalanuvchi Restoranlar"
+        description="O'zbekistondagi yetakchi restoran, kafe va choyxonalar RestoFlow orqali buyurtmalarni qabul qilmoqda va xizmat ko'rsatish sifatini oshirmoqda."
+        keywords="restoflow mijozlar, restoranlar ro'yxati, restoflow kafe, restoran avtomatlashtirish namunalari"
+      />
       {/* ─── Navbar ────────────────────────────────────────── */}
       <nav className="border-b border-[#4a1616] bg-[#140708]/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">

@@ -1,0 +1,77 @@
+# RestoFlow — Restoran Boshqaruv Tizimi (POS & ERP)
+
+> RestoFlow — O'zbekistondagi restoranlar, kafelar, barlar, fast-fud va choyxonalar uchun mo'ljallangan zamonaviy bulutli avtomatlashtirish platformasi (Cloud Restaurant POS & Management System).
+
+## Asosiy Ma'lumotlar
+- **Veb-sayt**: https://restoflow.uz
+- **Hudud**: O'zbekiston (Toshkent, Samarqand, Buxoro, Namangan, Andijon, Farg'ona va barcha viloyatlar)
+- **Til interfeysi**: O'zbekcha (Lotin va Kirill), Ruscha, Inglizcha
+- **Valyuta**: O'zbek so'mi (UZS)
+- **Qurilmalar**: Brauzer orqali har qanday kompyuter (Windows, macOS), planshet (iPad, Android), smartfon va sensorli POS-monobloklar.
+- **Chek printerlari**: Barcha standart ESC/POS 58mm va 80mm termal printerlar.
+
+## Kimlar Uchun (Auditoriya)
+- Restoranlar va tantanalar zallari
+- Qahvaxona va kafelar (Coffee shops, Cafe)
+- Fast-fud, pitseriya va burger markazlari
+- Choyxonalar va milliy taomlar maskanlari
+- Lounge bar va karaoke klublar
+- Yetkazib berish (Delivery) xizmatiga ega oshxonalar
+
+## Asosiy Modullar va Imkoniyatlar
+1. **POS Kassa Moduli**:
+   - Buyurtmalarni tezkor ochish, qo'shish va yopish.
+   - To'lov turlari: Naqd pul, bank kartalari (Uzcard, Humo), Click, Payme va aralash to'lovlar.
+   - Smena ochish, smena yopish va Z-hisobot (Z-report).
+   - Chek chop etish va xizmat haqi (% service charge) avtomatik hisoblash.
+
+2. **Ofitsiant Paneli (Waiter App)**:
+   - Zallar va stollar interaktiv xaritasi (bo'sh, band, to'lov kutilmoqda statuslari).
+   - Stolga buyurtma olish va darhol oshxonaga yuborish.
+   - Stollarni birlashtirish, almashtirish va buyurtmani bo'lish.
+
+3. **Oshxona Ekrani (KDS — Kitchen Display System)**:
+   - Ofitsiant qabul qilgan buyurtmalar darhol oshpaz ekranida paydo bo'ladi.
+   - Tayyorlanish vaqti taymeri, taom holati (qabul qilindi -> pishirilmoqda -> tayyor).
+   - Ovozli bildirishnoma va kechikish ogohlantirishlari.
+
+4. **QR Raqamli Menyu (Contactless QR Menu)**:
+   - Stoldagi QR-kod orqali mijozlar smartfonida rasmli menyuni ko'rishadi.
+   - Ofitsiantni kutmasdan to'g'ridan-to'g'ri stolga buyurtma berish.
+   - Ko'p tilli menyu (uz, ru, en) va allergik masalliqlar haqida ma'lumot.
+
+5. **Ombor va Texnologik Xarita (Kalkulyatsiya)**:
+   - Har bir taom uchun retsept (ingredientlar sarfi).
+   - Taom sotilganda ombordan kerakli xomashyo avtomatik hisobdan chiqariladi.
+   - Kam qolgan mahsulotlar bo'yicha Telegram va boshqaruv panelida ogohlantirish.
+   - Kirim, chiqim, inventarizatsiya va yetkazib beruvchilar hisobi.
+
+6. **Moliya, Hisobotlar va Analitika**:
+   - Kunlik, haftalik, oylik va ixtiyoriy oraliq bo'yicha tushum va sof foyda.
+   - To'lov usullari kesimida daromad diagrammasi.
+   - Soatlar bo'yicha yuklama (restoranning eng gavjum vaqtlari).
+   - Top 10 eng ko'p sotilgan taomlar va kam sotilgan taomlar tahlili.
+   - Ofitsiantlar samaradorligi (buyurtmalar soni va umumiy summasi).
+   - Bekor qilingan buyurtmalar sabablari va yo'qotilgan summa.
+   - Excel va PDF formatida to'liq eksport.
+
+7. **Xodimlar va Huquqlar Boshqaruvi**:
+   - Rollar: Administrator, Menejer, Kassir, Ofitsiant, Oshpaz.
+   - Har bir rol uchun qat'iy xavfsizlik va ruxsatlar matritsasi.
+
+## Qanday Boshlash Mumkin?
+1. **Saytga kiring**: https://restoflow.uz/start
+2. **Restoran ma'lumotlarini kiriting**: Restoran nomi, administrator telefoni va paroli.
+3. **10 daqiqada tayyor**: Menyu, stollar va xodimlarni kiriting va tizimdan foydalanishni boshlang.
+4. **14 kunlik bepul sinov**: Hech qanday to'lov kartasi talab qilinmaydi.
+
+## Narxlar
+- **Bepul sinov davri**: 14 kun
+- **Oylik obuna**: 150 000 UZS dan boshlab (restoran hajmiga qarab)
+- **Qo'llab-quvvatlash**: 24/7 bepul texnik yordam va o'rgatish
+
+## Bog'lanish
+- Rasmiy sayt: https://restoflow.uz
+- Onboarding: https://restoflow.uz/start
+- Telegram qo'llab-quvvatlash: @restoflow_support
+- Batafsil ma'lumot: https://restoflow.uz/llms-full.txt

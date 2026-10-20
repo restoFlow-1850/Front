@@ -30,7 +30,16 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['favicon.ico', 'favicon.svg', 'robots.txt'],
+        includeAssets: [
+          'favicon.ico',
+          'favicon.svg',
+          'robots.txt',
+          'sitemap.xml',
+          'llms.txt',
+          'llms-full.txt',
+          'og-image.png',
+          'og-image.jpg',
+        ],
         manifest: {
           name: 'RestoFlow — Restoran boshqaruv tizimi',
           short_name: 'RestoFlow',
@@ -98,6 +107,9 @@ export default defineConfig(({ mode }) => {
         '/uploads': { target: backendTarget, changeOrigin: true },
         '/socket.io': { target: backendTarget, changeOrigin: true, ws: true },
       },
+    },
+    test: {
+      include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     },
   }
 })

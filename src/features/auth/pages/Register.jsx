@@ -22,6 +22,7 @@ import {
 import { authApi } from '../api'
 import { useTheme } from '../../../hooks/useTheme'
 import LanguageSwitcher from '../../../components/common/LanguageSwitcher'
+import SEOHead from '../../../components/common/SEOHead'
 
 const schema = z
   .object({
@@ -64,6 +65,12 @@ export default function RegisterPage() {
 
   return (
     <div className="relative flex min-h-screen w-full bg-[#F8FAFC] dark:bg-[#0B0F17] font-sans transition-colors">
+      <SEOHead
+        path="/register"
+        title="Ro'yxatdan O'tish — RestoFlow Hisob Yaratish"
+        description="RestoFlow restoran boshqaruv tizimida yangi hisob yarating. 14 kunlik bepul sinov davri va to'liq avtomatlashtirish imkoniyatlari."
+        keywords="restoflow ro'yxatdan o'tish, restoran dasturi akkaunt, pos tizimi ro'yxatdan o'tish"
+      />
       {/* Top right controls */}
       <div className="absolute right-4 top-4 z-50 flex items-center gap-2 sm:right-6 sm:top-6">
         <button

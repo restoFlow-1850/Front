@@ -1,0 +1,77 @@
+# RestoFlow — To'liq Texnik va Funksional Tavsif (LLMs Full Documentation)
+
+RestoFlow — O'zbekiston umumiy ovqatlanish bozori (restoran, kafe, oshxona, fastfud) uchun maxsus moslashtirilgan Cloud POS & ERP platformasi.
+
+## 1. Umumiy Ko'rinish
+- Sayt: https://restoflow.uz
+- Ishlab chiqilgan texnologiyalar: React 19, Tailwind CSS, Vite, PWA, Node.js, Express, MongoDB, Socket.IO.
+- Joylashuv: O'zbekiston, Toshkent.
+- Maqsad: Restoran biznesini 100% raqamlashtirish, ofitsiant va oshxona o'rtasidagi kechikishlarni bartaraf etish, o'g'irlik va yo'qotishlarning oldini olish, aniq rentabellikni ko'rsatish.
+
+## 2. Modullar va Ish Jarayoni (Workflows)
+
+### A. Kassa va Savdo (POS)
+- Tezkor stol tanlash va buyurtma ochish.
+- Mahsulotlarni qidirish, kategoriyalar bo'yicha filtrlash, modifikatorlar (masalan: "achchiq bo'lmasin", "muz bilan").
+- To'lov turlari: Naqd pul, Plastik karta (Uzcard, Humo), Click, Payme.
+- Smena ochish, smena hisoboti va kun oxirida Z-report generatsiyasi.
+- Ofitsiantlar bo'yicha tushumlarni ajratish.
+
+### B. Ofitsiant (Waiter Mobile Web App)
+- Smartfon yoki planshet orqali stollar holatini ko'rish:
+  - Yashil: Bo'sh stol
+  - Qizil: Band stol (ovqatlanmoqda)
+  - Sariq: Hisob-kitob kutilmoqda
+- Buyurtmaga yangi taom qo'shish va 1 soniyada oshxonaga uzatish.
+- Buyurtma chekini chop etishga yuborish.
+
+### C. Oshxona KDS (Kitchen Display System)
+- Ofitsiant kiritgan yangi buyurtmalar darhol oshpaz monitorida ko'rinadi.
+- Har bir taom tayyorlanish vaqti avtomatik sanaladi.
+- Oshpaz "Tayyor" tugmasini bosishi bilan ofitsiantga ovozli va vizual xabar boradi.
+
+### D. QR Menyu (Contactless Dining)
+- Har bir stol uchun individual QR-kod (generatsiya va PDF yuklab olish).
+- Mehmon telefon kamerasini yo'naltiradi va interaktiv menyuni ochadi.
+- Rasm, taom tarkibi, narxi va tayyorlanish vaqtini ko'radi.
+- Stoldan turib to'g'ridan-to'g'ri buyurtma bera oladi.
+
+### E. Ombor va Kalkulyatsiya
+- Xomashyolar (un, go'sht, yog', shakar va h.k.) kirimi va o'rtacha tannarx hisobi.
+- Har bir taom uchun texnologik xarita: masalan, 1 ta Osh uchun 200g guruch, 200g go'sht, 150g sabzi.
+- Taom sotilganda ingredientlar ombordan real-vaqt rejimida yechiladi.
+- Ombor qoldig'i kritik darajadan kamayganda mas'ul shaxsga ogohlantirish.
+
+### F. Rahbar Uchun Analitika va Hisobotlar
+- Davrlar bo'yicha: Kunlik, haftalik, oylik va erkin sana oraliqlari.
+- To'lov usullari taqsimoti (naqd/karta/click/payme).
+- Restoranning eng gavjum va bo'sh soatlari (Peak hours load heatmap).
+- Eng ko'p va eng kam sotilgan taomlar (Top & Bottom performers).
+- Ofitsiantlar kesimida savdo ko'rsatkichlari.
+- Bekor qilingan buyurtmalar soni, summasi va sabablari tahlili.
+- Excel va PDF formatida to'liq hisobotlarni eksport qilish.
+
+## 3. Integratsiyalar
+- Telegram Bot: Kunlik savdo hisoboti va kritik ogohlantirishlar.
+- ESC/POS Printerlar: 58mm va 80mm termal printerlar bilan Bluetooth/USB/Ethernet orqali chek chiqarish.
+- Mahalliy to'lov tizimlari: Click va Payme QR integratsiyasi.
+
+## 4. Xavfsizlik va Ma'lumotlar Himoyasi
+- JWT asosidagi xavfsiz autentifikatsiya.
+- Rolga asoslangan kirish nazorati (RBAC: Admin, Manager, Cashier, Cook, Waiter).
+- Doimiy ma'lumotlar zaxirasi (Daily backup).
+- SSL/TLS 256-bit shifrlangan ma'lumot almashinuvi.
+
+## 5. Tez-tez Beriladigan Savollar (FAQ)
+- **Savol: Tizimni o'rnatish uchun mutaxassis chaqirish shartmi?**
+  Javob: Yo'q! RestoFlow to'liq bulutda ishlaydi. https://restoflow.uz/start sahifasiga kirib 10 daqiqada restoranni o'zingiz mustaqil ulashingiz mumkin.
+- **Savol: Qanday kompyuter yoki telefon kerak?**
+  Javob: Zamonaviy Chrome, Safari yoki Edge brauzeri ishlaydigan istalgan qurilma mos keladi.
+- **Savol: Oflayn (internetsiz) rejim bormi?**
+  Javob: Ha, RestoFlow PWA texnologiyasiga ega. Internet uzilsa ham ish to'xtamaydi, internet kelishi bilan server bilan sinxronlanadi.
+
+## 6. Aloqa
+- Bosh sahifa: https://restoflow.uz
+- Boshlash: https://restoflow.uz/start
+- Mijozlar: https://restoflow.uz/clients
+- Mehmon menyusi: https://restoflow.uz/guest

@@ -13,6 +13,7 @@ import { connectSocket } from '../../../services/socket'
 import { useTheme } from '../../../hooks/useTheme'
 import LanguageSwitcher from '../../../components/common/LanguageSwitcher'
 import { Sun, Moon } from 'lucide-react'
+import SEOHead from '../../../components/common/SEOHead'
 
 const schema = z.object({
   email: z.string().email("Email format invalid"),
@@ -118,6 +119,12 @@ export default function LoginPage() {
     <>
       <style>{animationStyles}</style>
       <div className="relative flex h-screen w-full overflow-hidden bg-[#FFFDF9] dark:bg-[#0B0F17] font-sans">
+        <SEOHead
+          path="/login"
+          title="Tizimga Kirish — RestoFlow Boshqaruv Paneli"
+          description="RestoFlow boshqaruv paneliga xavfsiz kirish. Restoran administratori, menejeri, kassiri va ofitsiantlari uchun kirish oynasi."
+          keywords="restoflow login, restoran tizimiga kirish, pos kassa kirish"
+        />
         {/* Top right quick controls */}
         <div className="absolute right-4 top-4 z-50 flex items-center gap-2 sm:right-6 sm:top-6">
           <button
