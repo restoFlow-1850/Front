@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'react-toastify'
@@ -18,6 +18,7 @@ import { buildTimeSlots, toDateInputValue } from '../lib/time'
 import MenuStep from '../components/MenuStep'
 import ConfirmStep from '../components/ConfirmStep'
 import SuccessStep from '../components/SuccessStep'
+import GuestOrderFlow from '../components/GuestOrderFlow'
 import LanguageSwitcher from '../../../components/common/LanguageSwitcher'
 import FeedbackModal from '../../feedback/components/FeedbackModal'
 import { MessageSquareHeart } from 'lucide-react'
@@ -41,10 +42,21 @@ function initialTimeFor(dateStr) {
 }
 
 export default function GuestMenuPage() {
-  const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const qrTableId = searchParams.get('table')
-  const hasAppliedQrTable = useRef(false)
+
+  // QR-mehmon rejimi (?table=) — to'g'ridan-to'g'ri buyurtma oqimini ochadi
+  // (maydonga kirish, menyu, savat, buyurtma berish va holat kuzatish).
+  if (qrTableId) {
+    return <GuestOrderFlow tableId={qrTableId} />
+  }
+
+  return <GuestMenuPageContent />
+}
+
+function GuestMenuPageContent() {
+  const { t } = useTranslation()
+  const [searchParams] = useSearchParams()
   const [step, setStep] = useState('hall')
 
   // Landing → restoran kartasi orqali kelinsa, restoran nomini ko'rsatamiz.
@@ -79,10 +91,10 @@ export default function GuestMenuPage() {
 
   useEffect(() => {
     const slots = buildTimeSlots(date)
-    if (!slots.includes(time)) {
-      setTime(slots[0] || '')
+    if (slots.length > 0 && !slots.includes(time)) {
+      setTime(slots[0])
     }
-  }, [date])
+  }, [date, time])
 
   const isoDateTime = useMemo(() => {
     if (!date || !time) return null
@@ -102,34 +114,15 @@ export default function GuestMenuPage() {
       const payload = res.data?.data ?? res.data
       setTables(payload.tables ?? [])
     } catch (err) {
-      setTablesError(
-        err.response?.data?.message || err.message || "Zal planini yuklab bo'lmadi"
-      )
+      setTablesError(err.response?.data?.message || err.message || t('guestOrder.hallError'))
     } finally {
       setTablesLoading(false)
     }
-  }, [isoDateTime, restaurantId])
+  }, [isoDateTime, restaurantId, t])
 
   useEffect(() => {
     fetchAvailability()
   }, [fetchAvailability])
-
-  useEffect(() => {
-    if (!qrTableId || tablesLoading || hasAppliedQrTable.current) return
-
-    hasAppliedQrTable.current = true
-    const qrTable = tables.find(
-      (table) =>
-        String(table._id ?? table.id) === qrTableId ||
-        String(table.number) === qrTableId
-    )
-    if (qrTable && !qrTable.isReserved) {
-      setSelectedTable(qrTable)
-      return
-    }
-
-    toast.error("QR koddagi stol hozir band yoki topilmadi")
-  }, [qrTableId, tables, tablesLoading])
 
   useEffect(() => {
     if (step !== 'hall') return
@@ -167,13 +160,11 @@ export default function GuestMenuPage() {
       setCategories(nextCategories.filter((category) => category.isActive !== false))
       setProducts(nextProducts)
     } catch (err) {
-      setMenuError(
-        err.response?.data?.message || err.message || "Menyuni yuklab bo'lmadi"
-      )
+      setMenuError(err.response?.data?.message || err.message || t('guestOrder.menuError'))
     } finally {
       setMenuLoading(false)
     }
-  }, [restaurantId])
+  }, [restaurantId, t])
 
   useEffect(() => {
     fetchMenu()
@@ -236,12 +227,12 @@ export default function GuestMenuPage() {
       if (status === 409) {
         // Stol kimningdir oldin band qilingan — zaldagi holatni yangilab,
         // foydalanuvchini stol tanlashga qaytaramiz.
-        toast.error(message || 'Bu stol allaqachon band qilingan. Iltimos, boshqa stol tanlang.')
+        toast.error(message || t('guestOrder.tableAlreadyReserved'))
         setStep('hall')
         setSelectedTable(null)
         fetchAvailability()
       } else {
-        toast.error(message || "Bronni yuborib bo'lmadi. Internetni tekshirib ko'ring.")
+        toast.error(message || t('guestOrder.reserveFailed'))
       }
     } finally {
       setIsSubmitting(false)
@@ -377,7 +368,7 @@ export default function GuestMenuPage() {
           className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-gradient-to-r from-[#F97316] to-[#EA580C] px-4 py-3 text-sm font-bold text-white shadow-xl shadow-orange-500/30 hover:scale-105 active:scale-95 transition-transform"
         >
           <MessageSquareHeart className="h-5 w-5" />
-          <span className="hidden sm:inline">Fikr bildirish</span>
+          <span className="hidden sm:inline">{t('guestOrder.giveFeedback')}</span>
         </button>
       )}
 

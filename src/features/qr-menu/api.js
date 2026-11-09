@@ -52,7 +52,6 @@ export const getPublicOrderById = (id) => api.get(`/public/orders/${id}`)
 export const callWaiterForTable = (tableId, type = 'call', notes = '') =>
   api.post(`/tables/${tableId}/call-waiter`, { type, ...(notes ? { notes } : {}) })
 
-
 export function resolveImageUrl(image) {
   if (!image) return null
   if (/^https?:\/\//.test(image)) return image

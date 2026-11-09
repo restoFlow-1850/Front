@@ -109,7 +109,7 @@ export default function CategoryModal({ isOpen, onClose, onSubmit, category }) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
           >
             <X size={18} />
           </button>
@@ -123,7 +123,7 @@ export default function CategoryModal({ isOpen, onClose, onSubmit, category }) {
             <input
               type="text"
               placeholder="Masalan: Issiq taomlar"
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 px-3.5 text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#F97316] focus:bg-white focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 px-3.5 text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#F97316] focus:bg-white focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               {...register('name')}
             />
             {errors.name && <p className="mt-1 text-xs font-medium text-rose-500">{errors.name.message}</p>}
@@ -136,7 +136,7 @@ export default function CategoryModal({ isOpen, onClose, onSubmit, category }) {
             <textarea
               rows={2}
               placeholder="Kategoriya haqida qisqacha ma'lumot..."
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 px-3.5 text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#F97316] focus:bg-white focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 px-3.5 text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#F97316] focus:bg-white focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               {...register('description')}
             />
           </div>
@@ -145,13 +145,13 @@ export default function CategoryModal({ isOpen, onClose, onSubmit, category }) {
             <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">
               Belgi (Icon)
             </label>
-            <div className="grid grid-cols-8 gap-1.5 max-h-36 overflow-y-auto p-1.5 rounded-2xl border border-slate-200/80 bg-slate-50/50 dark:border-slate-800 dark:bg-slate-900/50">
+            <div className="grid max-h-44 grid-cols-5 gap-1.5 overflow-y-auto rounded-2xl border border-slate-200/80 bg-slate-50/50 p-1.5 sm:grid-cols-8 dark:border-slate-800 dark:bg-slate-900/50">
               {ICONS.map(({ key, Icon }) => (
                 <button
                   key={key}
                   type="button"
                   onClick={() => setValue('icon', key)}
-                  className={`flex size-9 items-center justify-center rounded-xl transition text-base ${
+                  className={`flex min-h-11 min-w-11 items-center justify-center rounded-xl transition text-base ${
                     icon === key
                       ? 'bg-[#F97316] text-white shadow-md shadow-orange-500/25 scale-105'
                       : 'text-slate-600 hover:bg-slate-200/60 dark:text-slate-300 dark:hover:bg-slate-800'
@@ -167,14 +167,15 @@ export default function CategoryModal({ isOpen, onClose, onSubmit, category }) {
             <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">
               Rang
             </label>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {COLORS.map((c) => (
                 <button
                   key={c}
                   type="button"
+                  aria-label={`Rang ${c}`}
                   onClick={() => setValue('color', c)}
                   style={{ backgroundColor: c }}
-                  className={`size-7 rounded-full transition-transform ${
+                  className={`size-11 rounded-full transition-transform ${
                     color === c ? 'ring-2 ring-offset-2 ring-slate-900 dark:ring-offset-[#111827] scale-110' : 'hover:scale-105 opacity-85'
                   }`}
                 />
@@ -186,14 +187,14 @@ export default function CategoryModal({ isOpen, onClose, onSubmit, category }) {
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="min-h-11 rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
             >
               Bekor qilish
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-xl bg-gradient-to-r from-[#F97316] to-[#EA580C] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-500/25 hover:from-[#EA580C] hover:to-[#C2410C] disabled:opacity-50"
+              className="min-h-11 rounded-xl bg-gradient-to-r from-[#F97316] to-[#EA580C] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-500/25 hover:from-[#EA580C] hover:to-[#C2410C] disabled:opacity-50"
             >
               {isSubmitting ? 'Saqlanmoqda...' : isEdit ? 'Saqlash' : 'Kategoriya qo‘shish'}
             </button>
