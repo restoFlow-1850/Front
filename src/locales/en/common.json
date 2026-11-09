@@ -65,6 +65,7 @@
   "user": "User",
   "nav": {
     "dashboard": "Dashboard",
+    "aiChat": "AI Assistant",
     "orders": "Orders",
     "map": "Branches Map",
     "waiter": "Waiter Panel",
