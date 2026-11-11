@@ -1,8 +1,8 @@
 // Mehmon (login qilmagan) uchun ochiq so'rovlar — services/axios orqali.
 // Stollar, band holati, menyu va bron yaratish shu yerdan ishlaydi.
 import api from '../../services/axios'
-import { API_ORIGIN } from '../../shared/config'
 import i18n from '../../i18n'
+import { API_ORIGIN } from '../../shared/config'
 
 export const getTableAvailability = (isoDateTime) =>
   api.get('/tables/availability', { params: { date: isoDateTime } })
