@@ -11,32 +11,36 @@ export class AiUnavailableError extends Error {
   }
 }
 
-function extractReply(payload) {
-  if (!payload) return ''
-  if (typeof payload === 'string') return payload
-  return (
-    payload.reply ??
-    payload.answer ??
-    payload.message ??
-    payload.content ??
-    payload.text ??
-    ''
-  )
+function toHistory(messages = []) {
+  return messages
+    .filter((message) => message && (message.role === 'user' || message.role === 'assistant'))
+    .filter((message) => typeof message.content === 'string' && message.content.trim())
+    .map((message) => ({ role: message.role, text: message.content }))
+}
+
+function extractAnswer(payload) {
+  if (!payload || typeof payload !== 'object') return ''
+  return typeof payload.answer === 'string' ? payload.answer : ''
 }
 
 export async function sendAiMessage(messages = []) {
-  const lastUserMessage = [...messages].reverse().find((message) => message.role === 'user')
+  const list = Array.isArray(messages) ? messages : []
+  let lastUserIndex = -1
+  list.forEach((message, index) => {
+    if (message?.role === 'user') lastUserIndex = index
+  })
+
+  const question =
+    lastUserIndex >= 0 ? String(list[lastUserIndex]?.content ?? '').trim() : ''
+  const history = toHistory(lastUserIndex > 0 ? list.slice(0, lastUserIndex) : [])
 
   try {
-    const response = await api.post(AI_ENDPOINT, {
-      message: lastUserMessage?.content ?? '',
-      messages,
-    })
-    const reply = extractReply(unwrap(response))
-    if (!reply || typeof reply !== 'string') {
+    const response = await api.post(AI_ENDPOINT, { question, history })
+    const answer = extractAnswer(unwrap(response)).trim()
+    if (!answer) {
       throw new AiUnavailableError("AI bo'sh javob qaytardi")
     }
-    return { reply: reply.trim(), source: 'server' }
+    return { reply: answer, source: 'server' }
   } catch (error) {
     if (error instanceof AiUnavailableError) throw error
     const status = error?.response?.status
