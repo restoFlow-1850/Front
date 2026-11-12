@@ -1,5 +1,6 @@
 import api from '../../services/axios'
 import { unwrap } from '../../lib/api'
+import { normalizeToolCalls } from './lib/aiChat'
 
 const AI_ENDPOINT = import.meta.env?.VITE_AI_CHAT_URL || '/ai/chat'
 
@@ -23,6 +24,16 @@ function extractAnswer(payload) {
   return typeof payload.answer === 'string' ? payload.answer : ''
 }
 
+function extractToolCalls(payload, root) {
+  return normalizeToolCalls(
+    payload?.toolCalls ??
+      payload?.tool_calls ??
+      payload?.tools ??
+      root?.toolCalls ??
+      root?.tool_calls,
+  )
+}
+
 export async function sendAiMessage(messages = []) {
   const list = Array.isArray(messages) ? messages : []
   let lastUserIndex = -1
@@ -36,11 +47,16 @@ export async function sendAiMessage(messages = []) {
 
   try {
     const response = await api.post(AI_ENDPOINT, { question, history })
-    const answer = extractAnswer(unwrap(response)).trim()
+    const payload = unwrap(response)
+    const answer = extractAnswer(payload).trim()
     if (!answer) {
       throw new AiUnavailableError("AI bo'sh javob qaytardi")
     }
-    return { reply: answer, source: 'server' }
+    return {
+      reply: answer,
+      source: 'server',
+      toolCalls: extractToolCalls(payload, response?.data),
+    }
   } catch (error) {
     if (error instanceof AiUnavailableError) throw error
     const status = error?.response?.status

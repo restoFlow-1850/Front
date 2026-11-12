@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Bot, RotateCcw, Sparkles, Trash2, WifiOff } from 'lucide-react'
 import { toast } from 'react-toastify'
 
@@ -39,6 +40,7 @@ const STATUS = {
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export default function AiChatPage() {
+  const { t } = useTranslation()
   const [messages, setMessages] = useState(() => loadMessages())
   const [input, setInput] = useState('')
   const [isSending, setIsSending] = useState(false)
@@ -69,7 +71,10 @@ export default function AiChatPage() {
       setMode('server')
       setMessages((prev) => [
         ...prev,
-        createMessage('assistant', result.reply, { source: result.source }),
+        createMessage('assistant', result.reply, {
+          source: result.source,
+          toolCalls: result.toolCalls,
+        }),
       ])
     } catch (error) {
       if (error instanceof AiUnavailableError) {
@@ -110,8 +115,11 @@ export default function AiChatPage() {
   return (
     <div className="space-y-4">
       <PageHeader
-        title="AI yordamchi"
-        subtitle="Restoran boshqaruvi bo'yicha aqlli maslahatchi — savdo, menyu, ombor va jamoa"
+        title={t('aiChat.title', 'AI yordamchi')}
+        subtitle={t(
+          'aiChat.subtitle',
+          "Restoran boshqaruvi bo'yicha aqlli maslahatchi — savdo, menyu, ombor va jamoa",
+        )}
         actions={
           <div className="flex items-center gap-2">
             <span
@@ -121,7 +129,7 @@ export default function AiChatPage() {
               {status.label}
             </span>
             <Button variant="secondary" onClick={handleClear} disabled={messages.length === 0}>
-              <RotateCcw className="mr-2 h-4 w-4" /> Yangi suhbat
+              <RotateCcw className="mr-2 h-4 w-4" /> {t('aiChat.newChat', 'Yangi suhbat')}
             </Button>
           </div>
         }
@@ -152,8 +160,8 @@ export default function AiChatPage() {
             onClick={handleClear}
             disabled={messages.length === 0}
             className="grid size-10 shrink-0 place-items-center rounded-xl text-slate-400 transition hover:bg-rose-50 hover:text-rose-500 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-rose-950/40"
-            aria-label="Suhbatni tozalash"
-            title="Suhbatni tozalash"
+            aria-label={t('aiChat.clear', 'Suhbatni tozalash')}
+            title={t('aiChat.clear', 'Suhbatni tozalash')}
           >
             <Trash2 size={17} />
           </button>

@@ -521,6 +521,25 @@
     "new": "Yangi",
     "unread": "O'qilmagan"
   },
+  "aiChat": {
+    "title": "AI yordamchi",
+    "subtitle": "Restoran boshqaruvi bo'yicha aqlli maslahatchi — savdo, menyu, ombor va jamoa",
+    "newChat": "Yangi suhbat",
+    "clear": "Suhbatni tozalash",
+    "toolsUsed": "Ishlatilgan vositalar",
+    "tools": {
+      "dailySales": "Kunlik savdo",
+      "inventory": "Ombor",
+      "menu": "Menyu",
+      "orders": "Buyurtmalar",
+      "staff": "Xodimlar",
+      "tables": "Stollar",
+      "reservations": "Bronlar",
+      "feedback": "Mijozlar fikri",
+      "reports": "Hisobotlar",
+      "custom": "Vosita"
+    }
+  },
   "qrMenu": {
     "title": "Onlayn Menyu",
     "selectLanguage": "Tilni tanlang / Select language / Выберите язык",

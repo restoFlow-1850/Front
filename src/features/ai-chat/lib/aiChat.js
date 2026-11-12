@@ -1,6 +1,147 @@
 export const AI_STORAGE_KEY = 'restoflow.ai-chat.messages'
 export const MAX_HISTORY = 20
 export const MAX_STORED = 50
+export const MAX_TOOL_BADGES = 12
+
+// Backend tool nomlari har xil yozilishi mumkin (daily_sales, dailySales,
+// sales_report...). Hammasini bitta kanonik kalitga keltiramiz — shunda
+// tarjima fayllarida faqat shu kalitlar turadi.
+const TOOL_ALIASES = {
+  daily_sales: 'dailySales',
+  daily_sale: 'dailySales',
+  dailysales: 'dailySales',
+  sales: 'dailySales',
+  sale: 'dailySales',
+  sales_report: 'dailySales',
+  salesreport: 'dailySales',
+  revenue: 'dailySales',
+  revenue_report: 'dailySales',
+  savdo: 'dailySales',
+  kunlik_savdo: 'dailySales',
+  inventory: 'inventory',
+  inventories: 'inventory',
+  stock: 'inventory',
+  warehouse: 'inventory',
+  ombor: 'inventory',
+  menu: 'menu',
+  products: 'menu',
+  product: 'menu',
+  dishes: 'menu',
+  orders: 'orders',
+  order: 'orders',
+  buyurtmalar: 'orders',
+  staff: 'staff',
+  employees: 'staff',
+  employee: 'staff',
+  team: 'staff',
+  workers: 'staff',
+  xodimlar: 'staff',
+  tables: 'tables',
+  table: 'tables',
+  stollar: 'tables',
+  reservations: 'reservations',
+  reservation: 'reservations',
+  bookings: 'reservations',
+  bronlar: 'reservations',
+  feedback: 'feedback',
+  review: 'feedback',
+  reviews: 'feedback',
+  complaints: 'feedback',
+  fikrlar: 'feedback',
+  reports: 'reports',
+  report: 'reports',
+  analytics: 'reports',
+  hisobot: 'reports',
+}
+
+export const TOOL_EMOJI = {
+  dailySales: '📊',
+  inventory: '📦',
+  menu: '🍽️',
+  orders: '🧾',
+  staff: '👥',
+  tables: '🪑',
+  reservations: '📅',
+  feedback: '💬',
+  reports: '📈',
+  custom: '🔧',
+}
+
+function normalizeToolName(value) {
+  return String(value ?? '')
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+}
+
+function toolKeyFromName(name) {
+  return TOOL_ALIASES[normalizeToolName(name)] ?? 'custom'
+}
+
+function toolNameOf(entry) {
+  if (typeof entry === 'string') return entry.trim()
+  if (!entry || typeof entry !== 'object') return ''
+  const candidate =
+    entry.name ??
+    entry.tool ??
+    entry.toolName ??
+    entry.tool_name ??
+    entry.function?.name ??
+    entry.function?.tool ??
+    entry.id
+  return typeof candidate === 'string' ? candidate.trim() : ''
+}
+
+function parseToolEntries(raw) {
+  if (!raw) return []
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim()
+    if (!trimmed) return []
+    if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+      try {
+        return parseToolEntries(JSON.parse(trimmed))
+      } catch {
+        return [trimmed]
+      }
+    }
+    return [trimmed]
+  }
+  if (Array.isArray(raw)) return raw
+  if (typeof raw === 'object') {
+    for (const key of ['toolCalls', 'tool_calls', 'tools', 'calls']) {
+      if (key in raw) return parseToolEntries(raw[key])
+    }
+    return [raw]
+  }
+  return []
+}
+
+export function humanizeToolName(name) {
+  const text = String(name ?? '')
+    .replace(/[_-]+/g, ' ')
+    .trim()
+  return text ? text.charAt(0).toUpperCase() + text.slice(1) : ''
+}
+
+/** data.toolCalls -> [{ name, key }] (takrorlar olib tashlanadi). */
+export function normalizeToolCalls(raw) {
+  const result = []
+  const seen = new Set()
+
+  for (const entry of parseToolEntries(raw)) {
+    const name = toolNameOf(entry)
+    if (!name) continue
+    const key = toolKeyFromName(name)
+    const dedupeKey = key === 'custom' ? `custom:${normalizeToolName(name)}` : key
+    if (seen.has(dedupeKey)) continue
+    seen.add(dedupeKey)
+    result.push({ name, key })
+    if (result.length >= MAX_TOOL_BADGES) break
+  }
+
+  return result
+}
 
 export const QUICK_PROMPTS = [
   {
@@ -39,12 +180,26 @@ const makeId = () =>
   `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`
 
 export function createMessage(role, content, extra = {}) {
-  return {
+  const message = {
     id: makeId(),
     role,
     content: String(content ?? '').trim(),
     createdAt: new Date().toISOString(),
     ...extra,
+  }
+  if ('toolCalls' in message) {
+    message.toolCalls = normalizeToolCalls(message.toolCalls)
+  }
+  return message
+}
+
+// Suhbat joriy tab sessiyasida saqlanadi: sahifa yangilanganda (F5) tarix
+// yo'qolmaydi, lekin brauzer yopilgach tozalanadi.
+function defaultStorage() {
+  try {
+    return globalThis.sessionStorage ?? null
+  } catch {
+    return null
   }
 }
 
@@ -56,7 +211,7 @@ export function toApiMessages(messages = []) {
     .map((message) => ({ role: message.role, content: message.content }))
 }
 
-export function loadMessages(storage = globalThis.localStorage) {
+export function loadMessages(storage = defaultStorage()) {
   try {
     const raw = storage?.getItem(AI_STORAGE_KEY)
     if (!raw) return []
@@ -76,13 +231,14 @@ export function loadMessages(storage = globalThis.localStorage) {
         content: message.content,
         createdAt: message.createdAt || new Date().toISOString(),
         source: message.source,
+        toolCalls: normalizeToolCalls(message.toolCalls),
       }))
   } catch {
     return []
   }
 }
 
-export function saveMessages(messages = [], storage = globalThis.localStorage) {
+export function saveMessages(messages = [], storage = defaultStorage()) {
   try {
     storage?.setItem(AI_STORAGE_KEY, JSON.stringify(messages.slice(-MAX_STORED)))
   } catch {
@@ -90,7 +246,7 @@ export function saveMessages(messages = [], storage = globalThis.localStorage) {
   }
 }
 
-export function clearStoredMessages(storage = globalThis.localStorage) {
+export function clearStoredMessages(storage = defaultStorage()) {
   try {
     storage?.removeItem(AI_STORAGE_KEY)
   } catch {

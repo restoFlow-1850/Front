@@ -1,13 +1,16 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AlertTriangle, Bot, Check, Copy, User } from 'lucide-react'
 
-import { formatMessageTime } from '../lib/aiChat'
+import { formatMessageTime, humanizeToolName, normalizeToolCalls, TOOL_EMOJI } from '../lib/aiChat'
 
 export default function ChatMessage({ message }) {
+  const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
   const isUser = message.role === 'user'
   const isError = message.source === 'error'
   const isLocal = message.source === 'local'
+  const toolCalls = normalizeToolCalls(message.toolCalls)
 
   const handleCopy = async () => {
     try {
@@ -43,6 +46,34 @@ export default function ChatMessage({ message }) {
             </span>
           )}
           {message.content}
+
+          {!isUser && toolCalls.length > 0 && (
+            <div
+              data-testid="ai-tool-calls"
+              className="mt-2.5 flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-2 dark:border-slate-700"
+            >
+              <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                {t('aiChat.toolsUsed', 'Ishlatilgan vositalar')}
+              </span>
+              {toolCalls.map((tool) => {
+                const fallback = humanizeToolName(tool.name)
+                const label =
+                  tool.key === 'custom'
+                    ? fallback
+                    : t(`aiChat.tools.${tool.key}`, { defaultValue: fallback })
+                return (
+                  <span
+                    key={`${tool.key}:${tool.name}`}
+                    data-testid="ai-tool-badge"
+                    className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:bg-slate-700/60 dark:text-slate-200"
+                  >
+                    <span aria-hidden="true">{TOOL_EMOJI[tool.key] ?? TOOL_EMOJI.custom}</span>
+                    {label}
+                  </span>
+                )
+              })}
+            </div>
+          )}
 
           <button
             type="button"

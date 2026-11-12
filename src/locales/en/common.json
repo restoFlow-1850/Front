@@ -521,6 +521,25 @@
     "new": "New",
     "unread": "Unread"
   },
+  "aiChat": {
+    "title": "AI Assistant",
+    "subtitle": "Smart advisor for restaurant management — sales, menu, inventory and team",
+    "newChat": "New chat",
+    "clear": "Clear chat",
+    "toolsUsed": "Tools used",
+    "tools": {
+      "dailySales": "Daily sales",
+      "inventory": "Inventory",
+      "menu": "Menu",
+      "orders": "Orders",
+      "staff": "Staff",
+      "tables": "Tables",
+      "reservations": "Reservations",
+      "feedback": "Customer feedback",
+      "reports": "Reports",
+      "custom": "Tool"
+    }
+  },
   "qrMenu": {
     "title": "Online Menu",
     "selectLanguage": "Select language / Tilni tanlang / Выберите язык",

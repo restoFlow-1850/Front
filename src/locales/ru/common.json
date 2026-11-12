@@ -521,6 +521,25 @@
     "new": "Новое",
     "unread": "Непрочитанные"
   },
+  "aiChat": {
+    "title": "AI-помощник",
+    "subtitle": "Умный советник по управлению рестораном — продажи, меню, склад и команда",
+    "newChat": "Новый диалог",
+    "clear": "Очистить диалог",
+    "toolsUsed": "Использованные инструменты",
+    "tools": {
+      "dailySales": "Дневная выручка",
+      "inventory": "Склад",
+      "menu": "Меню",
+      "orders": "Заказы",
+      "staff": "Сотрудники",
+      "tables": "Столы",
+      "reservations": "Брони",
+      "feedback": "Отзывы клиентов",
+      "reports": "Отчёты",
+      "custom": "Инструмент"
+    }
+  },
   "qrMenu": {
     "title": "Онлайн Меню",
     "selectLanguage": "Выберите язык / Tilni tanlang / Select language",

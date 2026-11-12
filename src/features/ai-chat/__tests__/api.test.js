@@ -36,7 +36,45 @@ describe('sendAiMessage', () => {
     await expect(sendAiMessage([{ role: 'user', content: 'Salom' }])).resolves.toEqual({
       reply: 'Salom',
       source: 'server',
+      toolCalls: [],
     })
+  })
+
+  it('extracts and normalizes data.toolCalls', async () => {
+    api.post.mockResolvedValue({
+      data: {
+        data: {
+          answer: 'Javob',
+          toolCalls: [{ name: 'daily_sales' }, { tool: 'inventory' }, 'orders', { name: 'daily-sales' }],
+        },
+      },
+    })
+
+    const result = await sendAiMessage([{ role: 'user', content: 'Savol' }])
+
+    expect(result.toolCalls).toEqual([
+      { name: 'daily_sales', key: 'dailySales' },
+      { name: 'inventory', key: 'inventory' },
+      { name: 'orders', key: 'orders' },
+    ])
+  })
+
+  it('accepts toolCalls at the response root and snake_case name', async () => {
+    api.post.mockResolvedValue({
+      data: { answer: 'Javob', tool_calls: [{ function: { name: 'sales_report' } }] },
+    })
+
+    const result = await sendAiMessage([{ role: 'user', content: 'Savol' }])
+
+    expect(result.toolCalls).toEqual([{ name: 'sales_report', key: 'dailySales' }])
+  })
+
+  it('returns an empty toolCalls array when the response has none', async () => {
+    api.post.mockResolvedValue({ data: { answer: 'Javob' } })
+
+    const result = await sendAiMessage([{ role: 'user', content: 'Savol' }])
+
+    expect(result.toolCalls).toEqual([])
   })
 
   it('also accepts answer at the response root', async () => {

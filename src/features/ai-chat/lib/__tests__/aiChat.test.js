@@ -8,8 +8,10 @@ import {
   clearStoredMessages,
   createMessage,
   formatMessageTime,
+  humanizeToolName,
   loadMessages,
   localAssistantReply,
+  normalizeToolCalls,
   saveMessages,
   toApiMessages,
 } from '../aiChat'
@@ -36,6 +38,14 @@ describe('createMessage', () => {
 
   it("qo'shimcha maydonlarni saqlaydi", () => {
     expect(createMessage('assistant', 'Javob', { source: 'local' }).source).toBe('local')
+  })
+
+  it('toolCalls ni normallashtirib saqlaydi', () => {
+    const message = createMessage('assistant', 'Javob', { toolCalls: ['daily_sales', 'stock'] })
+    expect(message.toolCalls).toEqual([
+      { name: 'daily_sales', key: 'dailySales' },
+      { name: 'stock', key: 'inventory' },
+    ])
   })
 
   it('bo\'sh qiymatni bo\'sh satrga aylantiradi', () => {
@@ -89,6 +99,24 @@ describe('loadMessages / saveMessages', () => {
     const messages = loadMessages(storage)
     expect(messages).toHaveLength(1)
     expect(messages[0]).toMatchObject({ id: '1', role: 'user', content: 'Salom' })
+  })
+
+  it('saqlangan toolCalls ni normallashtirib qaytaradi', () => {
+    const storage = createStorage({
+      [AI_STORAGE_KEY]: JSON.stringify([
+        {
+          id: '1',
+          role: 'assistant',
+          content: 'Javob',
+          toolCalls: [{ name: 'daily_sales' }, { name: 'inventory' }],
+        },
+      ]),
+    })
+
+    expect(loadMessages(storage)[0].toolCalls).toEqual([
+      { name: 'daily_sales', key: 'dailySales' },
+      { name: 'inventory', key: 'inventory' },
+    ])
   })
 
   it("buzilgan JSON uchun bo'sh massiv qaytaradi", () => {
@@ -164,6 +192,48 @@ describe('QUICK_PROMPTS', () => {
       expect(item.label).toBeTruthy()
       expect(item.prompt).toBeTruthy()
     }
+  })
+})
+
+describe('normalizeToolCalls', () => {
+  it("turli ko'rinishdagi tool nomlarini kanonik kalitga keltiradi", () => {
+    expect(
+      normalizeToolCalls([
+        { name: 'daily_sales' },
+        { tool: 'inventory' },
+        'orders',
+        { function: { name: 'sales_report' } },
+      ]),
+    ).toEqual([
+      { name: 'daily_sales', key: 'dailySales' },
+      { name: 'inventory', key: 'inventory' },
+      { name: 'orders', key: 'orders' },
+    ])
+  })
+
+  it('takrorlarni olib tashlaydi', () => {
+    expect(
+      normalizeToolCalls([{ name: 'inventory' }, { name: 'stock' }, { name: 'inventory' }]),
+    ).toEqual([{ name: 'inventory', key: 'inventory' }])
+  })
+
+  it("JSON satr va bo'sh qiymatlarni qabul qiladi", () => {
+    expect(normalizeToolCalls('["menu"]')).toEqual([{ name: 'menu', key: 'menu' }])
+    expect(normalizeToolCalls(null)).toEqual([])
+    expect(normalizeToolCalls('')).toEqual([])
+    expect(normalizeToolCalls([{}, null, 42])).toEqual([])
+  })
+
+  it("noma'lum tool nomini custom sifatida saqlaydi", () => {
+    expect(normalizeToolCalls([{ name: 'weather_api' }])).toEqual([
+      { name: 'weather_api', key: 'custom' },
+    ])
+  })
+})
+
+describe('humanizeToolName', () => {
+  it("pastki chiziqlarni bo'sh joyga almashtiradi", () => {
+    expect(humanizeToolName('weather_api')).toBe('Weather api')
   })
 })
 
