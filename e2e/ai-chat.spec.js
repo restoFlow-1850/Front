@@ -5,9 +5,18 @@ import { login } from './helpers/auth.js'
 // AI yordamchi oynasi. Backend AI javobi soxta — test faqat frontendni
 // tekshiradi: savol yuboriladi, javob va ishlatilgan tool belgilari chiqadi.
 const AI_ANSWER = "Bugungi savdo 1 250 000 so'm, omborda 3 ta mahsulot kam qoldi."
+const DASHBOARD_QUESTION = 'Bugun tushum qancha?'
 
-async function openChat(page) {
+async function mockAi(page) {
+  const requests = []
+
   await page.route('**/ai/chat', async (route) => {
+    try {
+      requests.push(route.request().postDataJSON())
+    } catch {
+      requests.push(null)
+    }
+
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -21,9 +30,17 @@ async function openChat(page) {
     })
   })
 
+  return requests
+}
+
+async function openChat(page) {
+  const requests = await mockAi(page)
+
   await login(page, ACCOUNTS.admin)
   await page.goto('/ai-chat')
   await expect(page.getByPlaceholder('Savolingizni yozing...')).toBeVisible()
+
+  return requests
 }
 
 test.describe('AI chat', () => {
@@ -39,6 +56,33 @@ test.describe('AI chat', () => {
     await expect(tools).toBeVisible()
     await expect(tools.getByText('Kunlik savdo')).toBeVisible()
     await expect(tools.getByText('Ombor')).toBeVisible()
+  })
+
+  test('?q= orqali savol avtomatik yuboriladi', async ({ page }) => {
+    const requests = await mockAi(page)
+
+    await login(page, ACCOUNTS.admin)
+    await page.goto(`/ai-chat?q=${encodeURIComponent(DASHBOARD_QUESTION)}`)
+
+    await expect(page.getByText(DASHBOARD_QUESTION)).toBeVisible()
+    await expect(page.getByText(AI_ANSWER)).toBeVisible()
+    await expect(page).not.toHaveURL(/[?&]q=/)
+    expect(requests[0]).toMatchObject({ question: DASHBOARD_QUESTION })
+  })
+
+  test('dashboarddan tayyor savol chatni ochib avtomatik yuboradi', async ({ page }) => {
+    const requests = await mockAi(page)
+
+    await login(page, ACCOUNTS.admin)
+    await page.goto('/dashboard')
+
+    await page.getByTestId('ai-ask-revenue').click()
+
+    await expect(page).toHaveURL(/\/ai-chat/)
+    await expect(page.getByText(DASHBOARD_QUESTION)).toBeVisible()
+    await expect(page.getByText(AI_ANSWER)).toBeVisible()
+    await expect(page.getByTestId('ai-tool-calls')).toBeVisible()
+    await expect.poll(() => requests.map((body) => body?.question)).toContain(DASHBOARD_QUESTION)
   })
 
   test('suhbat yangilanganda saqlanadi, «Yangi suhbat» tozalaydi', async ({ page }) => {

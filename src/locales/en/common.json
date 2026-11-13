@@ -235,7 +235,14 @@
     "sendTelegramError": "Failed to send to Telegram",
     "sendTelegramSuccess": "Report sent to the Telegram bot successfully! 📲",
     "telegramExport": "Send to Telegram",
-    "telegramSent": "Report sent to the Telegram bot"
+    "telegramSent": "Report sent to the Telegram bot",
+    "aiAsk": {
+      "title": "Ask AI",
+      "subtitle": "Pick a ready question — the answer will be ready in a moment",
+      "revenue": "How much revenue today?",
+      "lowStock": "What's running low in stock?",
+      "openOrders": "How many orders are open now?"
+    }
   },
   "cashier": {
     "title": "Cashier",
@@ -527,6 +534,15 @@
     "newChat": "New chat",
     "clear": "Clear chat",
     "toolsUsed": "Tools used",
+    "errorLabel": "Error",
+    "retry": "Retry",
+    "errors": {
+      "rateLimit": "Hourly limit of 30 questions reached",
+      "forbidden": "Admin/manager only",
+      "notConfigured": "AI is not configured yet",
+      "network": "Network error. Check your connection and try again.",
+      "generic": "Failed to get an AI response"
+    },
     "tools": {
       "dailySales": "Daily sales",
       "inventory": "Inventory",

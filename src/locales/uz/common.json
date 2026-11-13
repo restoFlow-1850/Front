@@ -235,7 +235,14 @@
     "sendTelegramError": "Telegram'ga yuborishda xatolik yuz berdi",
     "sendTelegramSuccess": "Hisobot Telegram botga muvaffaqiyatli yuborildi! 📲",
     "telegramExport": "Telegram'ga yuborish",
-    "telegramSent": "Hisobot Telegram botga yuborildi"
+    "telegramSent": "Hisobot Telegram botga yuborildi",
+    "aiAsk": {
+      "title": "AI'dan so'rang",
+      "subtitle": "Tayyor savollardan birini tanlang — javob bir zumda tayyor bo'ladi",
+      "revenue": "Bugun tushum qancha?",
+      "lowStock": "Omborda nima tugayapti?",
+      "openOrders": "Hozir nechta buyurtma ochiq?"
+    }
   },
   "cashier": {
     "title": "Kassa",
@@ -527,6 +534,15 @@
     "newChat": "Yangi suhbat",
     "clear": "Suhbatni tozalash",
     "toolsUsed": "Ishlatilgan vositalar",
+    "errorLabel": "Xatolik",
+    "retry": "Qayta urinish",
+    "errors": {
+      "rateLimit": "Soatiga 30 ta savol limiti tugadi",
+      "forbidden": "Faqat admin/menejer uchun",
+      "notConfigured": "AI hozircha sozlanmagan",
+      "network": "Tarmoq xatosi. Internetni tekshirib, qayta urinib ko'ring.",
+      "generic": "AI javobini olishda xatolik yuz berdi"
+    },
     "tools": {
       "dailySales": "Kunlik savdo",
       "inventory": "Ombor",

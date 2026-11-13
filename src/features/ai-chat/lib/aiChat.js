@@ -231,6 +231,8 @@ export function loadMessages(storage = defaultStorage()) {
         content: message.content,
         createdAt: message.createdAt || new Date().toISOString(),
         source: message.source,
+        errorCode: message.errorCode,
+        retryText: message.retryText,
         toolCalls: normalizeToolCalls(message.toolCalls),
       }))
   } catch {
@@ -311,4 +313,81 @@ export function localAssistantReply(prompt) {
   if (!text.trim()) return DEFAULT_REPLY
   const intent = INTENTS.find((item) => item.match.test(text))
   return intent ? intent.reply : DEFAULT_REPLY
+}
+
+// ── Xavfsiz matn parseri ──────────────────────────────────────────
+// AI javobidagi qalin matn (**...**), ro'yxatlar (- ...) va yirik pul
+// summalarini React elementlariga ajratamiz. HTML hech qachon ishlatilmaydi:
+// natija — oddiy tokenlar, shuning uchun XSS xavfi yo'q.
+const LIST_ITEM_RE = /^\s*[-*•]\s+(.*)$/
+const INLINE_RE =
+  /\*\*([^*]+)\*\*|((?:\d{1,3}(?:[ \u00A0]\d{3})+|\d{5,})(?:[.,]\d+)?\s*(?:so['’]?m|сум|сўм|UZS)?)/gi
+
+export function parseInlineTokens(text) {
+  const input = String(text ?? '')
+  if (!input) return []
+
+  const tokens = []
+  const regex = new RegExp(INLINE_RE.source, INLINE_RE.flags)
+  let lastIndex = 0
+  let match
+
+  while ((match = regex.exec(input)) !== null) {
+    if (match.index > lastIndex) {
+      tokens.push({ type: 'text', value: input.slice(lastIndex, match.index) })
+    }
+    if (match[1] !== undefined) {
+      tokens.push({ type: 'bold', value: match[1] })
+    } else {
+      tokens.push({ type: 'amount', value: match[2].trim() })
+    }
+    lastIndex = match.index + match[0].length
+  }
+
+  if (lastIndex < input.length) {
+    tokens.push({ type: 'text', value: input.slice(lastIndex) })
+  }
+
+  return tokens
+}
+
+export function parseMessageBlocks(text) {
+  const lines = String(text ?? '')
+    .replace(/\r\n/g, '\n')
+    .split('\n')
+
+  const blocks = []
+  let paragraph = []
+  let list = null
+
+  const flushParagraph = () => {
+    if (paragraph.length === 0) return
+    blocks.push({ type: 'paragraph', tokens: parseInlineTokens(paragraph.join('\n')) })
+    paragraph = []
+  }
+  const flushList = () => {
+    if (!list) return
+    blocks.push({ type: 'list', items: list })
+    list = null
+  }
+
+  for (const line of lines) {
+    const item = line.match(LIST_ITEM_RE)
+    if (item) {
+      flushParagraph()
+      if (!list) list = []
+      list.push(parseInlineTokens(item[1]))
+    } else if (!line.trim()) {
+      flushParagraph()
+      flushList()
+    } else {
+      flushList()
+      paragraph.push(line)
+    }
+  }
+
+  flushParagraph()
+  flushList()
+
+  return blocks
 }

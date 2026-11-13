@@ -23,6 +23,7 @@ import { getTables } from '../../tables/api'
 import { unwrap, unwrapList, apiErrorMessage, formatSom, formatTime } from '../../../lib/api'
 import { ORDER_STATUS_LABELS, ORDER_STATUS_TONE } from '../../../constants/roles'
 import { resolveTableOccupancy } from '../lib/occupancy'
+import AiAskCard from '../components/AiAskCard'
 import {
   Badge,
   Button,
@@ -379,6 +380,9 @@ export default function Dashboard() {
           </p>
         </Card>
       )}
+
+      {/* AI'dan so'rash — tayyor savollar chat sahifasiga olib boradi */}
+      <AiAskCard />
 
       {/* ApexCharts Grafiklari (React.lazy + Suspense optimization) */}
       <div className="mb-5 grid gap-5 lg:grid-cols-2">

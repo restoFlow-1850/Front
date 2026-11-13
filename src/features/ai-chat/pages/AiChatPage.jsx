@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSearchParams } from 'react-router-dom'
 import { Bot, RotateCcw, Sparkles, Trash2, WifiOff } from 'lucide-react'
 import { toast } from 'react-toastify'
 
 import { Button, Card, PageHeader } from '../../../components/ui'
-import { apiErrorMessage } from '../../../lib/api'
-import { AiUnavailableError, sendAiMessage } from '../api'
+import { AiUnavailableError, resolveAiErrorCode, sendAiMessage } from '../api'
 import ChatComposer from '../components/ChatComposer'
 import ChatMessage from '../components/ChatMessage'
 import QuickPrompts from '../components/QuickPrompts'
@@ -41,10 +41,12 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export default function AiChatPage() {
   const { t } = useTranslation()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [messages, setMessages] = useState(() => loadMessages())
   const [input, setInput] = useState('')
   const [isSending, setIsSending] = useState(false)
   const [mode, setMode] = useState('unknown')
+  const autoSentRef = useRef(false)
   const bottomRef = useRef(null)
 
   useEffect(() => {
@@ -55,15 +57,21 @@ export default function AiChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [messages, isSending])
 
-  const handleSend = async (rawText = input) => {
+  const sendQuestion = async (rawText, { appendUser = true, errorMessageId = null } = {}) => {
     const text = String(rawText ?? '').trim()
     if (!text || isSending) return
 
-    const userMessage = createMessage('user', text)
-    const nextMessages = [...messages, userMessage]
+    let nextMessages
+    if (appendUser) {
+      nextMessages = [...messages, createMessage('user', text)]
+      setInput('')
+    } else {
+      nextMessages = errorMessageId
+        ? messages.filter((message) => message.id !== errorMessageId)
+        : messages
+    }
 
     setMessages(nextMessages)
-    setInput('')
     setIsSending(true)
 
     try {
@@ -85,20 +93,41 @@ export default function AiChatPage() {
           createMessage('assistant', localAssistantReply(text), { source: 'local' }),
         ])
       } else {
-        toast.error(apiErrorMessage(error, 'AI javobini olishda xatolik yuz berdi'))
+        const errorCode = resolveAiErrorCode(error)
+        const errorMessage = t(`aiChat.errors.${errorCode}`, {
+          defaultValue: 'AI javobini olishda xatolik yuz berdi',
+        })
+        toast.error(errorMessage)
         setMessages((prev) => [
           ...prev,
-          createMessage(
-            'assistant',
-            "Javob olishda xatolik yuz berdi. Birozdan so'ng qayta urinib ko'ring.",
-            { source: 'error' },
-          ),
+          createMessage('assistant', errorMessage, {
+            source: 'error',
+            errorCode,
+            retryText: text,
+          }),
         ])
       }
     } finally {
       setIsSending(false)
     }
   }
+
+  const handleSend = (rawText = input) => sendQuestion(rawText)
+  const handleRetry = (message) =>
+    sendQuestion(message.retryText, { appendUser: false, errorMessageId: message.id })
+
+  // Dashboard'dagi tayyor savol: /ai-chat?q=... ochilganda savol avtomatik
+  // yuboriladi. URL'dan q olib tashlanadi — F5 bosilganda takror yuborilmaydi.
+  useEffect(() => {
+    if (autoSentRef.current) return
+    const question = searchParams.get('q')
+    if (!question) return
+    autoSentRef.current = true
+    setSearchParams({}, { replace: true })
+    handleSend(question)
+    // Faqat sahifa birinchi ochilganda ishlaydi.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleClear = () => {
     if (messages.length > 0 && !window.confirm('Suhbat tarixini tozalashni tasdiqlaysizmi?')) {
@@ -199,7 +228,9 @@ export default function AiChatPage() {
               </div>
             </div>
           ) : (
-            messages.map((message) => <ChatMessage key={message.id} message={message} />)
+            messages.map((message) => (
+              <ChatMessage key={message.id} message={message} onRetry={handleRetry} />
+            ))
           )}
 
           {isSending && <TypingIndicator />}

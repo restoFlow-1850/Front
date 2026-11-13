@@ -1,16 +1,22 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, Bot, Check, Copy, User } from 'lucide-react'
+import { AlertTriangle, Bot, Check, Copy, RefreshCw, User } from 'lucide-react'
 
 import { formatMessageTime, humanizeToolName, normalizeToolCalls, TOOL_EMOJI } from '../lib/aiChat'
+import AiMessageContent from './AiMessageContent'
 
-export default function ChatMessage({ message }) {
+export default function ChatMessage({ message, onRetry }) {
   const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
   const isUser = message.role === 'user'
   const isError = message.source === 'error'
   const isLocal = message.source === 'local'
   const toolCalls = normalizeToolCalls(message.toolCalls)
+  const errorCode = message.errorCode || 'generic'
+  const errorText = isError
+    ? t(`aiChat.errors.${errorCode}`, { defaultValue: message.content || '' })
+    : message.content
+  const canRetry = isError && Boolean(message.retryText) && typeof onRetry === 'function'
 
   const handleCopy = async () => {
     try {
@@ -32,7 +38,7 @@ export default function ChatMessage({ message }) {
 
       <div className={`flex max-w-[86%] flex-col gap-1 sm:max-w-[75%] ${isUser ? 'items-end' : 'items-start'}`}>
         <div
-          className={`group relative whitespace-pre-wrap break-words rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
+          className={`group relative break-words rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
             isUser
               ? 'rounded-br-md bg-gradient-to-br from-[#F97316] to-[#EA580C] text-white'
               : isError
@@ -42,10 +48,30 @@ export default function ChatMessage({ message }) {
         >
           {isError && (
             <span className="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide">
-              <AlertTriangle size={12} /> Xatolik
+              <AlertTriangle size={12} /> {t('aiChat.errorLabel', 'Xatolik')}
             </span>
           )}
-          {message.content}
+
+          {isUser ? (
+            <span className="whitespace-pre-wrap">{message.content}</span>
+          ) : isError ? (
+            <div className="space-y-2">
+              <p>{errorText}</p>
+              {canRetry && (
+                <button
+                  type="button"
+                  data-testid="ai-retry"
+                  onClick={() => onRetry(message)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-rose-300 bg-white/70 px-2.5 py-1 text-xs font-bold text-rose-700 transition hover:bg-white dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200 dark:hover:bg-rose-900/40"
+                >
+                  <RefreshCw size={12} />
+                  {t('aiChat.retry', 'Qayta urinish')}
+                </button>
+              )}
+            </div>
+          ) : (
+            <AiMessageContent text={message.content} />
+          )}
 
           {!isUser && toolCalls.length > 0 && (
             <div

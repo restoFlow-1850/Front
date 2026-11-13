@@ -5,7 +5,7 @@ vi.mock('../../../services/axios', () => ({
 }))
 
 import api from '../../../services/axios'
-import { AiUnavailableError, sendAiMessage } from '../api'
+import { AiChatError, AiUnavailableError, resolveAiErrorCode, sendAiMessage } from '../api'
 
 beforeEach(() => {
   api.post.mockReset()
@@ -99,5 +99,39 @@ describe('sendAiMessage', () => {
     await expect(sendAiMessage([{ role: 'user', content: 'Savol' }])).rejects.toBeInstanceOf(
       AiUnavailableError,
     )
+  })
+
+  it.each([
+    [429, 'rateLimit'],
+    [403, 'forbidden'],
+    [503, 'notConfigured'],
+    [500, 'generic'],
+  ])('maps HTTP %i to the "%s" error code', async (status, code) => {
+    api.post.mockRejectedValue({ response: { status } })
+
+    await expect(sendAiMessage([{ role: 'user', content: 'Savol' }])).rejects.toMatchObject({
+      name: 'AiChatError',
+      code,
+      status,
+    })
+  })
+
+  it('maps a network failure (no response) to the "network" error code', async () => {
+    api.post.mockRejectedValue(new Error('Network Error'))
+
+    await expect(sendAiMessage([{ role: 'user', content: 'Savol' }])).rejects.toMatchObject({
+      name: 'AiChatError',
+      code: 'network',
+    })
+  })
+})
+
+describe('resolveAiErrorCode', () => {
+  it('prefers the code of an AiChatError instance', () => {
+    expect(resolveAiErrorCode(new AiChatError('forbidden', 403))).toBe('forbidden')
+  })
+
+  it("falls back to 'generic' for non-AI errors with a response", () => {
+    expect(resolveAiErrorCode({ response: { status: 500 } })).toBe('generic')
   })
 })

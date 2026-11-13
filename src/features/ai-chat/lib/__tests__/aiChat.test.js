@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
 
+import en from '../../../../locales/en/common.json'
+import ru from '../../../../locales/ru/common.json'
+import uz from '../../../../locales/uz/common.json'
 import {
   AI_STORAGE_KEY,
   MAX_HISTORY,
@@ -12,6 +15,8 @@ import {
   loadMessages,
   localAssistantReply,
   normalizeToolCalls,
+  parseInlineTokens,
+  parseMessageBlocks,
   saveMessages,
   toApiMessages,
 } from '../aiChat'
@@ -245,5 +250,101 @@ describe('formatMessageTime', () => {
 
   it("noto'g'ri sana uchun bo'sh satr qaytaradi", () => {
     expect(formatMessageTime('not-a-date')).toBe('')
+  })
+})
+
+describe('parseInlineTokens', () => {
+  it('qalin matn tokeniga ajratadi', () => {
+    expect(parseInlineTokens('Bugun **yaxshi** kun')).toEqual([
+      { type: 'text', value: 'Bugun ' },
+      { type: 'bold', value: 'yaxshi' },
+      { type: 'text', value: ' kun' },
+    ])
+  })
+
+  it('yirik pul summasini alohida token qiladi', () => {
+    expect(parseInlineTokens("Daromad 1 250 000 so'm bo'ldi")).toEqual([
+      { type: 'text', value: 'Daromad ' },
+      { type: 'amount', value: "1 250 000 so'm" },
+      { type: 'text', value: " bo'ldi" },
+    ])
+  })
+
+  it('boshqa tillardagi summalarni ham taniydi', () => {
+    expect(parseInlineTokens('Выручка 2 000 000 сум')).toEqual([
+      { type: 'text', value: 'Выручка ' },
+      { type: 'amount', value: '2 000 000 сум' },
+    ])
+  })
+
+  it('HTML teglarini oddiy matn sifatida qoldiradi (XSS yo‘q)', () => {
+    const html = '<img src=x onerror=alert(1)>'
+    expect(parseInlineTokens(html)).toEqual([{ type: 'text', value: html }])
+  })
+})
+
+describe('parseMessageBlocks', () => {
+  it("ro'yxat bandlarini alohida blokka ajratadi", () => {
+    expect(parseMessageBlocks("Bugun:\n- Birinchi\n- Ikkinchi\n\nYakun")).toEqual([
+      { type: 'paragraph', tokens: [{ type: 'text', value: 'Bugun:' }] },
+      {
+        type: 'list',
+        items: [
+          [{ type: 'text', value: 'Birinchi' }],
+          [{ type: 'text', value: 'Ikkinchi' }],
+        ],
+      },
+      { type: 'paragraph', tokens: [{ type: 'text', value: 'Yakun' }] },
+    ])
+  })
+
+  it("bo'sh matn uchun bo'sh massiv qaytaradi", () => {
+    expect(parseMessageBlocks('')).toEqual([])
+    expect(parseMessageBlocks(null)).toEqual([])
+  })
+})
+
+describe('AI xato matnlari', () => {
+  const cases = [
+    [
+      'rateLimit',
+      {
+        uz: 'Soatiga 30 ta savol limiti tugadi',
+        ru: 'Лимит 30 вопросов в час исчерпан',
+        en: 'Hourly limit of 30 questions reached',
+      },
+    ],
+    [
+      'forbidden',
+      {
+        uz: 'Faqat admin/menejer uchun',
+        ru: 'Доступно только администратору/менеджеру',
+        en: 'Admin/manager only',
+      },
+    ],
+    [
+      'notConfigured',
+      { uz: 'AI hozircha sozlanmagan', ru: 'AI пока не настроен', en: 'AI is not configured yet' },
+    ],
+    [
+      'network',
+      {
+        uz: "Tarmoq xatosi. Internetni tekshirib, qayta urinib ko'ring.",
+        ru: 'Ошибка сети. Проверьте подключение и повторите попытку.',
+        en: 'Network error. Check your connection and try again.',
+      },
+    ],
+  ]
+
+  it.each(cases)('"%s" xatosi uchun uz/ru/en matnlari mavjud', (code, expected) => {
+    expect(uz.aiChat.errors[code]).toBe(expected.uz)
+    expect(ru.aiChat.errors[code]).toBe(expected.ru)
+    expect(en.aiChat.errors[code]).toBe(expected.en)
+  })
+
+  it('barcha tillarda «Qayta urinish» tugma matni bor', () => {
+    expect(uz.aiChat.retry).toBe('Qayta urinish')
+    expect(ru.aiChat.retry).toBe('Повторить')
+    expect(en.aiChat.retry).toBe('Retry')
   })
 })

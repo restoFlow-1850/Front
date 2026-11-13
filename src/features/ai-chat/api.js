@@ -12,6 +12,30 @@ export class AiUnavailableError extends Error {
   }
 }
 
+// Foydalanuvchiga ko'rsatiladigan xato turlari. Har biri i18n'da
+// `aiChat.errors.<code>` kalitiga ega (uz/ru/en).
+export const AI_ERROR_CODES = ['rateLimit', 'forbidden', 'notConfigured', 'network', 'generic']
+
+export class AiChatError extends Error {
+  constructor(code = 'generic', status = null, message = '') {
+    super(message || code)
+    this.name = 'AiChatError'
+    this.code = AI_ERROR_CODES.includes(code) ? code : 'generic'
+    this.status = status
+  }
+}
+
+/** HTTP holat kodidan foydalanuvchi xatosi turini aniqlaydi. */
+export function resolveAiErrorCode(error) {
+  if (error instanceof AiChatError) return error.code
+  const status = error?.response?.status
+  if (status === 429) return 'rateLimit'
+  if (status === 403) return 'forbidden'
+  if (status === 503) return 'notConfigured'
+  if (!error?.response) return 'network'
+  return 'generic'
+}
+
 function toHistory(messages = []) {
   return messages
     .filter((message) => message && (message.role === 'user' || message.role === 'assistant'))
@@ -58,11 +82,11 @@ export async function sendAiMessage(messages = []) {
       toolCalls: extractToolCalls(payload, response?.data),
     }
   } catch (error) {
-    if (error instanceof AiUnavailableError) throw error
+    if (error instanceof AiUnavailableError || error instanceof AiChatError) throw error
     const status = error?.response?.status
-    if (!status || status === 404 || status === 405 || status === 501) {
+    if (status === 404 || status === 405 || status === 501) {
       throw new AiUnavailableError()
     }
-    throw error
+    throw new AiChatError(resolveAiErrorCode(error), status ?? null)
   }
 }
