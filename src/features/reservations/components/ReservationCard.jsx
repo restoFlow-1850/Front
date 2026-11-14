@@ -9,7 +9,7 @@ const ReservationCard = ({ reservation, onEdit, onCancel, onConfirm }) => {
         <div>
           <p className="font-semibold text-gray-800 dark:text-white">{reservation.customerName}</p>
           <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
-            <Phone size={13} /> {reservation.phone}
+            <Phone size={13} /> {reservation.phone || reservation.customerPhone || '—'}
           </p>
         </div>
         <ReservationStatusBadge status={reservation.status} />

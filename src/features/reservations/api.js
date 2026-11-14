@@ -4,7 +4,7 @@ import api from '../../services/axios'
 export const getReservations = (params) => api.get('/reservations', { params })
 export const getReservationById = (id) => api.get(`/reservations/${id}`)
 
-/** payload: { customerName, customerPhone, table, date, guests, notes? } */
+/** payload: { customerName, customerPhone?, table, date, guests, notes? } */
 export const createReservation = (payload) => api.post('/reservations', payload)
 export const updateReservation = (id, payload) => api.put(`/reservations/${id}`, payload)
 

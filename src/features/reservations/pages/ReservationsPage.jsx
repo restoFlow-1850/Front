@@ -122,7 +122,7 @@ export default function ReservationsPage() {
       }
       return createReservation({
         customerName: form.customerName.trim(),
-        customerPhone: form.customerPhone.trim(),
+        ...(form.customerPhone.trim() ? { customerPhone: form.customerPhone.trim() } : {}),
         table: form.table,
         date: isoDateTime,
         guests: Number(form.guests),
@@ -240,7 +240,7 @@ export default function ReservationsPage() {
   const setField = (key) => (e) => setForm((prev) => ({ ...prev, [key]: e.target.value }))
 
   const isValid =
-    form.customerName.trim() && form.customerPhone.trim() && form.table && form.date && form.time && form.guests > 0
+    Boolean(form.customerName.trim() && form.table && form.date && form.time && form.guests > 0)
 
   const reservations = reservationsQuery.data ?? []
 
@@ -362,7 +362,7 @@ export default function ReservationsPage() {
                   </Badge>
                 </div>
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  {reservation.customerPhone} · {t('dashboard.table')} {reservation.table?.number ?? '—'} ·{' '}
+                  {reservation.customerPhone || '—'} · {t('dashboard.table')} {reservation.table?.number ?? '—'} ·{' '}
                   {reservation.guests} {t('tables.capacity')}
                 </p>
                 <p className="mt-1 text-xs text-slate-400">
@@ -502,7 +502,7 @@ export default function ReservationsPage() {
             disabled={Boolean(editing)}
           />
           <Input
-            label={t('reservations.phone')}
+            label={`${t('reservations.phone')} (${t('reservations.phoneOptional', { defaultValue: "ixtiyoriy" })})`}
             value={form.customerPhone}
             onChange={setField('customerPhone')}
             placeholder="+998 90 123 45 67"

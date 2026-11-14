@@ -37,7 +37,6 @@ const ReservationFormModal = ({ reservation, onClose, onSubmit }) => {
   const validate = () => {
     const next = {};
     if (!form.customerName.trim()) next.customerName = 'Mijoz ismini kiriting';
-    if (!form.phone.trim()) next.phone = 'Telefon raqamini kiriting';
     if (!form.date) next.date = 'Sanani tanlang';
     if (!form.time) next.time = 'Vaqtni tanlang';
     if (!form.guests || Number(form.guests) < 1) next.guests = "Mehmonlar soni kamida 1 bo'lishi kerak";
@@ -72,7 +71,7 @@ const ReservationFormModal = ({ reservation, onClose, onSubmit }) => {
           placeholder="Ism Familiya"
         />
         <Input
-          label="Telefon"
+          label="Telefon (ixtiyoriy)"
           value={form.phone}
           onChange={setField('phone')}
           error={errors.phone}
