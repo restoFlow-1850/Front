@@ -232,6 +232,7 @@ export function loadMessages(storage = defaultStorage()) {
         createdAt: message.createdAt || new Date().toISOString(),
         source: message.source,
         errorCode: message.errorCode,
+        backendMessage: message.backendMessage,
         retryText: message.retryText,
         toolCalls: normalizeToolCalls(message.toolCalls),
       }))

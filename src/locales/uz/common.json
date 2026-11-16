@@ -536,10 +536,15 @@
     "toolsUsed": "Ishlatilgan vositalar",
     "errorLabel": "Xatolik",
     "retry": "Qayta urinish",
+    "send": "Yuborish",
+    "stop": "To'xtatish",
+    "copy": "Nusxa olish",
+    "copied": "Nusxalandi",
     "errors": {
       "rateLimit": "Soatiga 30 ta savol limiti tugadi",
       "forbidden": "Faqat admin/menejer uchun",
       "notConfigured": "AI hozircha sozlanmagan",
+      "timeout": "Javob kechikdi, qayta urinib ko'ring",
       "network": "Tarmoq xatosi. Internetni tekshirib, qayta urinib ko'ring.",
       "generic": "AI javobini olishda xatolik yuz berdi"
     },

@@ -5,7 +5,7 @@ import { Bot, RotateCcw, Sparkles, Trash2, WifiOff } from 'lucide-react'
 import { toast } from 'react-toastify'
 
 import { Button, Card, PageHeader } from '../../../components/ui'
-import { AiUnavailableError, resolveAiErrorCode, sendAiMessage } from '../api'
+import { AiAbortedError, AiUnavailableError, resolveAiErrorCode, sendAiMessage } from '../api'
 import ChatComposer from '../components/ChatComposer'
 import ChatMessage from '../components/ChatMessage'
 import QuickPrompts from '../components/QuickPrompts'
@@ -48,10 +48,13 @@ export default function AiChatPage() {
   const [mode, setMode] = useState('unknown')
   const autoSentRef = useRef(false)
   const bottomRef = useRef(null)
+  const abortRef = useRef(null)
 
   useEffect(() => {
     saveMessages(messages)
   }, [messages])
+
+  useEffect(() => () => abortRef.current?.abort(), [])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
@@ -74,8 +77,13 @@ export default function AiChatPage() {
     setMessages(nextMessages)
     setIsSending(true)
 
+    const controller = new AbortController()
+    abortRef.current = controller
+
     try {
-      const result = await sendAiMessage(toApiMessages(nextMessages))
+      const result = await sendAiMessage(toApiMessages(nextMessages), {
+        signal: controller.signal,
+      })
       setMode('server')
       setMessages((prev) => [
         ...prev,
@@ -85,6 +93,9 @@ export default function AiChatPage() {
         }),
       ])
     } catch (error) {
+      if (error instanceof AiAbortedError) {
+        return
+      }
       if (error instanceof AiUnavailableError) {
         setMode('local')
         await delay(450)
@@ -94,20 +105,28 @@ export default function AiChatPage() {
         ])
       } else {
         const errorCode = resolveAiErrorCode(error)
-        const errorMessage = t(`aiChat.errors.${errorCode}`, {
-          defaultValue: 'AI javobini olishda xatolik yuz berdi',
-        })
-        toast.error(errorMessage)
+        // 403 da backend sababi ustuvor; bo'lmasa — i18n umumiy matni.
+        const backendMessage =
+          errorCode === 'forbidden' ? String(error?.backendMessage ?? '').trim() : ''
+        const errorMessage =
+          backendMessage ||
+          t(`aiChat.errors.${errorCode}`, {
+            defaultValue: 'AI javobini olishda xatolik yuz berdi',
+          })
+        // Xato faqat chat ichida ko'rsatiladi — toast takrorlanmaydi va
+        // har «Qayta urinish»da yangi qizil toast qo'shilmaydi.
         setMessages((prev) => [
           ...prev,
           createMessage('assistant', errorMessage, {
             source: 'error',
             errorCode,
+            backendMessage,
             retryText: text,
           }),
         ])
       }
     } finally {
+      if (abortRef.current === controller) abortRef.current = null
       setIsSending(false)
     }
   }
@@ -115,6 +134,7 @@ export default function AiChatPage() {
   const handleSend = (rawText = input) => sendQuestion(rawText)
   const handleRetry = (message) =>
     sendQuestion(message.retryText, { appendUser: false, errorMessageId: message.id })
+  const handleStop = () => abortRef.current?.abort()
 
   // Dashboard'dagi tayyor savol: /ai-chat?q=... ochilganda savol avtomatik
   // yuboriladi. URL'dan q olib tashlanadi — F5 bosilganda takror yuborilmaydi.
@@ -133,6 +153,7 @@ export default function AiChatPage() {
     if (messages.length > 0 && !window.confirm('Suhbat tarixini tozalashni tasdiqlaysizmi?')) {
       return
     }
+    abortRef.current?.abort()
     setMessages([])
     setInput('')
     clearStoredMessages()
@@ -166,7 +187,7 @@ export default function AiChatPage() {
 
       <Card
         padded={false}
-        className="flex h-[calc(100dvh-14rem)] min-h-[520px] flex-col overflow-hidden"
+        className="flex h-[calc(100dvh-14rem)] min-h-[420px] flex-col overflow-hidden sm:min-h-[520px]"
       >
         <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 dark:border-slate-800 sm:px-5">
           <div className="flex min-w-0 items-center gap-3">
@@ -241,6 +262,7 @@ export default function AiChatPage() {
           value={input}
           onChange={setInput}
           onSend={() => handleSend()}
+          onStop={handleStop}
           isSending={isSending}
         />
       </Card>

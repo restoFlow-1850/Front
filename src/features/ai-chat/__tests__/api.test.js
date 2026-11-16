@@ -5,7 +5,15 @@ vi.mock('../../../services/axios', () => ({
 }))
 
 import api from '../../../services/axios'
-import { AiChatError, AiUnavailableError, resolveAiErrorCode, sendAiMessage } from '../api'
+import {
+  AI_TIMEOUT_MS,
+  AiAbortedError,
+  AiChatError,
+  AiUnavailableError,
+  extractBackendMessage,
+  resolveAiErrorCode,
+  sendAiMessage,
+} from '../api'
 
 beforeEach(() => {
   api.post.mockReset()
@@ -21,13 +29,80 @@ describe('sendAiMessage', () => {
       { role: 'user', content: 'Ikkinchi savol' },
     ])
 
-    expect(api.post).toHaveBeenCalledWith('/ai/chat', {
-      question: 'Ikkinchi savol',
-      history: [
-        { role: 'user', text: 'Birinchi savol' },
-        { role: 'assistant', text: 'Birinchi javob' },
-      ],
+    expect(api.post).toHaveBeenCalledWith(
+      '/ai/chat',
+      {
+        question: 'Ikkinchi savol',
+        history: [
+          { role: 'user', text: 'Birinchi savol' },
+          { role: 'assistant', text: 'Birinchi javob' },
+        ],
+      },
+      expect.objectContaining({ signal: expect.anything() }),
+    )
+  })
+
+  it('sends at most the last 20 messages (question + 19 history)', async () => {
+    api.post.mockResolvedValue({ data: { data: { answer: 'Javob' } } })
+    const messages = Array.from({ length: 30 }, (_, index) => ({
+      role: index % 2 === 0 ? 'user' : 'assistant',
+      content: `xabar-${index}`,
+    }))
+
+    await sendAiMessage(messages)
+
+    const [, body] = api.post.mock.calls[0]
+    expect(body.question).toBe('xabar-28')
+    expect(body.history).toHaveLength(19)
+    expect(body.history.length + 1).toBe(20)
+    expect(body.history[0].text).toBe('xabar-9')
+    expect(body.history.at(-1).text).toBe('xabar-27')
+  })
+
+  it('aborts the request after AI_TIMEOUT_MS and reports a timeout', async () => {
+    let requestSignal
+    api.post.mockImplementation(
+      (_url, _body, config) =>
+        new Promise((_resolve, reject) => {
+          requestSignal = config.signal
+          config.signal.addEventListener('abort', () =>
+            reject(Object.assign(new Error('canceled'), { name: 'CanceledError', code: 'ERR_CANCELED' })),
+          )
+        }),
+    )
+
+    vi.useFakeTimers()
+    try {
+      const promise = sendAiMessage([{ role: 'user', content: 'Salom' }])
+      const assertion = expect(promise).rejects.toMatchObject({
+        name: 'AiChatError',
+        code: 'timeout',
+      })
+      await vi.advanceTimersByTimeAsync(AI_TIMEOUT_MS)
+      await assertion
+      expect(requestSignal.aborted).toBe(true)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it("rejects with AiAbortedError when the caller presses «To'xtatish»", async () => {
+    api.post.mockImplementation(
+      (_url, _body, config) =>
+        new Promise((_resolve, reject) => {
+          config.signal.addEventListener('abort', () =>
+            reject(Object.assign(new Error('canceled'), { name: 'CanceledError', code: 'ERR_CANCELED' })),
+          )
+        }),
+    )
+
+    const controller = new AbortController()
+    const promise = sendAiMessage([{ role: 'user', content: 'Salom' }], {
+      signal: controller.signal,
     })
+    controller.abort()
+
+    await expect(promise).rejects.toBeInstanceOf(AiAbortedError)
   })
 
   it('reads the reply from data.answer', async () => {
@@ -116,6 +191,32 @@ describe('sendAiMessage', () => {
     })
   })
 
+  it('keeps the backend message on 403 and exposes it as backendMessage', async () => {
+    const message = 'AI yordamchi faqat restoranga biriktirilgan xodimlar uchun'
+    api.post.mockRejectedValue({
+      response: { status: 403, data: { success: false, message } },
+    })
+
+    await expect(sendAiMessage([{ role: 'user', content: 'Savol' }])).rejects.toMatchObject({
+      name: 'AiChatError',
+      code: 'forbidden',
+      status: 403,
+      message,
+      backendMessage: message,
+    })
+  })
+
+  it('leaves backendMessage empty on 403 without a backend message', async () => {
+    api.post.mockRejectedValue({ response: { status: 403, data: { success: false } } })
+
+    await expect(sendAiMessage([{ role: 'user', content: 'Savol' }])).rejects.toMatchObject({
+      name: 'AiChatError',
+      code: 'forbidden',
+      status: 403,
+      backendMessage: '',
+    })
+  })
+
   it('maps a network failure (no response) to the "network" error code', async () => {
     api.post.mockRejectedValue(new Error('Network Error'))
 
@@ -123,6 +224,24 @@ describe('sendAiMessage', () => {
       name: 'AiChatError',
       code: 'network',
     })
+  })
+})
+
+describe('extractBackendMessage', () => {
+  it('reads message from response.data.message', () => {
+    expect(extractBackendMessage({ response: { data: { message: '  Sabab  ' } } })).toBe('Sabab')
+  })
+
+  it('supports nested data.message and trims it', () => {
+    expect(extractBackendMessage({ response: { data: { data: { message: 'Ichki sabab' } } } })).toBe(
+      'Ichki sabab',
+    )
+  })
+
+  it('returns an empty string when there is no message', () => {
+    expect(extractBackendMessage({ response: { data: {} } })).toBe('')
+    expect(extractBackendMessage({ response: {} })).toBe('')
+    expect(extractBackendMessage(null)).toBe('')
   })
 })
 

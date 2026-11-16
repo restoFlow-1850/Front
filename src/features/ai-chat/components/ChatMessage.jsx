@@ -13,8 +13,11 @@ export default function ChatMessage({ message, onRetry }) {
   const isLocal = message.source === 'local'
   const toolCalls = normalizeToolCalls(message.toolCalls)
   const errorCode = message.errorCode || 'generic'
+  const backendMessage =
+    typeof message.backendMessage === 'string' ? message.backendMessage.trim() : ''
+  // Backend sabab yozgan bo'lsa — o'sha matn ustuvor (masalan, 403 sababi).
   const errorText = isError
-    ? t(`aiChat.errors.${errorCode}`, { defaultValue: message.content || '' })
+    ? backendMessage || t(`aiChat.errors.${errorCode}`, { defaultValue: message.content || '' })
     : message.content
   const canRetry = isError && Boolean(message.retryText) && typeof onRetry === 'function'
 
@@ -101,18 +104,9 @@ export default function ChatMessage({ message, onRetry }) {
             </div>
           )}
 
-          <button
-            type="button"
-            onClick={handleCopy}
-            className={`absolute -top-2 ${isUser ? '-left-2' : '-right-2'} grid size-7 place-items-center rounded-full border bg-white text-slate-400 opacity-0 shadow-sm transition group-hover:opacity-100 focus:opacity-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300`}
-            aria-label="Matnni nusxalash"
-            title="Matnni nusxalash"
-          >
-            {copied ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
-          </button>
         </div>
 
-        <div className={`flex items-center gap-1.5 px-1 text-[10px] font-medium text-slate-400 ${isUser ? 'flex-row-reverse' : ''}`}>
+        <div className={`flex flex-wrap items-center gap-1.5 px-1 text-[10px] font-medium text-slate-400 ${isUser ? 'flex-row-reverse' : ''}`}>
           <span>{isUser ? 'Siz' : 'RestoFlow AI'}</span>
           <span>·</span>
           <span>{formatMessageTime(message.createdAt)}</span>
@@ -120,6 +114,18 @@ export default function ChatMessage({ message, onRetry }) {
             <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">
               Demo
             </span>
+          )}
+          {!isUser && (
+            <button
+              type="button"
+              data-testid="ai-copy"
+              onClick={handleCopy}
+              className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 focus:bg-slate-100 focus:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 dark:focus:bg-slate-800 dark:focus:text-slate-200"
+              aria-label={t('aiChat.copy', 'Nusxa olish')}
+            >
+              {copied ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
+              {copied ? t('aiChat.copied', 'Nusxalandi') : t('aiChat.copy', 'Nusxa olish')}
+            </button>
           )}
         </div>
       </div>

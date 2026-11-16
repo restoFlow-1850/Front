@@ -536,10 +536,15 @@
     "toolsUsed": "Tools used",
     "errorLabel": "Error",
     "retry": "Retry",
+    "send": "Send",
+    "stop": "Stop",
+    "copy": "Copy",
+    "copied": "Copied",
     "errors": {
       "rateLimit": "Hourly limit of 30 questions reached",
       "forbidden": "Admin/manager only",
       "notConfigured": "AI is not configured yet",
+      "timeout": "The response timed out, please try again",
       "network": "Network error. Check your connection and try again.",
       "generic": "Failed to get an AI response"
     },
