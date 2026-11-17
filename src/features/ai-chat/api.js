@@ -36,6 +36,8 @@ export const AI_ERROR_CODES = [
   'generic',
 ]
 
+const BACKEND_MESSAGE_STATUSES = new Set([403, 429, 503])
+
 export class AiChatError extends Error {
   constructor(code = 'generic', status = null, message = '') {
     super(message || code)
@@ -153,9 +155,10 @@ export async function sendAiMessage(messages = [], { signal } = {}) {
     if (status === 404 || status === 405 || status === 501) {
       throw new AiUnavailableError()
     }
-    // 403 da backend sababini aynan ko'rsatamiz — admin ham «admin emassan»
-    // degan umumiy matnni emas, backend yozgan tushuntirishni ko'radi.
-    const backendMessage = status === 403 ? extractBackendMessage(error) : ''
+    // 403/429/503 da backend sababini aynan ko'rsatamiz — umumiy matn emas.
+    const backendMessage = BACKEND_MESSAGE_STATUSES.has(status)
+      ? extractBackendMessage(error)
+      : ''
     throw new AiChatError(resolveAiErrorCode(error), status ?? null, backendMessage)
   } finally {
     clearTimeout(timeoutId)

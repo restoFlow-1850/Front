@@ -1,10 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { createElement } from 'react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { cleanup, render, screen } from '@testing-library/react'
+import '@testing-library/jest-dom/vitest'
 
 vi.mock('../../../services/axios', () => ({
   default: { post: vi.fn() },
 }))
 
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (_key, options) => options?.defaultValue ?? '' }),
+}))
+
 import api from '../../../services/axios'
+import ChatMessage from '../components/ChatMessage'
 import {
   AI_TIMEOUT_MS,
   AiAbortedError,
@@ -15,9 +23,34 @@ import {
   sendAiMessage,
 } from '../api'
 
+const BACKEND_ERRORS = [
+  {
+    status: 403,
+    code: 'forbidden',
+    message: 'AI yordamchi faqat restoranga biriktirilgan xodimlar uchun',
+  },
+  {
+    status: 503,
+    code: 'notConfigured',
+    message: "AI yordamchi sozlanmagan (ANTHROPIC_API_KEY yo'q)",
+  },
+  {
+    status: 429,
+    code: 'rateLimit',
+    message: 'AI limiti tugadi (soatiga 30 ta savol). Birozdan keyin urinib ko\'ring.',
+  },
+  {
+    status: 429,
+    code: 'rateLimit',
+    message: "AI band, birozdan keyin urinib ko'ring",
+  },
+]
+
 beforeEach(() => {
   api.post.mockReset()
 })
+
+afterEach(cleanup)
 
 describe('sendAiMessage', () => {
   it('sends { question, history: [{ role, text }] }', async () => {
@@ -225,6 +258,49 @@ describe('sendAiMessage', () => {
       code: 'network',
     })
   })
+})
+
+describe('backend xato matnlari', () => {
+  it.each(BACKEND_ERRORS)(
+    'HTTP %i: $message matni AiChatError.code=$code va UI da ko‘rinadi',
+    async ({ status, code, message }) => {
+      api.post.mockRejectedValue({
+        response: { status, data: { success: false, message, data: null } },
+      })
+
+      let error
+      try {
+        await sendAiMessage([{ role: 'user', content: 'Savol' }])
+      } catch (caught) {
+        error = caught
+      }
+
+      expect(error).toBeInstanceOf(AiChatError)
+      expect(error).toMatchObject({
+        code,
+        status,
+        message,
+        backendMessage: message,
+      })
+
+      render(
+        createElement(ChatMessage, {
+          message: {
+            id: 'error-1',
+            role: 'assistant',
+            content: message,
+            source: 'error',
+            errorCode: error.code,
+            backendMessage: error.backendMessage,
+            retryText: 'Savol',
+          },
+          onRetry: vi.fn(),
+        }),
+      )
+
+      expect(screen.getByText(message)).toBeInTheDocument()
+    },
+  )
 })
 
 describe('extractBackendMessage', () => {

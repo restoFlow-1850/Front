@@ -105,9 +105,8 @@ export default function AiChatPage() {
         ])
       } else {
         const errorCode = resolveAiErrorCode(error)
-        // 403 da backend sababi ustuvor; bo'lmasa — i18n umumiy matni.
-        const backendMessage =
-          errorCode === 'forbidden' ? String(error?.backendMessage ?? '').trim() : ''
+        // Backend sababi bo'lsa ustuvor; bo'lmasa — i18n umumiy matni.
+        const backendMessage = String(error?.backendMessage ?? '').trim()
         const errorMessage =
           backendMessage ||
           t(`aiChat.errors.${errorCode}`, {

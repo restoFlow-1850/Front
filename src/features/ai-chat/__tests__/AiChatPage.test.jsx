@@ -48,6 +48,13 @@ Element.prototype.scrollIntoView = vi.fn()
 
 const BACKEND_MESSAGE = 'AI yordamchi faqat restoranga biriktirilgan xodimlar uchun'
 
+const BACKEND_ERRORS = [
+  [403, 'forbidden', BACKEND_MESSAGE],
+  [503, 'notConfigured', "AI yordamchi sozlanmagan (ANTHROPIC_API_KEY yo'q)"],
+  [429, 'rateLimit', "AI limiti tugadi (soatiga 30 ta savol). Birozdan keyin urinib ko'ring."],
+  [429, 'rateLimit', "AI band, birozdan keyin urinib ko'ring"],
+]
+
 async function askQuestion() {
   const input = screen.getByPlaceholderText('Savolingizni yozing...')
   fireEvent.change(input, { target: { value: 'Bugungi savdo qanday?' } })
@@ -71,6 +78,19 @@ describe('AiChatPage xatolari', () => {
     expect(screen.queryByText('Faqat admin/menejer uchun')).not.toBeInTheDocument()
     expect(toast.error).not.toHaveBeenCalled()
   })
+
+  it.each(BACKEND_ERRORS)(
+    'HTTP %i da backend matni (%s) chat ichida ko‘rsatiladi',
+    async (status, code, message) => {
+      sendAiMessage.mockRejectedValue(new AiChatError(code, status, message))
+
+      render(<AiChatPage />)
+      await askQuestion()
+
+      expect(await screen.findByText(message)).toBeInTheDocument()
+      expect(toast.error).not.toHaveBeenCalled()
+    },
+  )
 
   it('403 da backend xabari bo‘lmasa umumiy matnni ko‘rsatadi', async () => {
     sendAiMessage.mockRejectedValue(new AiChatError('forbidden', 403))
