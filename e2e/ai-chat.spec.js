@@ -119,6 +119,27 @@ test.describe('AI chat', () => {
     await expect(page.getByPlaceholder('Savolingizni yozing...')).toBeVisible()
   })
 
+  test('tezkor savollar ishlaydi, «Tozalash» saqlangan tarixni o‘chiradi', async ({ page }) => {
+    const requests = await openChat(page)
+
+    for (const label of ['Bugungi tushum', 'Kam qolgan mahsulotlar', 'Ochiq buyurtmalar']) {
+      await expect(page.getByRole('button', { name: label })).toBeVisible()
+    }
+
+    await page.getByRole('button', { name: 'Bugungi tushum' }).click()
+    await expect(page.getByText(AI_ANSWER)).toBeVisible()
+    expect(requests[0]).toMatchObject({ question: 'Bugungi tushum' })
+
+    await page.reload()
+    await expect(page.getByText(AI_ANSWER)).toBeVisible()
+
+    page.once('dialog', (dialog) => dialog.accept())
+    await page.getByRole('button', { name: 'Tozalash' }).click()
+
+    await expect(page.getByText(AI_ANSWER)).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Bugungi tushum' })).toBeVisible()
+  })
+
   test('403 da backend sababi ko‘rsatiladi, toast chiqmaydi', async ({ page }) => {
     const message = 'AI yordamchi faqat restoranga biriktirilgan xodimlar uchun'
     await mockAiError(page, { status: 403, message })
