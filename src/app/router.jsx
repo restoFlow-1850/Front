@@ -31,6 +31,7 @@ const RootPanel = lazy(() => import('../features/root/pages/RootPanel'))
 // Yangi: /quick-setup — 10 daqiqada yangi restoran sehrgari (PR2-PR4 da to'liqlanadi)
 const QuickSetupPage = lazy(() => import('../features/quick-setup/pages/QuickSetupPage'))
 const DashboardPage = lazy(() => import('../features/dashboard/pages/Dashboard'))
+const AiChatPage = lazy(() => import('../features/ai-chat/pages/AiChatPage'))
 const OrdersPage = lazy(() => import('../features/orders/pages/OrdersPage'))
 const WaiterPage = lazy(() => import('../features/orders/pages/WaiterPage'))
 const KitchenPage = lazy(() => import('../features/kitchen/pages/KitchenPage'))
@@ -56,6 +57,7 @@ const ForbiddenPage = lazy(() => import('../pages/ForbiddenPage'))
 const PAGE_BY_KEY = {
   quickSetup: <QuickSetupPage />,
   dashboard: <DashboardPage />,
+  aiChat: <AiChatPage />,
   orders: <OrdersPage />,
   waiter: <WaiterPage />,
   kitchen: <KitchenPage />,

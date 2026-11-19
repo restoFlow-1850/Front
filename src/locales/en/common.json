@@ -65,6 +65,7 @@
   "user": "User",
   "nav": {
     "dashboard": "Dashboard",
+    "aiChat": "AI Assistant",
     "orders": "Orders",
     "map": "Branches Map",
     "waiter": "Waiter Panel",
@@ -234,7 +235,14 @@
     "sendTelegramError": "Failed to send to Telegram",
     "sendTelegramSuccess": "Report sent to the Telegram bot successfully! 📲",
     "telegramExport": "Send to Telegram",
-    "telegramSent": "Report sent to the Telegram bot"
+    "telegramSent": "Report sent to the Telegram bot",
+    "aiAsk": {
+      "title": "Ask AI",
+      "subtitle": "Pick a ready question — the answer will be ready in a moment",
+      "revenue": "How much revenue today?",
+      "lowStock": "What's running low in stock?",
+      "openOrders": "How many orders are open now?"
+    }
   },
   "cashier": {
     "title": "Cashier",
@@ -520,6 +528,39 @@
     "new": "New",
     "unread": "Unread"
   },
+  "aiChat": {
+    "title": "AI Assistant",
+    "subtitle": "Smart advisor for restaurant management — sales, menu, inventory and team",
+    "newChat": "New chat",
+    "clear": "Clear chat",
+    "toolsUsed": "Tools used",
+    "errorLabel": "Error",
+    "retry": "Retry",
+    "send": "Send",
+    "stop": "Stop",
+    "copy": "Copy",
+    "copied": "Copied",
+    "errors": {
+      "rateLimit": "Hourly limit of 30 questions reached",
+      "forbidden": "Admin/manager only",
+      "notConfigured": "AI is not configured yet",
+      "timeout": "The response timed out, please try again",
+      "network": "Network error. Check your connection and try again.",
+      "generic": "Failed to get an AI response"
+    },
+    "tools": {
+      "dailySales": "Daily sales",
+      "inventory": "Inventory",
+      "menu": "Menu",
+      "orders": "Orders",
+      "staff": "Staff",
+      "tables": "Tables",
+      "reservations": "Reservations",
+      "feedback": "Customer feedback",
+      "reports": "Reports",
+      "custom": "Tool"
+    }
+  },
   "qrMenu": {
     "title": "Online Menu",
     "selectLanguage": "Select language / Tilni tanlang / Выберите язык",
@@ -620,6 +661,50 @@
     "footer": {
       "rights": "All rights reserved."
     }
+  },
+  "guestOrder": {
+    "menuTitle": "Menu",
+    "menuSubtitle": "Choose dishes and place your order",
+    "searchPlaceholder": "Search dishes...",
+    "all": "All",
+    "noResults": "Nothing found",
+    "noProducts": "No dishes available right now",
+    "clearSearch": "Clear search",
+    "soldOut": "Out of stock",
+    "unavailable": "Unavailable",
+    "add": "Add",
+    "table": "table {{table}}",
+    "viewCart": "Cart",
+    "cart": "Cart",
+    "cartEmpty": "Cart is empty — add a dish",
+    "totalAmount": "Total amount",
+    "remove": "Remove",
+    "itemNote": "Note for the dish (e.g. without onions)",
+    "cartSoldOutTitle": "{{count}} sold out item(s) in your cart",
+    "cartSoldOutDesc": "These dishes are no longer available. Remove them and place the order again.",
+    "removeSoldOut": "Remove sold out items",
+    "cartHasSoldOut": "A sold out item is still in your cart — remove it first",
+    "placeOrderFailed": "Couldn't place the order. Check your connection and try again.",
+    "menuLoadFailed": "Couldn't load the menu",
+    "placeOrder": "Place order",
+    "placing": "Sending...",
+    "retry": "Try again",
+    "tableNotFound": "Table not found",
+    "tableNotFoundDesc": "The QR code is invalid or the table does not exist. Please try scanning again.",
+    "sorry": "Sorry",
+    "tableBusy": "Table is currently busy",
+    "tableBusyDesc": "Table {{table}} is currently busy. Please wait or call a waiter.",
+    "tableBusyBadge": "Table busy",
+    "viewMenuAnyway": "View menu anyway",
+    "restaurantClosed": "Restaurant is closed",
+    "restaurantClosedDesc": "The restaurant is not working right now. Please come during working hours.",
+    "restaurantClosedBadge": "Closed",
+    "callWaiter": "Call a waiter",
+    "sending": "Sending...",
+    "waiterCalled": "Waiter called",
+    "waiterCallFailed": "Call could not be sent. Please try again.",
+    "tableLabel": "Table {{table}}",
+    "onlineMenu": "Online menu"
   },
   "subscription": {
     "expiredTitle": "Subscription expired",

@@ -19,6 +19,7 @@ import {
   MapPinned,
   BarChart3,
   Warehouse,
+  Sparkles,
 } from 'lucide-react'
 
 import { ROLES, ROLE_HOME } from './roles.js'
@@ -36,6 +37,14 @@ export const NAV_ITEMS = [
     path: '/dashboard',
     label: 'Boshqaruv paneli',
     icon: LayoutDashboard,
+    roles: STAFF,
+    inSidebar: true,
+  },
+  {
+    key: 'aiChat',
+    path: '/ai-chat',
+    label: 'AI yordamchi',
+    icon: Sparkles,
     roles: STAFF,
     inSidebar: true,
   },
