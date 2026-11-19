@@ -2,6 +2,7 @@ export const AI_STORAGE_KEY = 'restoflow.ai-chat.messages'
 export const MAX_HISTORY = 20
 export const MAX_STORED = 50
 export const MAX_TOOL_BADGES = 12
+export const MAX_QUESTION_LENGTH = 2000
 
 // Backend tool nomlari har xil yozilishi mumkin (daily_sales, dailySales,
 // sales_report...). Hammasini bitta kanonik kalitga keltiramiz — shunda

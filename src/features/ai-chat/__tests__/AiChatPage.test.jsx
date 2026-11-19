@@ -49,6 +49,7 @@ Element.prototype.scrollIntoView = vi.fn()
 const BACKEND_MESSAGE = 'AI yordamchi faqat restoranga biriktirilgan xodimlar uchun'
 
 const BACKEND_ERRORS = [
+  [400, 'generic', 'Savol 2000 belgidan oshmasligi kerak'],
   [403, 'forbidden', BACKEND_MESSAGE],
   [503, 'notConfigured', "AI yordamchi sozlanmagan (ANTHROPIC_API_KEY yo'q)"],
   [429, 'rateLimit', "AI limiti tugadi (soatiga 30 ta savol). Birozdan keyin urinib ko'ring."],
@@ -184,5 +185,37 @@ describe('AiChatPage tezkor savollar va suhbat tarixi', () => {
     expect(screen.getByRole('button', { name: 'Bugungi tushum' })).toBeInTheDocument()
     expect(sessionStorage.getItem(AI_STORAGE_KEY)).toBeNull()
     expect(toast.info).toHaveBeenCalled()
+  })
+})
+
+describe('AiChatPage 2000 belgi chegarasi', () => {
+  it('hisoblagichni «123/2000» ko‘rsatadi va 2000 belgida yuborishni faol qoldiradi', () => {
+    sendAiMessage.mockResolvedValue({ reply: 'Javob tayyor', source: 'server', toolCalls: [] })
+    render(<AiChatPage />)
+    const input = screen.getByPlaceholderText('Savolingizni yozing...')
+
+    fireEvent.change(input, { target: { value: 'a'.repeat(123) } })
+    expect(screen.getByTestId('ai-char-counter')).toHaveTextContent('123/2000')
+    expect(screen.getByTestId('ai-send')).toBeEnabled()
+
+    fireEvent.change(input, { target: { value: 'a'.repeat(2000) } })
+    expect(screen.getByTestId('ai-char-counter')).toHaveTextContent('2000/2000')
+    expect(screen.getByTestId('ai-send')).toBeEnabled()
+  })
+
+  it('2000 dan oshganda hisoblagichni yangilaydi va yuborish tugmasini o‘chiradi', async () => {
+    render(<AiChatPage />)
+    const input = screen.getByPlaceholderText('Savolingizni yozing...')
+    const tooLong = 'a'.repeat(2001)
+
+    fireEvent.change(input, { target: { value: tooLong } })
+
+    expect(input).toHaveValue(tooLong)
+    expect(screen.getByTestId('ai-char-counter')).toHaveTextContent('2001/2000')
+    expect(screen.getByTestId('ai-send')).toBeDisabled()
+
+    fireEvent.click(screen.getByTestId('ai-send'))
+    fireEvent.keyDown(input, { key: 'Enter' })
+    expect(sendAiMessage).not.toHaveBeenCalled()
   })
 })

@@ -15,6 +15,7 @@ import {
   createMessage,
   loadMessages,
   localAssistantReply,
+  MAX_QUESTION_LENGTH,
   saveMessages,
   toApiMessages,
 } from '../lib/aiChat'
@@ -62,7 +63,7 @@ export default function AiChatPage() {
 
   const sendQuestion = async (rawText, { appendUser = true, errorMessageId = null } = {}) => {
     const text = String(rawText ?? '').trim()
-    if (!text || isSending) return
+    if (!text || text.length > MAX_QUESTION_LENGTH || isSending) return
 
     let nextMessages
     if (appendUser) {

@@ -140,6 +140,38 @@ test.describe('AI chat', () => {
     await expect(page.getByRole('button', { name: 'Bugungi tushum' })).toBeVisible()
   })
 
+  test('2000 belgi chegarasida hisoblagich chiqadi va yuborish o‘chadi', async ({ page }) => {
+    await openChat(page)
+    const input = page.getByPlaceholder('Savolingizni yozing...')
+
+    await input.fill('a'.repeat(123))
+    await expect(page.getByTestId('ai-char-counter')).toHaveText('123/2000')
+    await expect(page.getByTestId('ai-send')).toBeEnabled()
+
+    await input.fill('a'.repeat(2001))
+    await expect(page.getByTestId('ai-char-counter')).toHaveText('2001/2000')
+    await expect(page.getByTestId('ai-send')).toBeDisabled()
+
+    await input.fill('Bugungi savdo qanday?')
+    await expect(page.getByTestId('ai-char-counter')).toHaveText('21/2000')
+    await expect(page.getByTestId('ai-send')).toBeEnabled()
+    await page.getByTestId('ai-send').click()
+    await expect(page.getByText(AI_ANSWER)).toBeVisible()
+  })
+
+  test('400 da backend matni umumiy xato o‘rniga chiqadi', async ({ page }) => {
+    const message = 'Savol 2000 belgidan oshmasligi kerak'
+    await mockAiError(page, { status: 400, message })
+
+    await login(page, ACCOUNTS.admin)
+    await page.goto('/ai-chat')
+    await sendQuestion(page, 'Bugungi savdo qanday?')
+
+    await expect(page.getByText(message)).toBeVisible()
+    await expect(page.getByText('AI javobini olishda xatolik yuz berdi')).toHaveCount(0)
+    await expect(page.locator('.Toastify__toast--error')).toHaveCount(0)
+  })
+
   test('403 da backend sababi ko‘rsatiladi, toast chiqmaydi', async ({ page }) => {
     const message = 'AI yordamchi faqat restoranga biriktirilgan xodimlar uchun'
     await mockAiError(page, { status: 403, message })
