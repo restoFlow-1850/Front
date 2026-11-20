@@ -362,4 +362,14 @@ describe('AI xato matnlari', () => {
     expect(ru.aiChat.retry).toBe('Повторить')
     expect(en.aiChat.retry).toBe('Retry')
   })
+
+  it.each([
+    ['uz', 'Nusxalash', 'Nusxalandi'],
+    ['ru', 'Копировать', 'Скопировано'],
+    ['en', 'Copy', 'Copied'],
+  ])('%s tilida «Nusxalash» va ✓ holati matnlari bor', (lng, copy, copied) => {
+    const locale = { uz, ru, en }[lng]
+    expect(locale.aiChat.copy).toBe(copy)
+    expect(locale.aiChat.copied).toBe(copied)
+  })
 })

@@ -73,6 +73,33 @@ test.describe('AI chat', () => {
     await expect(tools.getByText('Ombor')).toBeVisible()
   })
 
+  test('«Nusxalash» tugmasi javobni clipboard ga yozadi va ✓ ko‘rsatadi', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.__copiedText = ''
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: {
+          writeText: (text) => {
+            window.__copiedText = text
+            return Promise.resolve()
+          },
+        },
+      })
+    })
+
+    await openChat(page)
+    await sendQuestion(page, 'Bugungi savdo qanday?')
+    await expect(page.getByText(AI_ANSWER)).toBeVisible()
+
+    const copy = page.getByTestId('ai-copy').first()
+    await expect(copy).toContainText('Nusxalash')
+    await copy.click()
+
+    await expect(page.getByTestId('ai-copy-check')).toHaveText('✓')
+    await expect(copy).toContainText('Nusxalandi')
+    expect(await page.evaluate(() => window.__copiedText)).toBe(AI_ANSWER)
+  })
+
   test('?q= orqali savol avtomatik yuboriladi', async ({ page }) => {
     const requests = await mockAi(page)
 

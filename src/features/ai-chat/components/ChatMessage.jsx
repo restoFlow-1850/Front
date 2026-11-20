@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, Bot, Check, Copy, RefreshCw, User } from 'lucide-react'
+import { AlertTriangle, Bot, Copy, RefreshCw, User } from 'lucide-react'
 
 import { formatMessageTime, humanizeToolName, normalizeToolCalls, TOOL_EMOJI } from '../lib/aiChat'
 import AiMessageContent from './AiMessageContent'
@@ -8,6 +8,8 @@ import AiMessageContent from './AiMessageContent'
 export default function ChatMessage({ message, onRetry }) {
   const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
+  const copyTimer = useRef(null)
+  useEffect(() => () => window.clearTimeout(copyTimer.current), [])
   const isUser = message.role === 'user'
   const isError = message.source === 'error'
   const isLocal = message.source === 'local'
@@ -25,7 +27,8 @@ export default function ChatMessage({ message, onRetry }) {
     try {
       await navigator.clipboard.writeText(message.content)
       setCopied(true)
-      window.setTimeout(() => setCopied(false), 1500)
+      window.clearTimeout(copyTimer.current)
+      copyTimer.current = window.setTimeout(() => setCopied(false), 1500)
     } catch {
       setCopied(false)
     }
@@ -121,10 +124,18 @@ export default function ChatMessage({ message, onRetry }) {
               data-testid="ai-copy"
               onClick={handleCopy}
               className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 focus:bg-slate-100 focus:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 dark:focus:bg-slate-800 dark:focus:text-slate-200"
-              aria-label={t('aiChat.copy', 'Nusxa olish')}
+              aria-label={
+                copied ? t('aiChat.copied', 'Nusxalandi') : t('aiChat.copy', 'Nusxalash')
+              }
             >
-              {copied ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
-              {copied ? t('aiChat.copied', 'Nusxalandi') : t('aiChat.copy', 'Nusxa olish')}
+              {copied ? (
+                <span data-testid="ai-copy-check" className="text-xs font-bold text-emerald-500" aria-hidden="true">
+                  ✓
+                </span>
+              ) : (
+                <Copy size={11} />
+              )}
+              {copied ? t('aiChat.copied', 'Nusxalandi') : t('aiChat.copy', 'Nusxalash')}
             </button>
           )}
         </div>
