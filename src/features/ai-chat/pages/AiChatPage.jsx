@@ -15,6 +15,7 @@ import {
   createMessage,
   loadMessages,
   localAssistantReply,
+  MAX_QUESTION_LENGTH,
   saveMessages,
   toApiMessages,
 } from '../lib/aiChat'
@@ -62,7 +63,7 @@ export default function AiChatPage() {
 
   const sendQuestion = async (rawText, { appendUser = true, errorMessageId = null } = {}) => {
     const text = String(rawText ?? '').trim()
-    if (!text || isSending) return
+    if (!text || text.length > MAX_QUESTION_LENGTH || isSending) return
 
     let nextMessages
     if (appendUser) {
@@ -208,11 +209,13 @@ export default function AiChatPage() {
             type="button"
             onClick={handleClear}
             disabled={messages.length === 0}
-            className="grid size-10 shrink-0 place-items-center rounded-xl text-slate-400 transition hover:bg-rose-50 hover:text-rose-500 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-rose-950/40"
-            aria-label={t('aiChat.clear', 'Suhbatni tozalash')}
-            title={t('aiChat.clear', 'Suhbatni tozalash')}
+            data-testid="ai-clear"
+            className="inline-flex h-10 shrink-0 items-center gap-2 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-500 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-rose-950/40"
+            aria-label={t('aiChat.clear', 'Tozalash')}
+            title={t('aiChat.clear', 'Tozalash')}
           >
             <Trash2 size={17} />
+            <span>{t('aiChat.clear', 'Tozalash')}</span>
           </button>
         </div>
 

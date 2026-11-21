@@ -1,4 +1,5 @@
 import api from '../../services/axios'
+import { getBillingStatus } from '../../services/billing'
 
 const unwrap = (response) => response?.data?.data ?? response?.data ?? {}
 
@@ -7,6 +8,8 @@ export const settingsApi = {
     const response = await api.get('/settings')
     return unwrap(response)
   },
+
+  getBillingStatus,
 
   update: async ({ logoFile, ...values }) => {
     if (logoFile instanceof File) {

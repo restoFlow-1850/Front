@@ -1,8 +1,10 @@
 // Axios instance — barcha API so'rovlari shu orqali yuboriladi.
 // Mas'ul: Fayoz (auth interceptor). Foydalanadi: hamma feature.
 import axios from 'axios'
+import { toast } from 'react-toastify'
 import { disconnectSocket } from './socket.js'
-import { isSubscriptionExpired, emitSubscriptionExpired } from '../lib/subscription'
+import { isSubscriptionExpired, emitSubscriptionExpired, SUBSCRIPTION_EXPIRED_TOAST_ID } from '../lib/subscription'
+import { subscriptionExpiredMessage } from '../lib/messages'
 import { API_URL } from '../shared/config.js'
 import { clearSession, takeLegacyRefreshToken } from '../features/auth/session.js'
 
@@ -66,6 +68,11 @@ api.interceptors.response.use(
     // Rad etishni bu yerda ham qayta ishlaymiz: 401 mantig'i boshqa joyda.
     if (isSubscriptionExpired(error)) {
       emitSubscriptionExpired(error.response?.data ?? {})
+
+      const method = String(originalRequest?.method ?? 'get').toLowerCase()
+      if (method === 'get') {
+        toast.error(subscriptionExpiredMessage(), { toastId: SUBSCRIPTION_EXPIRED_TOAST_ID })
+      }
     }
 
     if (error.response?.status !== 401 || isAuthEndpoint || originalRequest._retry) {

@@ -8,6 +8,7 @@ import Button from '../../../components/ui/Button'
 import { ROLE_LABELS, ROLE_LIST } from '../../../constants/roles'
 import { PERMISSION_LABELS, PERMISSIONS } from '../../../constants/permissions'
 import { settingsApi } from '../api'
+import BillingSettings from '../components/BillingSettings'
 import TelegramSettings from '../components/TelegramSettings'
 
 const printerRoles = [
@@ -426,6 +427,8 @@ export default function SettingsPage() {
             </Button>
           </footer>
         </form>
+
+        <BillingSettings />
 
         <TelegramSettings />
       </div>

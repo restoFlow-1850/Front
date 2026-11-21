@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { unwrap, unwrapList, unwrapPagination, apiErrorMessage, formatSom, formatDateTime, formatTime } from '../api'
+import { subscriptionExpiredMessage } from '../messages'
 
 describe('unwrap', () => {
   it('returns data.data when present', () => {
@@ -83,6 +84,11 @@ describe('apiErrorMessage', () => {
 
   it('uses the built-in default message when no fallback is given', () => {
     expect(apiErrorMessage({})).toBe('Xatolik yuz berdi')
+  })
+
+  it('subscription expired uchun tarjima qilingan xabarni qaytaradi', () => {
+    const error = { response: { status: 402, data: { code: 'SUBSCRIPTION_EXPIRED', message: 'Restoran obunasi muddati tugagan' } } }
+    expect(apiErrorMessage(error, 'To‘lov amalga oshmadi')).toBe(subscriptionExpiredMessage())
   })
 })
 
