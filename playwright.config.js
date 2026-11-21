@@ -8,6 +8,7 @@ const isCI = Boolean(process.env.CI)
 export default defineConfig({
   testDir: './e2e',
   testMatch: '**/*.spec.js',
+  testIgnore: '**/buttons-audit.spec.js', // jonli sayt auditi — playwright.live.config.js bilan alohida
   fullyParallel: false, // bitta umumiy baza — testlar ketma-ket
   workers: 1,
   forbidOnly: isCI,
