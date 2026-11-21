@@ -1,15 +1,21 @@
-// Mijozlar fikrlari va reytinglarini backend API orqali boshqarish.
-// Fikr lokal saqlanmaydi: API xatosi mijozga ko'rinishi kerak, aks holda
+// Mijozlar fikrlari va reytinglarini backend API (/api/feedbacks) orqali boshqarish.
+// Fikr lokal saqlanmaydi: API xatosi foydalanuvchiga ko'rinishi kerak, aks holda
 // yuborilmagan fikr "yuborildi" deb noto'g'ri ko'rinadi.
 import api from '../../services/axios'
 
 export async function getFeedbacks(params = {}) {
-  const response = await api.get('/feedbacks', { params })
-  return response.data?.data?.feedbacks ?? response.data
+  const cleanParams = Object.fromEntries(
+    Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== ''),
+  )
+  const response = await api.get('/feedbacks', { params: cleanParams })
+  const list = response.data?.data?.feedbacks ?? response.data?.feedbacks ?? response.data
+  return Array.isArray(list) ? list : []
 }
 
-export async function createFeedback(data) {
-  const response = await api.post('/feedbacks', data)
+// Mehmon (loginsiz) fikr qoldirganda restoran ?restaurant= orqali aniqlanadi
+export async function createFeedback(data, restaurantId = null) {
+  const config = restaurantId ? { params: { restaurant: restaurantId } } : undefined
+  const response = await api.post('/feedbacks', data, config)
   return response.data?.data?.feedback ?? response.data
 }
 
@@ -30,10 +36,10 @@ export async function getFeedbackStats() {
     return { total: 0, avgRating: 0, positivePercent: 0, attentionCount: 0, newCount: 0 }
   }
 
-  const sumRating = feedbacks.reduce((acc, feedback) => acc + (feedback.rating || 0), 0)
+  const sumRating = feedbacks.reduce((acc, feedback) => acc + (Number(feedback.rating) || 0), 0)
   const avgRating = (sumRating / total).toFixed(1)
-  const positiveCount = feedbacks.filter((feedback) => feedback.rating >= 4).length
-  const attentionCount = feedbacks.filter((feedback) => feedback.rating <= 2).length
+  const positiveCount = feedbacks.filter((feedback) => Number(feedback.rating) >= 4).length
+  const attentionCount = feedbacks.filter((feedback) => Number(feedback.rating) <= 2).length
 
   return {
     total,
