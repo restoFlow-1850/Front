@@ -37,7 +37,7 @@ export default function FeedbackPage() {
   const queryClient = useQueryClient()
 
   const [ratingFilter, setRatingFilter] = useState('all') // 'all' | '5' | '4' | '3' | '2' | '1'
-  const [statusFilter, setStatusFilter] = useState('all') // 'all' | 'new' | 'reviewed'
+  const [statusFilter, setStatusFilter] = useState('all') // 'all' | 'new' | 'reviewed' | 'replied'
   const [searchQuery, setSearchQuery] = useState('')
   const [replyingId, setReplyingId] = useState(null)
   const [replyText, setReplyText] = useState('')
@@ -57,21 +57,27 @@ export default function FeedbackPage() {
     }
   }, [queryClient])
 
-  // Fikrlar va Statistika querylari
+  // Fikrlar va Statistika querylari (Backend /api/feedbacks: rating va status filtrlari)
   const feedbacksQuery = useQuery({
-    queryKey: ['feedbacks', ratingFilter, statusFilter, searchQuery],
+    queryKey: ['feedbacks', ratingFilter, statusFilter],
     queryFn: () =>
       getFeedbacks({
-        rating: ratingFilter !== 'all' ? ratingFilter : undefined,
+        rating: ratingFilter !== 'all' ? Number(ratingFilter) : undefined,
         status: statusFilter !== 'all' ? statusFilter : undefined,
-        search: searchQuery || undefined,
       }),
+    retry: false,
   })
 
   const statsQuery = useQuery({
     queryKey: ['feedback-stats'],
     queryFn: () => getFeedbackStats(),
+    retry: false,
   })
+
+  const handleRetry = () => {
+    feedbacksQuery.refetch()
+    statsQuery.refetch()
+  }
 
   // Statusni yangilash mutation
   const updateStatusMutation = useMutation({
@@ -97,7 +103,26 @@ export default function FeedbackPage() {
     onError: (err) => toast.error(apiErrorMessage(err, "O'chirishda xatolik yuz berdi")),
   })
 
-  const feedbacks = useMemo(() => feedbacksQuery.data ?? [], [feedbacksQuery.data])
+  const feedbacks = useMemo(() => {
+    const raw = feedbacksQuery.data ?? []
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return raw
+    return raw.filter((item) => {
+      const name = String(item.customerName || '').toLowerCase()
+      const comment = String(item.comment || '').toLowerCase()
+      const table = String(item.tableNumber || '').toLowerCase()
+      const category = String(item.category || '').toLowerCase()
+      const phone = String(item.customerPhone || '').toLowerCase()
+      return (
+        name.includes(q) ||
+        comment.includes(q) ||
+        table.includes(q) ||
+        category.includes(q) ||
+        phone.includes(q)
+      )
+    })
+  }, [feedbacksQuery.data, searchQuery])
+
   const stats = statsQuery.data ?? {}
 
   // Excel eksport qilish
@@ -162,13 +187,7 @@ export default function FeedbackPage() {
             <Button variant="secondary" onClick={handleExportPDF}>
               <Download className="mr-2 h-4 w-4 text-[#F97316]" /> PDF
             </Button>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                feedbacksQuery.refetch()
-                statsQuery.refetch()
-              }}
-            >
+            <Button variant="secondary" onClick={handleRetry}>
               <RefreshCw
                 className={`mr-2 h-4 w-4 ${feedbacksQuery.isFetching ? 'animate-spin' : ''}`}
               />
@@ -188,14 +207,14 @@ export default function FeedbackPage() {
               icon={Star}
               tone="amber"
               label="O'rtacha reyting"
-              value={`${stats.avgRating ?? 5.0} / 5.0`}
+              value={`${stats.avgRating ?? 0} / 5.0`}
               hint={`Jami ${stats.total ?? 0} ta fikr asosida`}
             />
             <StatCard
               icon={ThumbsUp}
               tone="emerald"
               label="Ijobiy fikrlar"
-              value={`${stats.positivePercent ?? 100}%`}
+              value={`${stats.positivePercent ?? 0}%`}
               hint="4 va 5 yulduzli baholar"
             />
             <StatCard
@@ -264,6 +283,7 @@ export default function FeedbackPage() {
                 { id: 'all', label: 'Barchasi' },
                 { id: 'new', label: 'Yangi' },
                 { id: 'reviewed', label: "Ko'rib chiqilgan" },
+                { id: 'replied', label: 'Javob berilgan' },
               ].map((item) => (
                 <button
                   key={item.id}
@@ -283,12 +303,48 @@ export default function FeedbackPage() {
         </div>
       </Card>
 
-      {/* 💬 Fikrlar Ro'yxati */}
+      {/* 💬 Fikrlar Ro'yxati (Loading / Xato + Qayta urinish / Bo'sh ro'yxat / Ro'yxat) */}
       <div className="space-y-4">
         {feedbacksQuery.isLoading ? (
-          Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-36 w-full" />)
-        ) : feedbacks.length === 0 ? (
+          <div data-testid="feedback-loading" role="status" aria-label="Fikrlar yuklanmoqda" className="space-y-4">
+            <span className="sr-only">Fikrlar yuklanmoqda...</span>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-36 w-full" />
+            ))}
+          </div>
+        ) : feedbacksQuery.isError ? (
           <Card>
+            <div
+              role="alert"
+              data-testid="feedback-error"
+              className="flex flex-col items-center justify-center gap-3 py-10 text-center"
+            >
+              <AlertTriangle className="h-10 w-10 text-rose-500" />
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                  Fikrlarni yuklashda xatolik yuz berdi
+                </p>
+                <p className="max-w-md text-xs text-slate-500 dark:text-slate-400">
+                  {apiErrorMessage(
+                    feedbacksQuery.error,
+                    "Mijozlar fikrlarini yuklab bo'lmadi. Aloqani tekshirib, qayta urinib ko'ring.",
+                  )}
+                </p>
+              </div>
+              <Button
+                variant="secondary"
+                data-testid="feedback-retry"
+                onClick={handleRetry}
+              >
+                <RefreshCw
+                  className={`mr-2 h-4 w-4 ${feedbacksQuery.isFetching ? 'animate-spin' : ''}`}
+                />
+                Qayta urinish
+              </Button>
+            </div>
+          </Card>
+        ) : feedbacks.length === 0 ? (
+          <Card data-testid="feedback-empty">
             <EmptyState
               icon={MessageSquareHeart}
               title="Fikrlar topilmadi"
@@ -310,14 +366,14 @@ export default function FeedbackPage() {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex items-start gap-3">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#F97316] to-[#EA580C] text-lg font-bold text-white shadow-md">
-                    {item.customerName.charAt(0).toUpperCase()}
+                    {(item.customerName || 'M').charAt(0).toUpperCase()}
                   </div>
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="font-bold text-slate-900 dark:text-white">
-                        {item.customerName}
+                        {item.customerName || 'Mehmon'}
                       </h3>
-                      {item.tableNumber !== '—' && (
+                      {item.tableNumber && item.tableNumber !== '—' && (
                         <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                           Stol № {item.tableNumber}
                         </span>
@@ -339,7 +395,7 @@ export default function FeedbackPage() {
                       </Badge>
                     </div>
                     <p className="mt-0.5 text-xs text-slate-400">
-                      {item.customerPhone} · {formatTime(item.createdAt)}
+                      {item.customerPhone || '—'} · {formatTime(item.createdAt)}
                     </p>
                   </div>
                 </div>
@@ -347,7 +403,7 @@ export default function FeedbackPage() {
                 {/* Yulduzchalar va kategoriya */}
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                    {item.category}
+                    {item.category || "Taom ta'mi"}
                   </span>
                   <div className="flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 font-bold text-xs">
                     <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
