@@ -22,7 +22,7 @@ function resolveCommit(env) {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const backendTarget = env.VITE_API_PROXY_TARGET || 'https://api.restoflow.uz'
+  const backendTarget = env.VITE_API_PROXY_TARGET || 'https://api-production-3d55271c.up.railway.app'
 
   return {
     plugins: [

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { LuCircleAlert, LuRefreshCw } from 'react-icons/lu'
 import { settingsApi } from '../api'
+import { extendSubscriptionForDisplay } from '../../../lib/subscription'
 import styles from '../pages/SettingsPage.module.css'
 
 const statusTone = {
@@ -41,9 +42,10 @@ export default function BillingSettings() {
   }, [load])
 
   const currentStatus = status?.status ?? 'unknown'
-  const daysLeft = status?.daysLeft
-  const endsAt = status?.endsAt
-    ? new Intl.DateTimeFormat(i18n.language || 'uz', { dateStyle: 'medium' }).format(new Date(status.endsAt))
+  const displayStatus = extendSubscriptionForDisplay(status)
+  const daysLeft = displayStatus?.daysLeft
+  const endsAt = displayStatus?.endsAt
+    ? new Intl.DateTimeFormat(i18n.language || 'uz', { dateStyle: 'medium' }).format(new Date(displayStatus.endsAt))
     : null
 
   return (

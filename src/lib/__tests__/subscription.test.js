@@ -5,6 +5,7 @@ import {
   emitSubscriptionExpired,
   onSubscriptionExpired,
   normalizeSubscriptionStatus,
+  extendSubscriptionForDisplay,
 } from '../subscription'
 
 const expiredError = {
@@ -92,5 +93,35 @@ describe('normalizeSubscriptionStatus', () => {
 
   it('status yo`q bo`lsa unknown qaytaradi', () => {
     expect(normalizeSubscriptionStatus({}).status).toBe('unknown')
+  })
+})
+
+describe('extendSubscriptionForDisplay', () => {
+  it('tugash sanasini bir oyga uzaytiradi va qolgan kunlarni qayta hisoblaydi', () => {
+    const result = extendSubscriptionForDisplay({
+      status: 'trial',
+      daysLeft: 5,
+      endsAt: '2099-01-15T00:00:00.000Z',
+      plan: 'Pro',
+    })
+    const expected = new Date('2099-02-15T00:00:00.000Z').getTime()
+
+    expect(result).toMatchObject({ status: 'trial', plan: 'Pro' })
+    expect(result.endsAt).toBe('2099-02-15T00:00:00.000Z')
+    expect(result.daysLeft).toBe(Math.ceil((expected - Date.now()) / 86_400_000))
+  })
+
+  it('oy oxiridagi sanani keyingi oyning oxirgi kuniga o`tkazadi', () => {
+    expect(extendSubscriptionForDisplay({ endsAt: '2099-01-31T00:00:00.000Z' }).endsAt).toBe(
+      '2099-02-28T00:00:00.000Z',
+    )
+  })
+
+  it('tugash sanasi yo`q bo`lsa kunlarga 30 qo`shadi', () => {
+    expect(extendSubscriptionForDisplay({ status: 'active', daysLeft: 5 }).daysLeft).toBe(35)
+  })
+
+  it('holat yo`q bo`lsa o`zgarishsiz qaytaradi', () => {
+    expect(extendSubscriptionForDisplay(null)).toBe(null)
   })
 })

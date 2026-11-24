@@ -9,8 +9,8 @@
 - [x] Backend URL ulandi (Railway) — pastdagi TODO'larni Swagger orqali tasdiqlash kerak
 
 ## Backend
-`https://backend-production-11b7.up.railway.app` (production, Railway'da ishlamoqda)
-Swagger: `https://backend-production-11b7.up.railway.app/api-docs`
+`https://api-production-3d55271c.up.railway.app` (production, Railway'da ishlamoqda)
+Swagger: `https://api-production-3d55271c.up.railway.app/api-docs`
 
 **Tasdiqlangan (foydalanuvchi yuborgan):**
 - Buyurtma tanasi: `{ table: string, items: [{ product: string, quantity: number }], notes: string }`

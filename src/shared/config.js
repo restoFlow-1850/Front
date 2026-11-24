@@ -1,11 +1,11 @@
 // Ilova konfiguratsiyasi — backend manzili va build versiyasi uchun YAGONA manba.
 // Backend URL'ini boshqa joyda hardcode qilmang: shu yerdan import qiling.
 //
-//   VITE_API_URL     — backend API (masalan https://api.restoflow.uz/api)
+//   VITE_API_URL     — backend API (masalan https://api-production-3d55271c.up.railway.app/api)
 //   VITE_SOCKET_URL  — Socket.io manzili (berilmasa API_URL'dan /api olib tashlanadi)
 //   VITE_COMMIT      — build qilingan git commit (vite.config.js avtomatik to'ldiradi)
 
-export const DEFAULT_API_URL = 'https://api.restoflow.uz/api'
+export const DEFAULT_API_URL = 'https://api-production-3d55271c.up.railway.app/api'
 
 const env = import.meta.env ?? {}
 const isDev = Boolean(env.DEV)

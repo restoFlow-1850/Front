@@ -14,7 +14,7 @@ npm install -D tailwindcss @tailwindcss/vite
 ```
 `.env` fayl:
 ```
-VITE_API_PROXY_TARGET=https://backend-production-109c0.up.railway.app
+VITE_API_PROXY_TARGET=https://api-production-3d55271c.up.railway.app
 ```
 
 ## Papka tuzilishi

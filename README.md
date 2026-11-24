@@ -1,6 +1,6 @@
 # Cafe & Restaurant Hub
 
-https://backend-production-109c0.up.railway.app/api-docs/#/
+https://api-production-3d55271c.up.railway.app/api-docs/
 
 bu swager manashu swagerdan qaysi api kere bosa olasande va manga kafe,restoranlar uchun client qismini qilib ber faqat tailwind da bosin ui minimalizm qil client chastida sidebar bomasin narsa zakaz qilish stool bron qiladgon joylari bolishi kere
 

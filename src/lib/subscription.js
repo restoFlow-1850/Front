@@ -93,3 +93,31 @@ export function normalizeSubscriptionStatus(payload) {
     plan: firstDefined(subscription.plan, subscription.planName, data.plan, data.planName) ?? null,
   }
 }
+
+function addOneCalendarMonth(date) {
+  const result = new Date(date.getTime())
+  const day = result.getUTCDate()
+  result.setUTCDate(1)
+  result.setUTCMonth(result.getUTCMonth() + 1)
+  const lastDay = new Date(Date.UTC(result.getUTCFullYear(), result.getUTCMonth() + 1, 0)).getUTCDate()
+  result.setUTCDate(Math.min(day, lastDay))
+  return result
+}
+
+export function extendSubscriptionForDisplay(status) {
+  if (!status || typeof status !== 'object') return status
+
+  const endsAtDate = toDate(status.endsAt)
+  const extendedEndsAt = endsAtDate ? addOneCalendarMonth(endsAtDate) : null
+  const extendedDaysLeft = extendedEndsAt
+    ? toDaysLeft((extendedEndsAt.getTime() - Date.now()) / 86_400_000)
+    : status.daysLeft !== null && status.daysLeft !== undefined
+      ? toDaysLeft(Number(status.daysLeft) + 30)
+      : null
+
+  return {
+    ...status,
+    daysLeft: extendedDaysLeft,
+    endsAt: extendedEndsAt ? extendedEndsAt.toISOString() : null,
+  }
+}

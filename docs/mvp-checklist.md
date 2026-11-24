@@ -9,7 +9,7 @@ Natija 20:00 dagi «✅ Hisobotlar» ga yoziladi. Har ❌ — alohida GitHub Iss
 
 | # | Qadam | Kutilgan natija | ✅/❌ |
 |---|---|---|---|
-| 0.1 | `https://api.restoflow.uz/api/health` ni oching | `status: healthy`, `commit` = `main` dagi oxirgi commit (GitHub → Backend → Commits) | |
+| 0.1 | `https://api-production-3d55271c.up.railway.app/api/health` ni oching | `status: healthy`, `commit` = `main` dagi oxirgi commit (GitHub → Backend → Commits) | |
 | 0.2 | Front footer'dagi versiya | Front `main` dagi oxirgi commit bilan bir xil | |
 | 0.3 | Telefon: Chrome (Android) yoki Safari (iOS), inkognito rejim | Kesh va eski token yo'q | |
 
