@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
 import {
   CheckCircle,
   MapPin,
@@ -16,6 +14,7 @@ import { Card, Button, Badge } from '../../../components/ui'
 import { toast } from 'react-toastify'
 import { getRestaurants, updateRestaurant } from '../api'
 import { getTables } from '../../tables/api'
+import { loadYandexMaps, YANDEX_KEY } from '../yandexMaps'
 import { apiErrorMessage, unwrapList } from '../../../lib/api'
 import { TABLE_STATUS } from '../../../constants/roles'
 
@@ -38,7 +37,8 @@ export default function RestaurantMapCard() {
   const markersRef = useRef({})
   const placementMarkerRef = useRef(null)
   const resizeObserverRef = useRef(null)
-  const rafIdRef = useRef(null)
+  const ymapsRef = useRef(null)
+  const fittedRef = useRef(false)
   const locatedCoordsRef = useRef([])
   const editingRef = useRef(null)
 
@@ -51,6 +51,8 @@ export default function RestaurantMapCard() {
   const [editingRestaurant, setEditingRestaurant] = useState(null)
   const [draftCoords, setDraftCoords] = useState(null)
   const [isSaving, setIsSaving] = useState(false)
+  const [mapReady, setMapReady] = useState(false)
+  const [mapError, setMapError] = useState(false)
 
   editingRef.current = editingRestaurant
 
@@ -120,77 +122,62 @@ export default function RestaurantMapCard() {
     )
   }, [restaurants, searchQuery])
 
-  // ─── Xarita yaratish (bir marta) ──────────────────────────────────────
+  // ─── Xarita yaratish (bir marta) — Yandex Maps ────────────────────────
   useEffect(() => {
     const el = mapContainerRef.current
-    if (!el) return
+    if (!el) return undefined
+    let cancelled = false
 
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.remove()
-      mapInstanceRef.current = null
-    }
+    loadYandexMaps()
+      .then((ymaps) => {
+        if (cancelled || !mapContainerRef.current) return
+        ymapsRef.current = ymaps
+        const map = new ymaps.Map(
+          el,
+          { center: DEFAULT_CENTER, zoom: 11, controls: ['zoomControl', 'geolocationControl', 'searchControl'] },
+          { suppressMapOpenBlock: true },
+        )
+        mapInstanceRef.current = map
 
-    const map = L.map(el, {
-      center: DEFAULT_CENTER,
-      zoom: 11,
-      zoomControl: true,
-    })
+        // Admin joylashuv belgilash uchun xaritaga bosganda koordinata olinadi.
+        map.events.add('click', (e) => {
+          if (!editingRef.current) return
+          const [lat, lng] = e.get('coords')
+          setDraftCoords({ lat: Number(lat.toFixed(6)), lng: Number(lng.toFixed(6)) })
+        })
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      maxZoom: 18,
-      noWrap: true,
-    }).addTo(map)
-
-    mapInstanceRef.current = map
-
-    // Admin joylashuv belgilash uchun xaritaga bosganda koordinata olinadi.
-    map.on('click', (e) => {
-      if (!editingRef.current) return
-      setDraftCoords({
-        lat: Number(e.latlng.lat.toFixed(6)),
-        lng: Number(e.latlng.lng.toFixed(6)),
+        const resizeObserver = new ResizeObserver(() => map.container.fitToViewport())
+        resizeObserver.observe(el)
+        resizeObserverRef.current = resizeObserver
+        setMapReady(true)
       })
-    })
-
-    let centered = false
-    const recalcSize = () => {
-      map.invalidateSize()
-      const { width, height } = el.getBoundingClientRect() ?? {}
-      if (!centered && width > 0 && height > 0) {
-        centered = true
-        if (locatedCoordsRef.current.length > 0) {
-          map.fitBounds(L.latLngBounds(locatedCoordsRef.current), { padding: [40, 40] })
-        } else {
-          map.setView(DEFAULT_CENTER, 11, { animate: false })
-        }
-      }
-    }
-    const rafId = requestAnimationFrame(recalcSize)
-    const resizeObserver = new ResizeObserver(recalcSize)
-    resizeObserver.observe(el)
-    resizeObserverRef.current = resizeObserver
-    rafIdRef.current = rafId
+      .catch(() => {
+        if (!cancelled) setMapError(true)
+      })
 
     return () => {
-      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current)
+      cancelled = true
       if (resizeObserverRef.current) {
         resizeObserverRef.current.disconnect()
         resizeObserverRef.current = null
       }
       if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove()
+        mapInstanceRef.current.destroy()
         mapInstanceRef.current = null
       }
+      markersRef.current = {}
+      placementMarkerRef.current = null
+      setMapReady(false)
     }
   }, [])
 
   // ─── Filial markerlari ────────────────────────────────────────────────
   useEffect(() => {
     const map = mapInstanceRef.current
-    if (!map) return
+    const ymaps = ymapsRef.current
+    if (!map || !ymaps) return
 
-    Object.values(markersRef.current).forEach((m) => m.remove())
+    Object.values(markersRef.current).forEach((m) => map.geoObjects.remove(m))
     markersRef.current = {}
 
     const located = restaurants.filter(hasCoords)
@@ -199,28 +186,6 @@ export default function RestaurantMapCard() {
     located.forEach((r) => {
       const stats = tableStats.get(restaurantId(r)) ?? { total: 0, occupied: 0 }
       const isPeak = stats.total > 0 && stats.occupied >= stats.total
-
-      const pinColorClass = isPeak
-        ? 'from-rose-500 to-red-600 shadow-rose-500/40'
-        : 'from-orange-500 to-amber-600 shadow-orange-500/40'
-
-      const icon = L.divIcon({
-        className: 'custom-restaurant-pin',
-        html: `
-          <div class="relative flex items-center justify-center cursor-pointer group">
-            <span class="absolute inline-flex h-9 w-9 animate-ping rounded-full ${isPeak ? 'bg-rose-400' : 'bg-orange-400'} opacity-60"></span>
-            <div class="relative flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-gradient-to-tr ${pinColorClass} text-white shadow-lg transition-transform duration-200 hover:scale-110">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-6-5.333-6-10a6 6 0 0112 0c0 4.667-6 10-6 10z"/>
-                <circle cx="12" cy="11" r="2" fill="currentColor"/>
-              </svg>
-            </div>
-          </div>
-        `,
-        iconSize: [36, 36],
-        iconAnchor: [18, 36],
-        popupAnchor: [0, -36],
-      })
 
       const statusText = isPeak ? t('branchesMap.peak') : t('branchesMap.open')
       const tablesLine =
@@ -240,7 +205,7 @@ export default function RestaurantMapCard() {
           ? `<span style="font-weight:600; color:#475569;">⭐ ${Number(r.rating).toFixed(1)}</span>`
           : ''
 
-      const popupContent = `
+      const balloonContent = `
         <div style="font-family: inherit; width: 210px; padding: 2px;">
           <div style="font-weight: 800; font-size: 14px; color: #0F172A; margin-bottom: 2px;">${escapeHtml(r.name)}</div>
           <div style="font-size: 11px; color: #64748B; margin-bottom: 6px;">${escapeHtml(r.address || r.city || '')}</div>
@@ -253,67 +218,67 @@ export default function RestaurantMapCard() {
         </div>
       `
 
-      const marker = L.marker([r.coordinates.lat, r.coordinates.lng], { icon })
-        .addTo(map)
-        .bindPopup(popupContent)
-
-      marker.on('click', () => setSelectedId(restaurantId(r)))
-
+      const marker = new ymaps.Placemark(
+        [r.coordinates.lat, r.coordinates.lng],
+        { balloonContent, hintContent: escapeHtml(r.name) },
+        { preset: isPeak ? 'islands#redFoodIcon' : 'islands#orangeFoodIcon' },
+      )
+      marker.events.add('click', () => setSelectedId(restaurantId(r)))
+      map.geoObjects.add(marker)
       markersRef.current[restaurantId(r)] = marker
     })
 
-    map.invalidateSize()
-  }, [restaurants, tableStats, t])
+    // Birinchi yuklanishda barcha filiallarni ko'rsatamiz.
+    if (!fittedRef.current && locatedCoordsRef.current.length > 0) {
+      fittedRef.current = true
+      if (locatedCoordsRef.current.length === 1) {
+        map.setCenter(locatedCoordsRef.current[0], 13)
+      } else {
+        map.setBounds(ymaps.util.bounds.fromPoints(locatedCoordsRef.current), {
+          checkZoomRange: true,
+          zoomMargin: 40,
+        })
+      }
+    }
+  }, [restaurants, tableStats, t, mapReady])
 
   // ─── Tanlangan filialga uchish ────────────────────────────────────────
   useEffect(() => {
     const map = mapInstanceRef.current
     if (!map || !selectedBranch || !hasCoords(selectedBranch)) return
-    map.flyTo([selectedBranch.coordinates.lat, selectedBranch.coordinates.lng], 14, {
-      duration: 0.9,
+    map.setCenter([selectedBranch.coordinates.lat, selectedBranch.coordinates.lng], 14, {
+      duration: 600,
     })
-  }, [selectedBranch])
+  }, [selectedBranch, mapReady])
 
   // ─── Joylashuv belgilash markeri ──────────────────────────────────────
   useEffect(() => {
     const map = mapInstanceRef.current
-    if (!map) return
+    const ymaps = ymapsRef.current
+    if (!map || !ymaps) return
 
     if (placementMarkerRef.current) {
-      placementMarkerRef.current.remove()
+      map.geoObjects.remove(placementMarkerRef.current)
       placementMarkerRef.current = null
     }
 
     if (editingRestaurant && draftCoords) {
-      const icon = L.divIcon({
-        className: 'custom-placement-pin',
-        html: `
-          <div class="relative flex flex-col items-center">
-            <div class="relative flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-gradient-to-tr from-blue-500 to-indigo-600 text-white shadow-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-6-5.333-6-10a6 6 0 0112 0c0 4.667-6 10-6 10z"/>
-                <circle cx="12" cy="11" r="2" fill="currentColor"/>
-              </svg>
-            </div>
-            <span class="mt-1 rounded-md bg-slate-900/90 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-md">
-              ${draftCoords.lat.toFixed(5)}, ${draftCoords.lng.toFixed(5)}
-            </span>
-          </div>
-        `,
-        iconSize: [36, 44],
-        iconAnchor: [18, 36],
-        popupAnchor: [0, -36],
-      })
-      placementMarkerRef.current = L.marker([draftCoords.lat, draftCoords.lng], { icon }).addTo(map)
+      const marker = new ymaps.Placemark(
+        [draftCoords.lat, draftCoords.lng],
+        { iconCaption: `${draftCoords.lat.toFixed(5)}, ${draftCoords.lng.toFixed(5)}` },
+        { preset: 'islands#blueDotIconWithCaption' },
+      )
+      map.geoObjects.add(marker)
+      placementMarkerRef.current = marker
     }
-  }, [editingRestaurant, draftCoords])
+  }, [editingRestaurant, draftCoords, mapReady])
 
   // ─── Amallar ──────────────────────────────────────────────────────────
   const handleSelectBranch = (r) => {
     setSelectedId(restaurantId(r))
     if (hasCoords(r)) {
       const marker = markersRef.current[restaurantId(r)]
-      setTimeout(() => marker?.openPopup(), 350)
+      setTimeout(() => marker?.balloon.open(), 700)
     }
   }
 
@@ -322,7 +287,7 @@ export default function RestaurantMapCard() {
     setEditingRestaurant(r)
     setDraftCoords(hasCoords(r) ? { lat: r.coordinates.lat, lng: r.coordinates.lng } : null)
     if (hasCoords(r) && mapInstanceRef.current) {
-      mapInstanceRef.current.flyTo([r.coordinates.lat, r.coordinates.lng], 15, { duration: 0.9 })
+      mapInstanceRef.current.setCenter([r.coordinates.lat, r.coordinates.lng], 15, { duration: 600 })
     }
   }
 
@@ -380,6 +345,15 @@ export default function RestaurantMapCard() {
           ref={mapContainerRef}
           className="absolute inset-0 w-full rounded-xl border border-slate-200 dark:border-slate-800 z-10 shadow-inner"
         />
+
+        {/* Yandex Maps kaliti yo'q yoki yuklanmadi */}
+        {(mapError || !YANDEX_KEY) && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center rounded-xl bg-white/90 dark:bg-slate-900/90">
+            <p className="px-6 text-center text-xs font-semibold text-amber-600">
+              {t('branchesMap.yandexUnavailable')}
+            </p>
+          </div>
+        )}
 
         {/* Loading */}
         {loading && (
