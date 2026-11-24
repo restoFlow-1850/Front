@@ -4,6 +4,7 @@ import {
   isSubscriptionExpired,
   emitSubscriptionExpired,
   onSubscriptionExpired,
+  normalizeSubscriptionStatus,
 } from '../subscription'
 
 const expiredError = {
@@ -25,6 +26,11 @@ describe('isSubscriptionExpired', () => {
   it('401/500 ni obuna deb hisoblamaydi', () => {
     expect(isSubscriptionExpired({ response: { status: 401 } })).toBe(false)
     expect(isSubscriptionExpired({ response: { status: 500 } })).toBe(false)
+  })
+
+  it('nested code va xabar bilan ham taniydi', () => {
+    expect(isSubscriptionExpired({ response: { status: 402, data: { error: { code: 'SUBSCRIPTION_EXPIRED' } } } })).toBe(true)
+    expect(isSubscriptionExpired({ response: { status: 402, data: { message: 'Restoran obunasi muddati tugagan' } } })).toBe(true)
   })
 
   it('javobsiz xato (tarmoq xatosi) xavfli emas', () => {
@@ -62,5 +68,29 @@ describe('emit/onSubscriptionExpired', () => {
     unsubscribe = onSubscriptionExpired(() => names.push(SUBSCRIPTION_EXPIRED_EVENT))
     emitSubscriptionExpired({})
     expect(names).toEqual([SUBSCRIPTION_EXPIRED_EVENT])
+  })
+})
+
+describe('normalizeSubscriptionStatus', () => {
+  it('trial holatini va backend kunlarini oladi', () => {
+    const result = normalizeSubscriptionStatus({
+      data: { status: 'trial', daysLeft: 5, trialEndsAt: '2099-01-01T00:00:00.000Z', plan: 'Pro' },
+    })
+
+    expect(result).toMatchObject({ status: 'trial', daysLeft: 5, plan: 'Pro' })
+    expect(result.endsAt).toBe('2099-01-01T00:00:00.000Z')
+  })
+
+  it('o`tgan trialEndsAt ni expired deb biladi', () => {
+    expect(normalizeSubscriptionStatus({ data: { trialEndsAt: '2000-01-01T00:00:00.000Z' } }).status).toBe('expired')
+  })
+
+  it('isActive=false yoki expired=true ni expired deb biladi', () => {
+    expect(normalizeSubscriptionStatus({ data: { isActive: false } }).status).toBe('expired')
+    expect(normalizeSubscriptionStatus({ subscription: { expired: true } }).status).toBe('expired')
+  })
+
+  it('status yo`q bo`lsa unknown qaytaradi', () => {
+    expect(normalizeSubscriptionStatus({}).status).toBe('unknown')
   })
 })

@@ -25,6 +25,11 @@ import {
 
 const BACKEND_ERRORS = [
   {
+    status: 400,
+    code: 'generic',
+    message: 'Savol 2000 belgidan oshmasligi kerak',
+  },
+  {
     status: 403,
     code: 'forbidden',
     message: 'AI yordamchi faqat restoranga biriktirilgan xodimlar uchun',
@@ -210,6 +215,7 @@ describe('sendAiMessage', () => {
   })
 
   it.each([
+    [400, 'generic'],
     [429, 'rateLimit'],
     [403, 'forbidden'],
     [503, 'notConfigured'],
@@ -224,20 +230,25 @@ describe('sendAiMessage', () => {
     })
   })
 
-  it('keeps the backend message on 403 and exposes it as backendMessage', async () => {
-    const message = 'AI yordamchi faqat restoranga biriktirilgan xodimlar uchun'
-    api.post.mockRejectedValue({
-      response: { status: 403, data: { success: false, message } },
-    })
+  it.each([
+    [400, 'generic', 'Savol 2000 belgidan oshmasligi kerak'],
+    [403, 'forbidden', 'AI yordamchi faqat restoranga biriktirilgan xodimlar uchun'],
+  ])(
+    'keeps the backend message on HTTP %i and exposes it as backendMessage',
+    async (status, code, message) => {
+      api.post.mockRejectedValue({
+        response: { status, data: { success: false, message } },
+      })
 
-    await expect(sendAiMessage([{ role: 'user', content: 'Savol' }])).rejects.toMatchObject({
-      name: 'AiChatError',
-      code: 'forbidden',
-      status: 403,
-      message,
-      backendMessage: message,
-    })
-  })
+      await expect(sendAiMessage([{ role: 'user', content: 'Savol' }])).rejects.toMatchObject({
+        name: 'AiChatError',
+        code,
+        status,
+        message,
+        backendMessage: message,
+      })
+    },
+  )
 
   it('leaves backendMessage empty on 403 without a backend message', async () => {
     api.post.mockRejectedValue({ response: { status: 403, data: { success: false } } })
