@@ -89,6 +89,7 @@
     "chef": "Oshpaz"
   },
   "branchesMap": {
+    "yandexUnavailable": "Yandex xaritasi yuklanmadi. VITE_YANDEX_MAPS_API_KEY sozlanganini tekshiring.",
     "title": "Filiallar Xaritasi",
     "subtitle": "Restoran filiallarining joylashuvi va stol bandlik holati (faqat Admin)",
     "cardTitle": "Restoran Filiallari Xaritasi",

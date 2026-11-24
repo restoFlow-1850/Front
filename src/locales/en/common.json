@@ -89,6 +89,7 @@
     "chef": "Cook"
   },
   "branchesMap": {
+    "yandexUnavailable": "Yandex Map failed to load. Check VITE_YANDEX_MAPS_API_KEY.",
     "title": "Branches Map",
     "subtitle": "Branch locations and table occupancy (Admin only)",
     "cardTitle": "Restaurant Branches Map",
