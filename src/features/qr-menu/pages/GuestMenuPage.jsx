@@ -376,6 +376,7 @@ function GuestMenuPageContent() {
         isOpen={isFeedbackOpen}
         onClose={() => setIsFeedbackOpen(false)}
         defaultTable={selectedTable?.number ? String(selectedTable.number) : ''}
+        restaurantId={restaurantId}
       />
     </div>
   )

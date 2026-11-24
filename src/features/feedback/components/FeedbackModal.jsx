@@ -26,7 +26,7 @@ const RATING_LABELS = {
   5: "A'lo darajada",
 }
 
-export default function FeedbackModal({ isOpen, onClose, defaultTable = '' }) {
+export default function FeedbackModal({ isOpen, onClose, defaultTable = '', restaurantId = null }) {
   const queryClient = useQueryClient()
 
   const [rating, setRating] = useState(5)
@@ -47,7 +47,7 @@ export default function FeedbackModal({ isOpen, onClose, defaultTable = '' }) {
         customerPhone: customerPhone.trim() || '—',
         tableNumber: tableNumber.trim() || '—',
         comment: comment.trim(),
-      }),
+      }, restaurantId),
     onSuccess: (newFeedback) => {
       playNotificationSound()
       setIsSuccess(true)
