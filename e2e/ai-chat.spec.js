@@ -73,6 +73,33 @@ test.describe('AI chat', () => {
     await expect(tools.getByText('Ombor')).toBeVisible()
   })
 
+  test('«Nusxalash» tugmasi javobni clipboard ga yozadi va ✓ ko‘rsatadi', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.__copiedText = ''
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: {
+          writeText: (text) => {
+            window.__copiedText = text
+            return Promise.resolve()
+          },
+        },
+      })
+    })
+
+    await openChat(page)
+    await sendQuestion(page, 'Bugungi savdo qanday?')
+    await expect(page.getByText(AI_ANSWER)).toBeVisible()
+
+    const copy = page.getByTestId('ai-copy').first()
+    await expect(copy).toContainText('Nusxalash')
+    await copy.click()
+
+    await expect(page.getByTestId('ai-copy-check')).toHaveText('✓')
+    await expect(copy).toContainText('Nusxalandi')
+    expect(await page.evaluate(() => window.__copiedText)).toBe(AI_ANSWER)
+  })
+
   test('?q= orqali savol avtomatik yuboriladi', async ({ page }) => {
     const requests = await mockAi(page)
 
@@ -117,6 +144,59 @@ test.describe('AI chat', () => {
 
     await expect(page.getByText(AI_ANSWER)).toHaveCount(0)
     await expect(page.getByPlaceholder('Savolingizni yozing...')).toBeVisible()
+  })
+
+  test('tezkor savollar ishlaydi, «Tozalash» saqlangan tarixni o‘chiradi', async ({ page }) => {
+    const requests = await openChat(page)
+
+    for (const label of ['Bugungi tushum', 'Kam qolgan mahsulotlar', 'Ochiq buyurtmalar']) {
+      await expect(page.getByRole('button', { name: label })).toBeVisible()
+    }
+
+    await page.getByRole('button', { name: 'Bugungi tushum' }).click()
+    await expect(page.getByText(AI_ANSWER)).toBeVisible()
+    expect(requests[0]).toMatchObject({ question: 'Bugungi tushum' })
+
+    await page.reload()
+    await expect(page.getByText(AI_ANSWER)).toBeVisible()
+
+    page.once('dialog', (dialog) => dialog.accept())
+    await page.getByRole('button', { name: 'Tozalash' }).click()
+
+    await expect(page.getByText(AI_ANSWER)).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Bugungi tushum' })).toBeVisible()
+  })
+
+  test('2000 belgi chegarasida hisoblagich chiqadi va yuborish o‘chadi', async ({ page }) => {
+    await openChat(page)
+    const input = page.getByPlaceholder('Savolingizni yozing...')
+
+    await input.fill('a'.repeat(123))
+    await expect(page.getByTestId('ai-char-counter')).toHaveText('123/2000')
+    await expect(page.getByTestId('ai-send')).toBeEnabled()
+
+    await input.fill('a'.repeat(2001))
+    await expect(page.getByTestId('ai-char-counter')).toHaveText('2001/2000')
+    await expect(page.getByTestId('ai-send')).toBeDisabled()
+
+    await input.fill('Bugungi savdo qanday?')
+    await expect(page.getByTestId('ai-char-counter')).toHaveText('21/2000')
+    await expect(page.getByTestId('ai-send')).toBeEnabled()
+    await page.getByTestId('ai-send').click()
+    await expect(page.getByText(AI_ANSWER)).toBeVisible()
+  })
+
+  test('400 da backend matni umumiy xato o‘rniga chiqadi', async ({ page }) => {
+    const message = 'Savol 2000 belgidan oshmasligi kerak'
+    await mockAiError(page, { status: 400, message })
+
+    await login(page, ACCOUNTS.admin)
+    await page.goto('/ai-chat')
+    await sendQuestion(page, 'Bugungi savdo qanday?')
+
+    await expect(page.getByText(message)).toBeVisible()
+    await expect(page.getByText('AI javobini olishda xatolik yuz berdi')).toHaveCount(0)
+    await expect(page.locator('.Toastify__toast--error')).toHaveCount(0)
   })
 
   test('403 da backend sababi ko‘rsatiladi, toast chiqmaydi', async ({ page }) => {

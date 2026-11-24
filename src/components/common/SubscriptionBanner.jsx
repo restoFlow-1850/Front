@@ -7,12 +7,25 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { LuCircleAlert, LuX } from 'react-icons/lu'
 import { onSubscriptionExpired } from '../../lib/subscription'
+import { getBillingStatus } from '../../services/billing'
 
 export default function SubscriptionBanner() {
   const { t } = useTranslation()
   const [visible, setVisible] = useState(false)
 
   useEffect(() => onSubscriptionExpired(() => setVisible(true)), [])
+
+  useEffect(() => {
+    let active = true
+    getBillingStatus()
+      .then((status) => {
+        if (active && status.status === 'expired') setVisible(true)
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [])
 
   if (!visible) return null
 

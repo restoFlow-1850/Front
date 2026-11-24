@@ -36,7 +36,7 @@ export const AI_ERROR_CODES = [
   'generic',
 ]
 
-const BACKEND_MESSAGE_STATUSES = new Set([403, 429, 503])
+const BACKEND_MESSAGE_STATUSES = new Set([400, 403, 429, 503])
 
 export class AiChatError extends Error {
   constructor(code = 'generic', status = null, message = '') {
@@ -84,8 +84,8 @@ function extractToolCalls(payload, root) {
 }
 
 /**
- * Backend 403 bilan birga yuboradigan tushuntirish matnini oladi.
- * Masalan: «AI yordamchi faqat restoranga biriktirilgan xodimlar uchun».
+ * Backend xato bilan birga yuboradigan tushuntirish matnini oladi.
+ * Masalan: «Savol 2000 belgidan oshmasligi kerak».
  * Matn bo'lmasa — bo'sh satr (UI umumiy matnni ko'rsatadi).
  */
 export function extractBackendMessage(error) {
@@ -155,7 +155,7 @@ export async function sendAiMessage(messages = [], { signal } = {}) {
     if (status === 404 || status === 405 || status === 501) {
       throw new AiUnavailableError()
     }
-    // 403/429/503 da backend sababini aynan ko'rsatamiz — umumiy matn emas.
+    // 400/403/429/503 da backend sababini aynan ko'rsatamiz — umumiy matn emas.
     const backendMessage = BACKEND_MESSAGE_STATUSES.has(status)
       ? extractBackendMessage(error)
       : ''

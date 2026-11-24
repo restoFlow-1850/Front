@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { afterEach, describe, it, expect, vi, beforeEach } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 
@@ -49,6 +49,7 @@ Element.prototype.scrollIntoView = vi.fn()
 const BACKEND_MESSAGE = 'AI yordamchi faqat restoranga biriktirilgan xodimlar uchun'
 
 const BACKEND_ERRORS = [
+  [400, 'generic', 'Savol 2000 belgidan oshmasligi kerak'],
   [403, 'forbidden', BACKEND_MESSAGE],
   [503, 'notConfigured', "AI yordamchi sozlanmagan (ANTHROPIC_API_KEY yo'q)"],
   [429, 'rateLimit', "AI limiti tugadi (soatiga 30 ta savol). Birozdan keyin urinib ko'ring."],
@@ -61,11 +62,17 @@ async function askQuestion() {
   fireEvent.click(screen.getByRole('button', { name: 'Yuborish' }))
 }
 
+let confirmSpy
+
 beforeEach(() => {
   sessionStorage.clear()
   sendAiMessage.mockReset()
   toast.error.mockClear()
+  toast.info.mockClear()
+  confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
 })
+
+afterEach(() => confirmSpy.mockRestore())
 
 describe('AiChatPage xatolari', () => {
   it('403 da backend xabarini chat ichida ko‘rsatadi', async () => {
@@ -117,5 +124,98 @@ describe('AiChatPage xatolari', () => {
     expect(toast.error).not.toHaveBeenCalled()
     expect(screen.getAllByText(BACKEND_MESSAGE)).toHaveLength(1)
     expect(sessionStorage.getItem(AI_STORAGE_KEY)).toBeTruthy()
+  })
+})
+
+describe('AiChatPage tezkor savollar va suhbat tarixi', () => {
+  const QUICK_LABELS = ['Bugungi tushum', 'Kam qolgan mahsulotlar', 'Ochiq buyurtmalar']
+
+  it("bo'sh holatda uchta tezkor savol tugmasi ko'rinadi", () => {
+    render(<AiChatPage />)
+
+    expect(screen.getAllByTestId('ai-quick-prompt')).toHaveLength(3)
+    for (const label of QUICK_LABELS) {
+      expect(screen.getByRole('button', { name: label })).toBeInTheDocument()
+    }
+  })
+
+  it('tezkor savol bosilganda yuboriladi va sessiyada saqlanadi', async () => {
+    sendAiMessage.mockResolvedValue({ reply: 'Javob tayyor', source: 'server', toolCalls: [] })
+
+    render(<AiChatPage />)
+    fireEvent.click(screen.getByRole('button', { name: 'Kam qolgan mahsulotlar' }))
+
+    expect(await screen.findByText('Javob tayyor')).toBeInTheDocument()
+    expect(sendAiMessage).toHaveBeenCalledWith(
+      [{ role: 'user', content: 'Kam qolgan mahsulotlar' }],
+      expect.anything(),
+    )
+    const stored = JSON.parse(sessionStorage.getItem(AI_STORAGE_KEY))
+    expect(stored.map((message) => message.content)).toEqual([
+      'Kam qolgan mahsulotlar',
+      'Javob tayyor',
+    ])
+  })
+
+  it('qayta ochilganda tarix sessionStorage dan tiklanadi', async () => {
+    sendAiMessage.mockResolvedValue({ reply: 'Tushum hisoboti tayyor', source: 'server', toolCalls: [] })
+
+    const { unmount } = render(<AiChatPage />)
+    fireEvent.click(screen.getByRole('button', { name: 'Bugungi tushum' }))
+    expect(await screen.findByText('Tushum hisoboti tayyor')).toBeInTheDocument()
+    unmount()
+
+    render(<AiChatPage />)
+    expect(screen.getByText('Bugungi tushum')).toBeInTheDocument()
+    expect(screen.getByText('Tushum hisoboti tayyor')).toBeInTheDocument()
+    expect(screen.queryByTestId('ai-quick-prompt')).not.toBeInTheDocument()
+  })
+
+  it('«Tozalash» tugmasi tarixni hamda saqlangan xabarlarni o‘chiradi', async () => {
+    sendAiMessage.mockResolvedValue({ reply: 'Javob tayyor', source: 'server', toolCalls: [] })
+
+    render(<AiChatPage />)
+    fireEvent.click(screen.getByRole('button', { name: 'Ochiq buyurtmalar' }))
+    expect(await screen.findByText('Javob tayyor')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tozalash' }))
+
+    expect(confirmSpy).toHaveBeenCalled()
+    expect(screen.queryByText('Javob tayyor')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Bugungi tushum' })).toBeInTheDocument()
+    expect(sessionStorage.getItem(AI_STORAGE_KEY)).toBeNull()
+    expect(toast.info).toHaveBeenCalled()
+  })
+})
+
+describe('AiChatPage 2000 belgi chegarasi', () => {
+  it('hisoblagichni «123/2000» ko‘rsatadi va 2000 belgida yuborishni faol qoldiradi', () => {
+    sendAiMessage.mockResolvedValue({ reply: 'Javob tayyor', source: 'server', toolCalls: [] })
+    render(<AiChatPage />)
+    const input = screen.getByPlaceholderText('Savolingizni yozing...')
+
+    fireEvent.change(input, { target: { value: 'a'.repeat(123) } })
+    expect(screen.getByTestId('ai-char-counter')).toHaveTextContent('123/2000')
+    expect(screen.getByTestId('ai-send')).toBeEnabled()
+
+    fireEvent.change(input, { target: { value: 'a'.repeat(2000) } })
+    expect(screen.getByTestId('ai-char-counter')).toHaveTextContent('2000/2000')
+    expect(screen.getByTestId('ai-send')).toBeEnabled()
+  })
+
+  it('2000 dan oshganda hisoblagichni yangilaydi va yuborish tugmasini o‘chiradi', async () => {
+    render(<AiChatPage />)
+    const input = screen.getByPlaceholderText('Savolingizni yozing...')
+    const tooLong = 'a'.repeat(2001)
+
+    fireEvent.change(input, { target: { value: tooLong } })
+
+    expect(input).toHaveValue(tooLong)
+    expect(screen.getByTestId('ai-char-counter')).toHaveTextContent('2001/2000')
+    expect(screen.getByTestId('ai-send')).toBeDisabled()
+
+    fireEvent.click(screen.getByTestId('ai-send'))
+    fireEvent.keyDown(input, { key: 'Enter' })
+    expect(sendAiMessage).not.toHaveBeenCalled()
   })
 })

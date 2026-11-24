@@ -4,6 +4,8 @@
 // bunda `data` esa { orders: [...] } / { order: {...} } kabi nomlangan konteyner.
 // Har sahifada `res.data.data.orders ?? res.data.data ?? res.data` yozib chiqmaslik
 // uchun shu yerda bir marta yechamiz.
+import { isSubscriptionExpired } from './subscription'
+import { subscriptionExpiredMessage } from './messages'
 
 /** Javobdan `data` ichidagi nomlangan maydonni oladi. */
 export function unwrap(res, key) {
@@ -27,6 +29,8 @@ export function unwrapPagination(res) {
 
 /** Backend xato xabarini foydalanuvchiga ko'rsatish uchun matnga aylantiradi. */
 export function apiErrorMessage(error, fallback = 'Xatolik yuz berdi') {
+  if (isSubscriptionExpired(error)) return subscriptionExpiredMessage()
+
   return (
     error?.response?.data?.message ||
     error?.response?.data?.error ||

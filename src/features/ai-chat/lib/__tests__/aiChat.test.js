@@ -169,6 +169,12 @@ describe('loadMessages / saveMessages', () => {
     clearStoredMessages(storage)
     expect(storage.has(AI_STORAGE_KEY)).toBe(false)
   })
+
+  it("bo'sh tarix saqlanganda kalit o'chiriladi", () => {
+    const storage = createStorage({ [AI_STORAGE_KEY]: JSON.stringify([{ role: 'user', content: 'X' }]) })
+    saveMessages([], storage)
+    expect(storage.has(AI_STORAGE_KEY)).toBe(false)
+  })
 })
 
 describe('localAssistantReply', () => {
@@ -190,12 +196,21 @@ describe('localAssistantReply', () => {
 })
 
 describe('QUICK_PROMPTS', () => {
+  it("bo'sh holatda uchta tezkor savol ko'rsatiladi", () => {
+    expect(QUICK_PROMPTS.map((item) => item.label)).toEqual([
+      'Bugungi tushum',
+      'Kam qolgan mahsulotlar',
+      'Ochiq buyurtmalar',
+    ])
+  })
+
   it("har bir tayyor savolda id, label va prompt bor", () => {
-    expect(QUICK_PROMPTS.length).toBeGreaterThan(0)
+    expect(QUICK_PROMPTS).toHaveLength(3)
     for (const item of QUICK_PROMPTS) {
       expect(item.id).toBeTruthy()
       expect(item.label).toBeTruthy()
       expect(item.prompt).toBeTruthy()
+      expect(item.prompt).toBe(item.label)
     }
   })
 })
@@ -346,5 +361,15 @@ describe('AI xato matnlari', () => {
     expect(uz.aiChat.retry).toBe('Qayta urinish')
     expect(ru.aiChat.retry).toBe('Повторить')
     expect(en.aiChat.retry).toBe('Retry')
+  })
+
+  it.each([
+    ['uz', 'Nusxalash', 'Nusxalandi'],
+    ['ru', 'Копировать', 'Скопировано'],
+    ['en', 'Copy', 'Copied'],
+  ])('%s tilida «Nusxalash» va ✓ holati matnlari bor', (lng, copy, copied) => {
+    const locale = { uz, ru, en }[lng]
+    expect(locale.aiChat.copy).toBe(copy)
+    expect(locale.aiChat.copied).toBe(copied)
   })
 })

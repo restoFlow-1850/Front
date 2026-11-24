@@ -2,11 +2,12 @@ import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Send, Square } from 'lucide-react'
 
-const MAX_LENGTH = 2000
+import { MAX_QUESTION_LENGTH } from '../lib/aiChat'
 
 export default function ChatComposer({ value, onChange, onSend, onStop, isSending, disabled }) {
   const { t } = useTranslation()
   const textareaRef = useRef(null)
+  const isOverLimit = value.length > MAX_QUESTION_LENGTH
 
   useEffect(() => {
     const el = textareaRef.current
@@ -16,7 +17,7 @@ export default function ChatComposer({ value, onChange, onSend, onStop, isSendin
   }, [value])
 
   const submit = () => {
-    if (!value.trim() || isSending || disabled) return
+    if (!value.trim() || isOverLimit || isSending || disabled) return
     onSend()
   }
 
@@ -33,7 +34,7 @@ export default function ChatComposer({ value, onChange, onSend, onStop, isSendin
         <textarea
           ref={textareaRef}
           value={value}
-          onChange={(event) => onChange(event.target.value.slice(0, MAX_LENGTH))}
+          onChange={(event) => onChange(event.target.value)}
           onKeyDown={handleKeyDown}
           rows={1}
           placeholder="Savolingizni yozing..."
@@ -56,7 +57,8 @@ export default function ChatComposer({ value, onChange, onSend, onStop, isSendin
           <button
             type="button"
             onClick={submit}
-            disabled={!value.trim() || disabled}
+            disabled={!value.trim() || isOverLimit || disabled}
+            data-testid="ai-send"
             className="mb-0.5 grid size-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#F97316] to-[#EA580C] text-white shadow-md shadow-orange-500/25 transition hover:from-[#EA580C] hover:to-orange-700 disabled:cursor-not-allowed disabled:opacity-40"
             aria-label={t('aiChat.send', 'Yuborish')}
           >
@@ -68,8 +70,11 @@ export default function ChatComposer({ value, onChange, onSend, onStop, isSendin
         <span className="hidden truncate sm:inline">
           Enter — yuborish · Shift+Enter — yangi qator
         </span>
-        <span className="tabular-nums">
-          {value.length}/{MAX_LENGTH}
+        <span
+          data-testid="ai-char-counter"
+          className={`tabular-nums ${isOverLimit ? 'font-bold text-rose-500 dark:text-rose-400' : ''}`}
+        >
+          {value.length}/{MAX_QUESTION_LENGTH}
         </span>
       </div>
     </div>

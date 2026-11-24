@@ -2,6 +2,7 @@ export const AI_STORAGE_KEY = 'restoflow.ai-chat.messages'
 export const MAX_HISTORY = 20
 export const MAX_STORED = 50
 export const MAX_TOOL_BADGES = 12
+export const MAX_QUESTION_LENGTH = 2000
 
 // Backend tool nomlari har xil yozilishi mumkin (daily_sales, dailySales,
 // sales_report...). Hammasini bitta kanonik kalitga keltiramiz — shunda
@@ -145,34 +146,19 @@ export function normalizeToolCalls(raw) {
 
 export const QUICK_PROMPTS = [
   {
-    id: 'sales',
-    label: 'Bugungi savdo',
-    prompt: "Bugungi savdo ko'rsatkichlarini qanday tahlil qilishim mumkin?",
+    id: 'revenue',
+    label: 'Bugungi tushum',
+    prompt: 'Bugungi tushum',
   },
   {
-    id: 'menu',
-    label: 'Menyu optimizatsiyasi',
-    prompt: 'Menyuni qanday qilib foydaliroq qilish mumkin?',
+    id: 'lowStock',
+    label: 'Kam qolgan mahsulotlar',
+    prompt: 'Kam qolgan mahsulotlar',
   },
   {
-    id: 'inventory',
-    label: 'Ombor nazorati',
-    prompt: "Ombor zaxirasini kamaytirish uchun nimalarga e'tibor berish kerak?",
-  },
-  {
-    id: 'staff',
-    label: 'Xodimlar samaradorligi',
-    prompt: "Xodimlar ish samaradorligini oshirish bo'yicha maslahat ber.",
-  },
-  {
-    id: 'tables',
-    label: 'Stollar bandligi',
-    prompt: "Stollar bandligini oshirish va bronlarni boshqarish bo'yicha maslahat ber.",
-  },
-  {
-    id: 'feedback',
-    label: 'Mijozlar fikri',
-    prompt: "Mijozlar fikrlari bilan qanday ishlash kerak?",
+    id: 'openOrders',
+    label: 'Ochiq buyurtmalar',
+    prompt: 'Ochiq buyurtmalar',
   },
 ]
 
@@ -243,6 +229,10 @@ export function loadMessages(storage = defaultStorage()) {
 
 export function saveMessages(messages = [], storage = defaultStorage()) {
   try {
+    if (!messages.length) {
+      clearStoredMessages(storage)
+      return
+    }
     storage?.setItem(AI_STORAGE_KEY, JSON.stringify(messages.slice(-MAX_STORED)))
   } catch {
     return
