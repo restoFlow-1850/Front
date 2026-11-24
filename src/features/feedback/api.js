@@ -30,22 +30,13 @@ export async function deleteFeedback(id) {
 }
 
 export async function getFeedbackStats() {
-  const feedbacks = await getFeedbacks()
-  const total = feedbacks.length
-  if (total === 0) {
-    return { total: 0, avgRating: 0, positivePercent: 0, attentionCount: 0, newCount: 0 }
-  }
-
-  const sumRating = feedbacks.reduce((acc, feedback) => acc + (Number(feedback.rating) || 0), 0)
-  const avgRating = (sumRating / total).toFixed(1)
-  const positiveCount = feedbacks.filter((feedback) => Number(feedback.rating) >= 4).length
-  const attentionCount = feedbacks.filter((feedback) => Number(feedback.rating) <= 2).length
-
+  const response = await api.get('/feedbacks/stats')
+  const raw = response.data?.data?.stats ?? response.data?.data ?? response.data ?? {}
   return {
-    total,
-    avgRating: Number(avgRating),
-    positivePercent: Math.round((positiveCount / total) * 100),
-    attentionCount,
-    newCount: feedbacks.filter((feedback) => feedback.status === 'new').length,
+    total: Number(raw.total) || 0,
+    avgRating: Number(raw.avgRating) || 0,
+    positivePercent: Number(raw.positivePercent) || 0,
+    attentionCount: Number(raw.attentionCount) || 0,
+    newCount: Number(raw.newCount) || 0,
   }
 }

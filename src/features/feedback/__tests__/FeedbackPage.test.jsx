@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import '@testing-library/jest-dom/vitest'
 
 import api from '../../../services/axios'
+import { getFeedbackStats } from '../api'
 import FeedbackPage from '../pages/FeedbackPage'
 
 vi.mock('../../../services/axios', () => ({
@@ -80,6 +81,14 @@ const BACKEND_FEEDBACKS = [
   },
 ]
 
+const BACKEND_STATS = {
+  total: 2,
+  avgRating: 3.5,
+  positivePercent: 50,
+  attentionCount: 1,
+  newCount: 1,
+}
+
 function backendListResponse(feedbacks) {
   return {
     data: {
@@ -96,13 +105,46 @@ function backendListResponse(feedbacks) {
   }
 }
 
+function backendStatsResponse(stats = BACKEND_STATS) {
+  return {
+    data: {
+      success: true,
+      message: 'Mijozlar fikrlari statistikasi',
+      data: { stats, ...stats },
+    },
+  }
+}
+
 beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe('/feedback sahifasi — loading, bo‘sh ro‘yxat, xato + qayta urinish va yangi backend moduli', () => {
+describe('/feedback sahifasi — loading, bo‘sh ro‘yxat, xato + qayta urinish va GET /feedbacks/stats', () => {
+  it('getFeedbackStats() GET /feedbacks/stats endpointini chaqiradi (200 ta fikrdan emas)', async () => {
+    api.get.mockResolvedValueOnce(
+      backendStatsResponse({
+        total: 350,
+        avgRating: 4.6,
+        positivePercent: 88,
+        attentionCount: 12,
+        newCount: 19,
+      }),
+    )
+
+    const stats = await getFeedbackStats()
+
+    expect(api.get).toHaveBeenCalledTimes(1)
+    expect(api.get).toHaveBeenCalledWith('/feedbacks/stats')
+    expect(stats).toEqual({
+      total: 350,
+      avgRating: 4.6,
+      positivePercent: 88,
+      attentionCount: 12,
+      newCount: 19,
+    })
+  })
+
   it('1) loading: so‘rov tugamaguncha yuklash (skeleton) holatini ko‘rsatadi', () => {
-    // Hech qachon resolve bo'lmaydigan promise — loading holatida ushlab turadi
     api.get.mockReturnValue(new Promise(() => {}))
 
     renderFeedbackPage()
@@ -113,7 +155,11 @@ describe('/feedback sahifasi — loading, bo‘sh ro‘yxat, xato + qayta urinis
   })
 
   it('2) bo‘sh ro‘yxat: backend bo‘sh massiv qaytarsa «Fikrlar topilmadi» ko‘rsatiladi', async () => {
-    api.get.mockResolvedValue(backendListResponse([]))
+    api.get.mockImplementation((url) =>
+      url === '/feedbacks/stats'
+        ? Promise.resolve(backendStatsResponse({ total: 0, avgRating: 0, positivePercent: 0, attentionCount: 0, newCount: 0 }))
+        : Promise.resolve(backendListResponse([])),
+    )
 
     renderFeedbackPage()
 
@@ -136,8 +182,12 @@ describe('/feedback sahifasi — loading, bo‘sh ro‘yxat, xato + qayta urinis
     expect(screen.getByText('Server vaqtincha javob bermadi')).toBeInTheDocument()
     expect(screen.queryByTestId('feedback-empty')).not.toBeInTheDocument()
 
-    // Keyingi urinishda yangi backend moduli formatida muvaffaqiyatli javob qaytadi
-    api.get.mockResolvedValue(backendListResponse(BACKEND_FEEDBACKS))
+    // Keyingi urinishda /feedbacks va /feedbacks/stats muvaffaqiyatli javob qaytaradi
+    api.get.mockImplementation((url) =>
+      url === '/feedbacks/stats'
+        ? Promise.resolve(backendStatsResponse(BACKEND_STATS))
+        : Promise.resolve(backendListResponse(BACKEND_FEEDBACKS)),
+    )
 
     fireEvent.click(screen.getByTestId('feedback-retry'))
 
@@ -147,8 +197,12 @@ describe('/feedback sahifasi — loading, bo‘sh ro‘yxat, xato + qayta urinis
     expect(screen.queryByTestId('feedback-error')).not.toBeInTheDocument()
   })
 
-  it('4) yangi backend moduli (/api/feedbacks) javobini to‘g‘ri ko‘rsatadi, filtrlaydi va javob yuboradi', async () => {
-    api.get.mockResolvedValue(backendListResponse(BACKEND_FEEDBACKS))
+  it('4) yangi backend moduli (/api/feedbacks va /api/feedbacks/stats) javobini to‘g‘ri ko‘rsatadi, filtrlaydi va javob yuboradi', async () => {
+    api.get.mockImplementation((url) =>
+      url === '/feedbacks/stats'
+        ? Promise.resolve(backendStatsResponse(BACKEND_STATS))
+        : Promise.resolve(backendListResponse(BACKEND_FEEDBACKS)),
+    )
     api.patch.mockResolvedValue({
       data: {
         success: true,
@@ -168,8 +222,9 @@ describe('/feedback sahifasi — loading, bo‘sh ro‘yxat, xato + qayta urinis
     expect(screen.getByText('Stol № 4')).toBeInTheDocument()
     expect(screen.getByText('Uzr so‘raymiz, keyingi safar tezroq xizmat ko‘rsatamiz!')).toBeInTheDocument()
 
-    // Statistika: (5 + 2) / 2 = 3.5; ijobiy = 50%
+    // Statistika /feedbacks/stats dan keladi: 3.5 / 5.0; ijobiy = 50%
     await waitFor(() => {
+      expect(api.get).toHaveBeenCalledWith('/feedbacks/stats')
       expect(screen.getByText('3.5 / 5.0')).toBeInTheDocument()
       expect(screen.getByText('50%')).toBeInTheDocument()
     })
