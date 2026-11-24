@@ -14,7 +14,7 @@ import {
   getReservations,
   updateReservation,
 } from '../api'
-import { getTables, updateTable } from '../../tables/api'
+import { getTables } from '../../tables/api'
 import TableMap2D from '../../tables/components/TableMap2D'
 import { unwrapList, apiErrorMessage, formatDateTime } from '../../../lib/api'
 import {
@@ -137,14 +137,17 @@ export default function ReservationsPage() {
     onError: (error) => toast.error(apiErrorMessage(error, t('kitchen.loadFailed'))),
   })
 
+  // Stol holatini backend o'zi boshqaradi: bron `confirmed` bo'lsa stol `reserved`,
+  // `cancelled` bo'lsa (boshqa bron yo'q bo'lsa) `available` bo'ladi
+  // (Backend/src/services/reservation.service.js → update). Alohida
+  // PUT /tables/:id chaqirmaymiz — u faqat admin/manager uchun (boshqa rollarda
+  // 403 «Bu amal uchun ruxsatingiz yo'q») va stolni noto'g'ri «band» qilib qo'yardi.
   const confirmMutation = useMutation({
-    mutationFn: async ({ reservation, table }) => {
-      await updateReservation(reservation._id, {
+    mutationFn: ({ reservation, table }) =>
+      updateReservation(reservation._id, {
         status: RESERVATION_STATUS.CONFIRMED,
         table: table._id ?? table.id,
-      })
-      await updateTable(table._id ?? table.id, { status: TABLE_STATUS.BUSY })
-    },
+      }),
     onSuccess: () => {
       toast.success(t('reservations.confirmed', { defaultValue: "Bron tasdiqlandi" }))
       setConfirming(null)
@@ -157,13 +160,8 @@ export default function ReservationsPage() {
   const [confirmAction, setConfirmAction] = useState(null)
 
   const cancelMutation = useMutation({
-    mutationFn: async (reservation) => {
-      await updateReservation(reservation._id, { status: RESERVATION_STATUS.CANCELLED })
-      const tableId = reservation.table?._id ?? reservation.table
-      if (reservation.status === RESERVATION_STATUS.CONFIRMED && tableId) {
-        await updateTable(tableId, { status: TABLE_STATUS.FREE })
-      }
-    },
+    mutationFn: (reservation) =>
+      updateReservation(reservation._id, { status: RESERVATION_STATUS.CANCELLED }),
     onMutate: async (reservation) => {
       setConfirmAction(null)
       queryClient.setQueryData(['reservations', startDate, endDate], (old) => {
