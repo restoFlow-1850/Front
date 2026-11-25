@@ -103,8 +103,8 @@ export default function ReportsPage() {
     queryKey: ['reports', 'top-products', customFrom, customTo, dateRange],
     queryFn: async () => {
       const res = await getTopProductsReport({
-        from: startDate.toISOString(),
-        to: endDate.toISOString(),
+        from: startDate.toISOString().slice(0, 10),
+        to: endDate.toISOString().slice(0, 10),
         limit: 100,
       })
       return res.data?.data?.products ?? res.data?.products ?? res.data ?? []

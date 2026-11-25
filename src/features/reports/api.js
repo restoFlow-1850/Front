@@ -1,8 +1,8 @@
 ﻿// Reports API — Hisobotlar va analitika ma'lumotlarini olish
 import api from '../../services/axios'
 
-/** Dashboard umumiy hisoboti — GET /api/reports/dashboard */
-export const getDashboardReport = () => api.get('/reports/dashboard')
+/** Dashboard umumiy hisoboti — GET /api/reports (yagona kanonik endpoint) */
+export const getDashboardReport = (params) => api.get('/reports', { params })
 
 /** Kunlik savdo hisoboti — GET /api/reports/daily-sales */
 export const getDailySalesReport = (params) => api.get('/reports/daily-sales', { params })

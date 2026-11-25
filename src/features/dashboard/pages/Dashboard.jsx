@@ -17,7 +17,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'react-toastify'
 
-import { getDailySales, getDashboardStats, getReports, getTopProducts } from '../../../services/dashboardService'
+import { getDailySales, getReports, getTopProducts } from '../../../services/dashboardService'
 import { getOrders } from '../../orders/api'
 import { getTables } from '../../tables/api'
 import { unwrap, unwrapList, apiErrorMessage, formatSom, formatTime } from '../../../lib/api'
@@ -79,16 +79,13 @@ export default function Dashboard() {
     }
   }
 
-  // 1. Dashboard umumiy statistikasi — GET /reports yoki /reports/dashboard
+  // 1. Dashboard umumiy statistikasi — GET /reports.
+  // Ilgari xato holatida /reports/dashboard'ga qayta urinib, ikkinchi 401 chiqarardi.
   const statsQuery = useQuery({
     queryKey: ['reports', 'dashboard'],
     queryFn: async () => {
-      try {
-        const res = await getReports()
-        return unwrap(res, 'report') || unwrap(res)
-      } catch {
-        return unwrap(await getDashboardStats(), 'report')
-      }
+      const res = await getReports()
+      return unwrap(res, 'report') || unwrap(res)
     },
     refetchInterval: 60_000,
   })

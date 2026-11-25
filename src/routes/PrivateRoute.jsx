@@ -19,7 +19,10 @@ export default function PrivateRoute() {
   const dispatch = useDispatch()
   const { user, accessToken } = useSelector((state) => state.auth)
 
-  const token = accessToken || readToken('accessToken')
+  // API so'rovlari localStorage'dagi tokenni o'qiydi — himoyalangan sahifa ham
+  // shu token borligiga ishonch hosil qilishi shart, aks holda UI kirgan ko'rinadi,
+  // lekin /reports 401 qaytaradi.
+  const token = readToken('accessToken') || accessToken
   const needsBootstrap = Boolean(token) && !user
 
   const { data, isLoading, isError } = useQuery({
