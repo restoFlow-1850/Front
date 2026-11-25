@@ -7,10 +7,12 @@ import { useSelector } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'react-toastify'
 import { getUsers, createUser, updateUser } from '../api'
-import { ROLES, ROLE_LABELS, ROLE_LIST } from '../../../constants/roles'
+import { ROLE_LABELS, ROLE_LIST } from '../../../constants/roles'
 import { can } from '../../../constants/permissions'
+import { unwrapList, apiErrorMessage } from '../../../lib/api'
 import { Input, Table, Button, Modal } from '../../../components/ui'
 import AttendanceTable from '../components/AttendanceTable'
+import QueryError from '../components/QueryError'
 import AuditLogPage from './AuditLogPage'
 
 const newEmployeeSchema = z.object({
@@ -34,15 +36,12 @@ export default function EmployeesPage() {
     const [page, setPage] = useState(1)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [confirmAction, setConfirmAction] = useState(null)
+    const [roleDrafts, setRoleDrafts] = useState({})
     const queryClient = useQueryClient()
 
-    const { data, isLoading, isError } = useQuery({
+    const { data, isLoading, isError, error, refetch } = useQuery({
         queryKey: ['users', page],
-        queryFn: async () => {
-            const res = await getUsers({ page, limit: 20 })
-            const payload = res.data.data ?? res.data
-            return payload.users ?? payload ?? []
-        },
+        queryFn: async () => unwrapList(await getUsers({ page, limit: 20 }), ['users', 'employees', 'items']),
         enabled: activeTab === 'employees',
     })
 
@@ -69,12 +68,12 @@ export default function EmployeesPage() {
         mutationFn: (formData) => createUser(formData),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['users'] })
-            toast.success(t('employees.created', { defaultValue: "Xodim qo'shildi" }))
+            toast.success(t('employees.created'))
             reset()
             setIsModalOpen(false)
         },
         onError: (err) => {
-            toast.error(err.response?.data?.message || t('kitchen.loadFailed'))
+            toast.error(apiErrorMessage(err, t('kitchen.loadFailed')))
         },
     })
 
@@ -82,24 +81,34 @@ export default function EmployeesPage() {
         mutationFn: ({ id, isActive }) => updateUser(id, { isActive: !isActive }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['users'] })
-            toast.success(t('kitchen.statusChanged', { status: '' }))
+            toast.success(t('employees.statusChanged'))
             setConfirmAction(null)
         },
         onError: (err) => {
-            toast.error(err.response?.data?.message || t('kitchen.statusChangeFailed'))
+            toast.error(apiErrorMessage(err, t('employees.statusChangeFailed')))
             setConfirmAction(null)
         },
     })
 
     const changeRole = useMutation({
         mutationFn: ({ id, role }) => updateUser(id, { role }),
-        onSuccess: () => {
+        onSuccess: (_data, { id }) => {
             queryClient.invalidateQueries({ queryKey: ['users'] })
-            toast.success(t('kitchen.statusChanged', { status: '' }))
+            toast.success(t('employees.roleChanged'))
+            setRoleDrafts((prev) => {
+                const next = { ...prev }
+                delete next[id]
+                return next
+            })
             setConfirmAction(null)
         },
-        onError: (err) => {
-            toast.error(err.response?.data?.message || t('kitchen.statusChangeFailed'))
+        onError: (err, { id }) => {
+            toast.error(apiErrorMessage(err, t('employees.statusChangeFailed')))
+            setRoleDrafts((prev) => {
+                const next = { ...prev }
+                delete next[id]
+                return next
+            })
             setConfirmAction(null)
         },
     })
@@ -113,11 +122,12 @@ export default function EmployeesPage() {
             render: (row) =>
                 canChangeRole ? (
                     <select
-                        value={row.role}
+                        value={roleDrafts[row._id] ?? row.role}
                         disabled={changeRole.isPending}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                            setRoleDrafts((prev) => ({ ...prev, [row._id]: e.target.value }))
                             setConfirmAction({ type: 'role', row, newRole: e.target.value })
-                        }
+                        }}
                         className="rounded-md border px-2 py-1 text-xs dark:bg-gray-700 dark:text-white"
                     >
                         {ROLE_LIST.map((roleKey) => (
@@ -151,7 +161,7 @@ export default function EmployeesPage() {
                         isLoading={toggleActive.isPending}
                         onClick={() => setConfirmAction({ type: 'status', row })}
                     >
-                        {row.isActive ? t('delete') : t('employees.active')}
+                        {row.isActive ? t('employees.deactivate') : t('employees.active')}
                     </Button>
                 ) : null,
         },
@@ -164,6 +174,11 @@ export default function EmployeesPage() {
         } else if (confirmAction.type === 'status') {
             toggleActive.mutate({ id: confirmAction.row._id, isActive: confirmAction.row.isActive })
         }
+    }
+
+    const closeConfirm = () => {
+        setConfirmAction(null)
+        setRoleDrafts({})
     }
 
     return (
@@ -230,7 +245,11 @@ export default function EmployeesPage() {
                     </div>
 
                     {isError ? (
-                        <p className="text-red-500">{t('kitchen.loadFailed')}</p>
+                        <QueryError
+                            error={error}
+                            onRetry={() => refetch()}
+                            fallback={t('employees.loadFailed')}
+                        />
                     ) : (
                         <Table columns={columns} data={filtered} isLoading={isLoading} emptyMessage={t('dashboard.noData')} />
                     )}
@@ -290,19 +309,30 @@ export default function EmployeesPage() {
                         </Modal>
                     )}
 
-                    <Modal isOpen={!!confirmAction} onClose={() => setConfirmAction(null)} title={t('confirm')}>
+                    <Modal isOpen={!!confirmAction} onClose={closeConfirm} title={t('confirm')}>
                         {confirmAction?.type === 'role' && (
                             <p className="mb-4 text-sm text-gray-700 dark:text-gray-200">
-                                <strong>{confirmAction.row.name}</strong> — {t('cashier.confirmCancel')}
+                                {t('employees.confirmRole', {
+                                    name: confirmAction.row.name,
+                                    role: t(
+                                        `roles.${confirmAction.newRole}`,
+                                        ROLE_LABELS[confirmAction.newRole] ?? confirmAction.newRole,
+                                    ),
+                                })}
                             </p>
                         )}
                         {confirmAction?.type === 'status' && (
                             <p className="mb-4 text-sm text-gray-700 dark:text-gray-200">
-                                <strong>{confirmAction.row.name}</strong> — {t('cashier.confirmCancel')}
+                                {t('employees.confirmStatus', {
+                                    name: confirmAction.row.name,
+                                    status: confirmAction.row.isActive
+                                        ? t('employees.inactive')
+                                        : t('employees.active'),
+                                })}
                             </p>
                         )}
                         <div className="flex justify-end gap-2">
-                            <Button variant="secondary" onClick={() => setConfirmAction(null)}>
+                            <Button variant="secondary" onClick={closeConfirm}>
                                 {t('cancel')}
                             </Button>
                             <Button

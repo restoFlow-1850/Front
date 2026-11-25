@@ -22,7 +22,12 @@ function resolveCommit(env) {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const backendTarget = env.VITE_API_PROXY_TARGET || 'https://api-production-3d55271c.up.railway.app'
+  // Proxy manzili bitta manbadan (VITE_API_URL) keladi: ikki xil env o'zgaruvchisi
+  // mos kelmay qalsa /api so'rovlari noto'g'ri hostga ketib 502 qaytaradi.
+  const apiOrigin = /^https?:\/\//.test(env.VITE_API_URL || '')
+    ? env.VITE_API_URL.replace(/\/api\/?$/, '')
+    : ''
+  const backendTarget = apiOrigin || env.VITE_API_PROXY_TARGET || 'https://api-production-3d55271c.up.railway.app'
 
   return {
     plugins: [

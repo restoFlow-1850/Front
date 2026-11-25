@@ -16,15 +16,21 @@ export function unwrap(res, key) {
   return payload
 }
 
-/** Ro'yxat qaytaradigan endpointlar uchun — hamma holatda massiv qaytaradi. */
+/** Ro'yxat qaytaradigan endpointlar uchun — hamma holatda massiv qaytaradi.
+ *  Bir nechta mumkin bo'lgan kalit berilsa, birinchi massiv topilgani ishlatiladi. */
 export function unwrapList(res, key) {
-  const value = unwrap(res, key)
-  return Array.isArray(value) ? value : []
+  const payload = unwrap(res)
+  const keys = Array.isArray(key) ? key : [key]
+  for (const item of keys) {
+    if (item && Array.isArray(payload?.[item])) return payload[item]
+  }
+  return Array.isArray(payload) ? payload : []
 }
 
-/** Sahifalash ma'lumoti (bo'lmasa null). */
+/** Sahifalash ma'lumoti (bo'lmasa null). Backend uni data ichiga ham qo'yishi mumkin. */
 export function unwrapPagination(res) {
-  return res?.data?.pagination ?? null
+  const payload = res?.data?.data ?? res?.data
+  return res?.data?.pagination ?? payload?.pagination ?? null
 }
 
 /** Backend xato xabarini foydalanuvchiga ko'rsatish uchun matnga aylantiradi. */

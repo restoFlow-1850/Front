@@ -44,12 +44,27 @@ describe('unwrapList', () => {
     const res = { data: { data: {} } }
     expect(unwrapList(res, 'orders')).toEqual([])
   })
+
+  it('accepts several possible keys and returns the first array found', () => {
+    const res = { data: { data: { users: [{ id: 1 }], employees: [{ id: 2 }] } } }
+    expect(unwrapList(res, ['attendances', 'employees', 'users'])).toEqual([{ id: 2 }])
+  })
+
+  it('accepts a bare array payload', () => {
+    const res = { data: { data: [{ id: 1 }] } }
+    expect(unwrapList(res, ['users'])).toEqual([{ id: 1 }])
+  })
 })
 
 describe('unwrapPagination', () => {
   it('returns pagination info when present', () => {
     const res = { data: { pagination: { page: 1, total: 10 } } }
     expect(unwrapPagination(res)).toEqual({ page: 1, total: 10 })
+  })
+
+  it('returns pagination nested inside data.data', () => {
+    const res = { data: { data: { logs: [], pagination: { page: 2, totalPages: 3 } } } }
+    expect(unwrapPagination(res)).toEqual({ page: 2, totalPages: 3 })
   })
 
   it('returns null when pagination is absent', () => {

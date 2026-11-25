@@ -1,7 +1,10 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { getAttendance } from '../attendanceApi'
+import { unwrapList, unwrapPagination } from '../../../lib/api'
 import { Table, Button } from '../../../components/ui'
+import QueryError from './QueryError'
 
 const STATUS_LABELS = {
     present: 'Keldi',
@@ -36,16 +39,16 @@ function calcHours(checkIn, checkOut) {
 }
 
 export default function AttendanceTable() {
+    const { t } = useTranslation()
     const [page, setPage] = useState(1)
 
-    const { data, isLoading, isError } = useQuery({
+    const { data, isLoading, isError, error, refetch } = useQuery({
         queryKey: ['attendance', page],
         queryFn: async () => {
             const res = await getAttendance({ page, limit: 20 })
-            const payload = res.data?.data ?? res.data
             return {
-                items: payload?.attendances ?? [],
-                pagination: res.data?.pagination ?? null,
+                items: unwrapList(res, ['attendances', 'items', 'records']),
+                pagination: unwrapPagination(res),
             }
         },
     })
@@ -53,30 +56,36 @@ export default function AttendanceTable() {
     const columns = [
         {
             key: 'employee',
-            title: 'Xodim',
+            title: t('employees.name'),
             render: (row) => row.employee?.name ?? row.employee ?? '—',
         },
         { key: 'date', title: 'Sana', render: (row) => formatDate(row.date) },
-        { key: 'checkIn', title: 'Kelgan vaqti', render: (row) => formatTime(row.checkIn) },
-        { key: 'checkOut', title: 'Ketgan vaqti', render: (row) => formatTime(row.checkOut) },
+        { key: 'checkIn', title: t('employees.clockIn'), render: (row) => formatTime(row.checkIn) },
+        { key: 'checkOut', title: t('employees.clockOut'), render: (row) => formatTime(row.checkOut) },
         {
             key: 'hours',
-            title: 'Ishlangan soat',
+            title: t('employees.workHours'),
             render: (row) => calcHours(row.checkIn, row.checkOut),
         },
         {
             key: 'status',
-            title: 'Holat',
+            title: t('status'),
             render: (row) => (
                 <span className={STATUS_STYLES[row.status] ?? 'text-gray-400'}>
-                    {STATUS_LABELS[row.status] ?? row.status}
+                    {STATUS_LABELS[row.status] ?? row.status ?? '—'}
                 </span>
             ),
         },
     ]
 
     if (isError) {
-        return <p className="text-red-500">Davomat ma'lumotlarini yuklashda xatolik yuz berdi</p>
+        return (
+            <QueryError
+                error={error}
+                onRetry={() => refetch()}
+                fallback="Davomat ma'lumotlarini yuklashda xatolik yuz berdi"
+            />
+        )
     }
 
     return (

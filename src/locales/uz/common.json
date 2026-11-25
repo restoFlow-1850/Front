@@ -22,7 +22,16 @@
     "auditLog": "Audit jurnali",
     "name": "Ism",
     "role": "Vazifasi",
-    "created": "Xodim qo'shildi"
+    "created": "Xodim qo'shildi",
+    "loadFailed": "Xodimlarni yuklashda xatolik yuz berdi",
+    "backendUnavailable": "Backend vaqtinchalik ishlamayapti. Iltimos, keyinroq qayta urining.",
+    "retry": "Qayta urinish",
+    "deactivate": "Nofaollashtirish",
+    "roleChanged": "Rol yangilandi",
+    "statusChanged": "Xodim holati yangilandi",
+    "statusChangeFailed": "Xodim holatini o'zgartirib bo'lmadi",
+    "confirmRole": "{{name}} ning rolini {{role}} ga o'zgartirishni tasdiqlaysizmi?",
+    "confirmStatus": "{{name}} ni {{status}} holatiga o'tkazmoqchimisiz?"
   },
   "active": "Faol",
   "inactive": "Faol emas",

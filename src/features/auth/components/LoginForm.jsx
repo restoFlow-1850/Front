@@ -7,9 +7,13 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { authApi, getAuthErrorMessage } from '../api'
 import { setCredentials } from '../authSlice'
 import { saveSession } from '../session'
-import { ROLE_HOME } from '../../../constants/roles'
 import { resolveRedirect } from '../../../constants/navigation'
 import { connectSocket } from '../../../services/socket'
+
+const schema = z.object({
+  email: z.string().email("Email format invalid"),
+  password: z.string().min(6, "Min 6 characters"),
+})
 
 export default function LoginForm() {
   const dispatch = useDispatch()

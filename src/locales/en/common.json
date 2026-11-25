@@ -22,7 +22,16 @@
     "auditLog": "Audit log",
     "name": "Name",
     "role": "Role",
-    "created": "Employee added"
+    "created": "Employee added",
+    "loadFailed": "Failed to load employees",
+    "backendUnavailable": "Backend is temporarily unavailable. Please try again.",
+    "retry": "Retry",
+    "deactivate": "Deactivate",
+    "roleChanged": "Role updated",
+    "statusChanged": "Employee status updated",
+    "statusChangeFailed": "Failed to update employee status",
+    "confirmRole": "Change {{name}}'s role to {{role}}?",
+    "confirmStatus": "Set {{name}} to {{status}}?"
   },
   "active": "Active",
   "inactive": "Inactive",

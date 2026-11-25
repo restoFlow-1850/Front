@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getAuditLogs } from '../auditApi'
+import { unwrapList, unwrapPagination } from '../../../lib/api'
 import { Table, Input, Button } from '../../../components/ui'
+import QueryError from '../components/QueryError'
 
 function formatDateTime(iso) {
     if (!iso) return '—'
@@ -21,7 +23,7 @@ export default function AuditLogPage() {
     const [endDate, setEndDate] = useState('')
     const [page, setPage] = useState(1)
 
-    const { data, isLoading, isError } = useQuery({
+    const { data, isLoading, isError, error, refetch } = useQuery({
         queryKey: ['audit', page, action, entity, startDate, endDate],
         queryFn: async () => {
             const res = await getAuditLogs({
@@ -32,10 +34,9 @@ export default function AuditLogPage() {
                 startDate: startDate || undefined,
                 endDate: endDate || undefined,
             })
-            const payload = res.data?.data ?? res.data
             return {
-                items: payload?.logs ?? [],
-                pagination: res.data?.pagination ?? null,
+                items: unwrapList(res, ['logs', 'items', 'auditLogs']),
+                pagination: unwrapPagination(res),
             }
         },
     })
@@ -85,7 +86,11 @@ export default function AuditLogPage() {
             </div>
 
             {isError ? (
-                <p className="text-red-500">Audit jurnalini yuklashda xatolik yuz berdi</p>
+                <QueryError
+                    error={error}
+                    onRetry={() => refetch()}
+                    fallback="Audit jurnalini yuklashda xatolik yuz berdi"
+                />
             ) : (
                 <Table
                     columns={columns}

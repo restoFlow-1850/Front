@@ -19,9 +19,13 @@ export const API_URL = isDev
 // Rasm va fayllar uchun: "/uploads/x.jpg" → `${API_ORIGIN}/uploads/x.jpg` (dev'da '' — proxy orqali)
 export const API_ORIGIN = API_URL.replace(/\/api\/?$/, '')
 
+// Dev'da Socket.io faqat Vite proxy (/socket.io) orqali ulanadi. Absolute URL
+// brauzerda o'z DNS so'rovini yuboradi — backend hosti o'zgarganda yoki vaqtincha
+// ishlamaganda ERR_NAME_NOT_RESOLVED/502 chiqadi. Production'da env qiymati ishlatiladi.
 export const SOCKET_URL =
-  env.VITE_SOCKET_URL ||
-  (isDev && typeof window !== 'undefined' ? window.location.origin : API_ORIGIN || DEFAULT_API_URL.replace(/\/api$/, ''))
+  isDev && typeof window !== 'undefined'
+    ? window.location.origin
+    : env.VITE_SOCKET_URL || API_ORIGIN || DEFAULT_API_URL.replace(/\/api$/, '')
 
 export const APP_COMMIT = env.VITE_COMMIT || ''
 export const APP_COMMIT_SHORT = APP_COMMIT ? APP_COMMIT.slice(0, 7) : 'dev'
