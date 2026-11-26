@@ -152,7 +152,7 @@ export default function ProductModal({ isOpen, onClose, onSubmit, product, categ
               <input
                 type="text"
                 placeholder="Masalan: Tandir go'shti"
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 px-3.5 text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#F97316] focus:bg-white focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 px-3.5 text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#F97316] focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                 {...register('name')}
               />
               {errors.name && <p className="mt-1 text-xs font-medium text-rose-500">{errors.name.message}</p>}
@@ -163,7 +163,7 @@ export default function ProductModal({ isOpen, onClose, onSubmit, product, categ
                 Kategoriya *
               </label>
               <select
-                className="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 px-3.5 text-sm font-medium text-slate-900 outline-none transition focus:border-[#F97316] focus:bg-white focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                className="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 px-3.5 text-sm font-medium text-slate-900 outline-none transition focus:border-[#F97316] focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                 {...register('category')}
               >
                 <option value="">Kategoriyani tanlang...</option>
@@ -184,7 +184,7 @@ export default function ProductModal({ isOpen, onClose, onSubmit, product, categ
                 type="number"
                 step="100"
                 placeholder="Masalan: 45000"
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 px-3.5 text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#F97316] focus:bg-white focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 px-3.5 text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#F97316] focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                 {...register('price')}
               />
               {errors.price && <p className="mt-1 text-xs font-medium text-rose-500">{errors.price.message}</p>}
@@ -197,7 +197,7 @@ export default function ProductModal({ isOpen, onClose, onSubmit, product, categ
               <input
                 type="text"
                 placeholder="Masalan: 300 gr"
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 px-3.5 text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#F97316] focus:bg-white focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 px-3.5 text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#F97316] focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                 {...register('weight')}
               />
             </div>
@@ -210,7 +210,7 @@ export default function ProductModal({ isOpen, onClose, onSubmit, product, categ
             <textarea
               rows={2}
               placeholder="Taom tarkibi va tayyorlanishi haqida..."
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 px-3.5 text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#F97316] focus:bg-white focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 px-3.5 text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#F97316] focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               {...register('description')}
             />
           </div>

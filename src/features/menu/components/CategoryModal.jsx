@@ -123,7 +123,7 @@ export default function CategoryModal({ isOpen, onClose, onSubmit, category }) {
             <input
               type="text"
               placeholder="Masalan: Issiq taomlar"
-              className="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 px-3.5 text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#F97316] focus:bg-white focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 px-3.5 text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#F97316] focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               {...register('name')}
             />
             {errors.name && <p className="mt-1 text-xs font-medium text-rose-500">{errors.name.message}</p>}
@@ -136,7 +136,7 @@ export default function CategoryModal({ isOpen, onClose, onSubmit, category }) {
             <textarea
               rows={2}
               placeholder="Kategoriya haqida qisqacha ma'lumot..."
-              className="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 px-3.5 text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#F97316] focus:bg-white focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 px-3.5 text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition focus:border-[#F97316] focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               {...register('description')}
             />
           </div>

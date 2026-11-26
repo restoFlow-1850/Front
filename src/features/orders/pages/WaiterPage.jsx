@@ -412,7 +412,7 @@ export default function WaiterPage() {
                     value={item.note || ''}
                     maxLength={200}
                     onChange={(e) => updateItemNote(item.product, e.target.value)}
-                    className="mt-1.5 w-full rounded border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-800 placeholder-slate-400 outline-none transition focus:border-indigo-400 focus:bg-white dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    className="mt-1.5 w-full rounded border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-800 placeholder-slate-400 outline-none transition focus:border-indigo-400 focus:bg-white dark:focus:bg-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
                   />
                 </div>
               ))}

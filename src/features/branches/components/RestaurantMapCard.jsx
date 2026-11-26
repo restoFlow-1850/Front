@@ -508,7 +508,7 @@ export default function RestaurantMapCard() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('branchesMap.searchPlaceholder')}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-xs text-slate-800 placeholder-slate-400 focus:border-orange-500 focus:bg-white focus:outline-none dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-200"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-xs text-slate-800 placeholder-slate-400 focus:border-orange-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-200"
           />
         </div>
 
