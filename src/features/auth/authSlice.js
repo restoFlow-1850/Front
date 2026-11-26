@@ -1,19 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { clearSession } from './session'
-
-// Sahifa yangilanganda (F5) rolni yo'qotmaslik uchun localStorage'dan tiklaymiz.
-const readStoredUser = () => {
-  try {
-    const raw = localStorage.getItem('user')
-    return raw ? JSON.parse(raw) : null
-  } catch {
-    return null
-  }
-}
+import { clearSession, extractToken, isValidToken, readToken, readUser, storeAccessToken } from './session'
 
 const initialState = {
-  user: readStoredUser(),
-  accessToken: localStorage.getItem('accessToken') || null,
+  user: readUser(),
+  accessToken: readToken('accessToken'),
   // refreshToken yo'q — httpOnly cookie'da (#18), JavaScript'ga ko'rinmaydi
 }
 const authSlice = createSlice({
@@ -21,14 +11,16 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     setCredentials: (state, action) => {
-      const { user, accessToken } = action.payload
+      const { user } = action.payload
+      const token = extractToken(action.payload)
+
       state.user = user
-      state.accessToken = accessToken
+      state.accessToken = isValidToken(token) ? token : null
       // localStorage — API interceptor uchun yagona haqiqiy manba.
       // Redux faqat tokenni saqlab, localStorage'ni yangilamasa, UI login ko'rsatadi,
       // lekin /reports kabi so'rovlarga Authorization header qo'yilmaydi → 401.
       if (user) localStorage.setItem('user', JSON.stringify(user))
-      if (accessToken) localStorage.setItem('accessToken', accessToken)
+      storeAccessToken(state.accessToken)
     },
     clearCredentials: (state) => {
       state.user = null

@@ -17,12 +17,12 @@ import FullPageLoader from '../components/common/FullPageLoader'
 export default function PrivateRoute() {
   const location = useLocation()
   const dispatch = useDispatch()
-  const { user, accessToken } = useSelector((state) => state.auth)
+  const { user } = useSelector((state) => state.auth)
 
   // API so'rovlari localStorage'dagi tokenni o'qiydi — himoyalangan sahifa ham
   // shu token borligiga ishonch hosil qilishi shart, aks holda UI kirgan ko'rinadi,
   // lekin /reports 401 qaytaradi.
-  const token = readToken('accessToken') || accessToken
+  const token = readToken('accessToken')
   const needsBootstrap = Boolean(token) && !user
 
   const { data, isLoading, isError } = useQuery({

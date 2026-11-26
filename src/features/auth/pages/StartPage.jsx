@@ -17,7 +17,7 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import { authApi } from '../api'
-import { saveSession } from '../session'
+import { extractToken, isValidToken, saveSession } from '../session'
 
 // ─── Validatsiya sxemasi ──────────────────────────────────────────────────────
 const schema = z.object({
@@ -161,8 +161,7 @@ export default function StartPage() {
         if (data) {
           sessionData = {
             user: data.user ?? { name: formData.ownerName, role: 'admin' },
-            accessToken: data.accessToken,
-            refreshToken: data.refreshToken,
+            accessToken: extractToken(data),
           }
         }
       } catch (err) {
@@ -176,13 +175,25 @@ export default function StartPage() {
       }
     }
 
-    // Fallback yoki backend token bermasa — demo admin session
-    if (!sessionData) {
-      sessionData = {
-        user: { name: formData.ownerName, role: 'admin' },
-        accessToken: `demo-access-${Date.now()}`,
-        refreshToken: `demo-refresh-${Date.now()}`,
+    // Backend javob bermasa, haqiqiy login bilan sinab ko'ramiz. Soxta
+    // "demo-access-..." token saqlash har bir panelda 401 qaytargan edi —
+    // buning o'rniga foydalanuvchiga aniq xato ko'rsatamiz.
+    if (!sessionData?.accessToken || !isValidToken(sessionData.accessToken)) {
+      try {
+        const res = await authApi.login({ email: formData.email, password: formData.password })
+        const data = res.data?.data ?? res.data
+        const token = extractToken(data)
+        if (isValidToken(token)) {
+          sessionData = { user: data.user ?? { name: formData.ownerName, role: 'admin' }, accessToken: token }
+        }
+      } catch {
+        // Quyida umumiy xato xabari ko'rsatiladi
       }
+    }
+
+    if (!sessionData?.accessToken || !isValidToken(sessionData.accessToken)) {
+      setError("Backend bilan sessiya o'rnatib bo'lmadi. Iltimos, /login sahifasidan tizimga kiring.")
+      return
     }
 
     // Admin sessiyasini saqlash (bitta tranzaksiya: client + admin)

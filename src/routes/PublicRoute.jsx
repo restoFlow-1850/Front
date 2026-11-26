@@ -8,8 +8,8 @@ import { resolveRedirect } from '../constants/navigation'
 
 export default function PublicRoute() {
   const location = useLocation()
-  const { accessToken, user } = useSelector((state) => state.auth)
-  const token = accessToken || readToken('accessToken')
+  const { user } = useSelector((state) => state.auth)
+  const token = readToken('accessToken')
   const currentUser = user || readUser()
 
   if (token) {

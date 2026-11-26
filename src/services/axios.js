@@ -6,7 +6,15 @@ import { disconnectSocket } from './socket.js'
 import { isSubscriptionExpired, emitSubscriptionExpired, SUBSCRIPTION_EXPIRED_TOAST_ID } from '../lib/subscription'
 import { subscriptionExpiredMessage } from '../lib/messages'
 import { API_URL } from '../shared/config.js'
-import { clearSession, takeLegacyRefreshToken } from '../features/auth/session.js'
+import {
+  clearSession,
+  consumeLegacyRefreshToken,
+  extractToken,
+  isValidToken,
+  peekLegacyRefreshToken,
+  readToken,
+  storeAccessToken,
+} from '../features/auth/session.js'
 
 const baseURL = API_URL
 
@@ -18,12 +26,11 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
-const isValidToken = (token) => token && token !== 'undefined' && token !== 'null'
-
-// So'rovga token qo'shish
+// So'rovga faqat yaroqli token qo'shish. Buzilgan/soxta token yuborish
+// har bir panelda 401 qaytaradi — shuning uchun bu yerda qat'iy tekshiramiz.
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken')
-  if (isValidToken(token)) config.headers.Authorization = `Bearer ${token}`
+  const token = readToken('accessToken')
+  if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
 
@@ -94,7 +101,9 @@ api.interceptors.response.use(
     try {
       // Refresh token httpOnly cookie'da — brauzer o'zi yuboradi. Eski versiyadan
       // localStorage'da qolgan token bo'lsa, bir marta body'da yuborib, cookie'ga ko'chiramiz.
-      const legacy = takeLegacyRefreshToken()
+      // Token faqat refresh MUVAFFAQIYATLI bo'lgandan keyin o'chiriladi — aks holda
+      // tarmoq xatosida foydalanuvchi butunlay sessiyasiz qolardi.
+      const legacy = peekLegacyRefreshToken()
       const res = await axios.post(
         `${baseURL}/auth/refresh`,
         legacy ? { refreshToken: legacy } : {},
@@ -102,13 +111,32 @@ api.interceptors.response.use(
       )
       // Backend standart {success, data} formatida o'raydi — xavfsiz ochamiz (Zulfqor).
       const data = res.data?.data ?? res.data
-      localStorage.setItem('accessToken', data.accessToken)
+      const nextToken = extractToken(data) ?? extractToken(res.data)
 
-      processQueue(null, data.accessToken)
-      originalRequest.headers.Authorization = `Bearer ${data.accessToken}`
+      // Noto'g'ri formatdagi javob localStorage'ga "undefined" yozib qo'ymasligi
+      // shart — keyingi barcha so'rovlar yana 401 qaytarardi.
+      if (!isValidToken(nextToken)) {
+        throw new Error('Refresh javobida yaroqli access token yo‘q')
+      }
+
+      storeAccessToken(nextToken)
+      consumeLegacyRefreshToken()
+
+      processQueue(null, nextToken)
+      originalRequest.headers.Authorization = `Bearer ${nextToken}`
       return api(originalRequest)
     } catch (refreshError) {
       processQueue(refreshError, null)
+
+      // Tarmoq uzilishi yoki server xatosida sessiyani o'chirmaymiz — bu
+      // foydalanuvchini keraksiz ravishda login'ga uloqtirardi. Faqat haqiqiy
+      // autentifikatsiya rad etilganda (401/403) chiqish qilamiz.
+      const status = refreshError?.response?.status
+      const isTransportFailure = !status || status >= 500
+      if (isTransportFailure) {
+        return Promise.reject(refreshError)
+      }
+
       redirectToLogin()
       return Promise.reject(refreshError)
     } finally {
